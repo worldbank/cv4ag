@@ -14,9 +14,11 @@ The framewoArk consists of four parts
 5. Application
 """
 import argparse,sys
+import json
 #import subdirectories to python path
 sys.path.append('scripts')
 sys.path.append('modules')
+sys.path.append('lib')
 
 def parse(inputFile=None,outputFile=None,\
 	scriptFile=None, scriptArg=None):
@@ -70,7 +72,7 @@ if __name__ == "__main__":
 			self.print_help()
 			sys.exit(2)
 	cmdParser = myParse(\
-		description='Machine Learning Framework for Agricultural Data',
+		description='Machine Learning Framework for Agricultural Data.',
 		add_help=True)
 	cmdParser.add_argument('MODULE',
 		metavar='MODULE',
