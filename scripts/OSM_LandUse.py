@@ -9,23 +9,25 @@ from country_bounding_boxes import (
       country_subunits_containing_point,
       country_subunits_by_iso_code
     )
-from utils.geo import ELEMENTS_FILENAME
 from utils.overpass_client import OverpassClient
 
-# Query string to OSM
-query = '''
+# Query string to OSM to provide landuse data, with the query key later
+# placed in the middle
+query_begin = '''
 way
-  [leisure=pitch]
+  ['''
+query_end=''']
   ({query_bb_s},{query_bb_w},{query_bb_n},{query_bb_e});
 (._;>;);
 out;
 '''
 
-def script(countryISO='US'):
+def script(countryISO='US',query='landuse'):
 	"""
 	Main function executed by top
 
 	'countryISO': Country for which BBox data should be downloaded
+	Returns land use data tiles in country
 	"""
 	subunits=[]
 	#Load country data
@@ -33,13 +35,16 @@ def script(countryISO='US'):
 		subunits.append(c)
 	#Chose subunits, if more than 1
 	subunit=1
-	if len(subunits)>1:
+	if len(subunits)>1: #if there are subunits
 		cnt = 1
 		print 	"Subunits:"
 		for c in subunits:
 			print cnt,"- ",c.name			
 			cnt += 1
 		subunit=input('Chose subunit: ')
+	elif len(subunits)==0: #if nothing found
+		print "Error: No country or entry with ISO code",countryISO
+		exit()
 	#Get BBox data for country
 	print "Acquiring data for",subunits[subunit-1].name
 	bbox = subunits[subunit-1].bbox #0-w, 1-s, 2-e, 3-n
@@ -58,12 +63,11 @@ def script(countryISO='US'):
 
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
-	elements = overpass_client.get_bbox_elements(
-	    ql_template=query,
+	datatiles = overpass_client.get_bbox_elements(
+	    ql_template=query_begin+query+query_end,
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
-	print 'Total elements found: %d' % len(elements)
+	print 'Total elements found: %d' % len(datatiles)
 
+	return [datatiles,'json']
 	# Cache the result
-	with open(ELEMENTS_FILENAME, 'w') as f:
-	    json.dump(elements, f)

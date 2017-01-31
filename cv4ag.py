@@ -20,19 +20,20 @@ sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
 
-def parse(inputFile=None,outputFile=None,\
-	scriptFile=None, scriptArg=None):
+def parse(inputFile=None,outputFolder=None,\
+	scriptFile=None, scriptArg1=None,scriptArg2=None):
 	"""
 	Acquire and parse data
 	
 	'datatype': Data type (json or geoTiff)
-	'outputFile': Filename for output data
+	'outputFolder': Filename for output data
 	'inputFile': Filename for input data
-	'script': Script that returns input data. Has to contain script(.) function
+	'script': Script that returns input data. Has to contain script(.) function that returns a list with (datatiles,datatype)
 	'scriptArg': Arguments for script, if any
 	"""
 	
-	#Execute script, if given
+	#Execute script, if given. This should allow to users to load data from 
+	#custom scripts.
 	if scriptFile:
 		# import script file as module for input with and without .py ending
 		if scriptFile[0:8] == "scripts/":
@@ -40,16 +41,27 @@ def parse(inputFile=None,outputFile=None,\
 		if scriptFile[-3:] == ".py":
 			scriptFile = scriptFile[0:-3] # delete .py ending if present
 		scriptModule = __import__(scriptFile)
-
-		if scriptArg:
-			data = scriptModule.script(scriptArg)
+		
+		#load according to how many arguments are given
+		if scriptArg1:
+			if scriptArg2:
+				scriptReturn= scriptModule.script(scriptArg1,scriptArg2)
+			else:
+				scriptReturn= scriptModule.script(scriptArg1)
 		else:
-			data = scriptModule.script()
+			scriptReturn= scriptModule.script()
+		datatiles=	scriptReturn[0] #data
+		datatype=	scriptReturn[1] #data type
+	#or load data from inputfile
+	else:
+		pass
 
-	#Parse to json
+	#Parse to json, if elements are not json
 
 	#Save	
-	pass
+	with open(outputFolder+"datatiles.json", 'w') as f:
+	    json.dump(datatiles,f)
+	print "Written to "+outputFolder+"datatiles.json"
 
 def get_satellite():
 	pass
@@ -91,29 +103,35 @@ if __name__ == "__main__":
 		type=str,default=None,
 		help='Script file to obtain data')
 	cmdParser.add_argument('--o',
+		type=str,default="data/",
+		help='Output folder.')
+	cmdParser.add_argument('--arg1',
 		type=str,default=None,
-		help='Output file.')
-	cmdParser.add_argument('--scriptarg',
+		help='Argument 1 for script.')
+	cmdParser.add_argument('--arg2',
 		type=str,default=None,
-		help='Argument for script.')
+		help='Argument 2 for script.')
 	cmdArgs = vars(cmdParser.parse_args())
 	selectedModule = cmdArgs.get('MODULE')
 	inputFile = cmdArgs.get('i')
-	outputFile = cmdArgs.get('o')
+	outputFolder = cmdArgs.get('o')
 	scriptFile = cmdArgs.get('s')
-	scriptArg = cmdArgs.get('scriptarg')
+	scriptArg1 = cmdArgs.get('arg1')
+	scriptArg2 = cmdArgs.get('arg2')
 	
 	# Execute according to options
 	if selectedModule == 'all':
-		parse(inputFile=inputFile,outputFile=outputFile,
-			scriptFile=scriptFile,scriptArg=scriptArg)
+		parse(inputFile=inputFile,outputFolder=outputFolder,
+			scriptFile=scriptFile,
+			scriptArg1=scriptArg1,scriptArg2=scriptArg2)
 		get_satellite()
 		overlay()
 		train()
 		ml()
 	elif selectedModule == 'parse':
-		parse(inputFile=inputFile,outputFile=outputFile,
-			scriptFile=scriptFile,scriptArg=scriptArg)
+		parse(inputFile=inputFile,outputFolder=outputFolder,
+			scriptFile=scriptFile,
+			scriptArg1=scriptArg1,scriptArg2=scriptArg2)
 	elif selectedModule == 'satellite':
 		get_satellite()
 	elif selectedModule == 'overlay':
