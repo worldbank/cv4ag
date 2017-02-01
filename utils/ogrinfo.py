@@ -59,7 +59,7 @@ def main(argv = None):
     global bSummaryOnly
     global nFetchFID
     global papszOptions
-
+    layerlist=[]
     pszWHERE = None
     pszDataSource = None
     papszLayers = None
@@ -170,7 +170,7 @@ def main(argv = None):
     if poDS is None and not bReadOnly:
         poDS = ogr.Open( pszDataSource, False )
         if poDS is not None and bVerbose:
-            print( "Had to open data source read-only." )
+            #print( "Had to open data source read-only." )
             bReadOnly = True
 
 # --------------------------------------------------------------------
@@ -246,7 +246,8 @@ def main(argv = None):
 
                 if not bAllLayers:
                     line = "%d: %s" % (iLayer+1, poLayer.GetLayerDefn().GetName())
-
+		    # added by hep-ml
+		    layerlist.append(poLayer.GetLayerDefn().GetName())
                     nGeomFieldCount = poLayer.GetLayerDefn().GetGeomFieldCount()
                     if nGeomFieldCount > 1:
                         line = line + " ("
@@ -287,8 +288,7 @@ def main(argv = None):
 #      Close down.
 # --------------------------------------------------------------------
     poDS.Destroy()
-
-    return 0
+    return layerlist
 
 #**********************************************************************
 #                               Usage()
@@ -521,7 +521,7 @@ def DumpReadableGeometry( poGeometry, pszPrefix, options ):
 
         print("%s%s" % (pszPrefix, poGeometry.ExportToWkt() ))
 
-    return
+    return 
 
 if __name__ == '__main__':
     version_num = int(gdal.VersionInfo('VERSION_NUM'))

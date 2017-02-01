@@ -1,10 +1,12 @@
 from osgeo import gdal
 import utils.ogr2ogr as ogr2ogr
+import utils.ogrinfo as ogrinfo
 import utils.gdal_polygonize_edited as gdal_polygonize
 import os,csv
 import json
 
-def parse(inputFile=None,outputFolder="data",datatype=None,\
+def parse(inputFile=None,outputFolder="data",\
+	outputFile="datatiles.json",datatype=None,\
 	scriptFile=None, scriptArg1=None,scriptArg2=None,\
 	scriptArg3=None,scriptArg4=None):
 	"""
@@ -50,53 +52,79 @@ def parse(inputFile=None,outputFolder="data",datatype=None,\
 			print "Error: provide either script or input file"
 			exit()
 
-	#check if provided code exists and if it is vector or raster format
+	#check if provided code exists and if it is ogr-readable vector or 
+	#ogr-readable raster format
 	vector_or_raster=0 # 2 = Vector, 1 = Raster
-	with open('libs/ogr_raster_formats.csv','rb') as csvfile:
-		raster_formats = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
-	for cnt in range(0,len(raster_formats)):
-		if datatype == raster_formats[cnt][1]:
-			print "Detected format:",raster_formats[cnt][0]
-			if raster_formats[cnt][-1]!='Yes':
-				print "Please be aware:"
-				print "Is format compiled in standard GDAL?",raster_formats[cnt][-1]
-			print "This format is a raster format"
-			vector_or_raster = 1
-	with open('libs/ogr_vector_formats.csv','rb') as csvfile:
-		vector_formats = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
-	for cnt in range(0,len(vector_formats)):
-		if datatype == vector_formats[cnt][1]:
-			print "Detected format:",vector_formats[cnt][0]
-			if vector_formats[cnt][-1]!='Yes':
-				print "Please be aware:"
-				print "Is format compiled in standard GDAL?",vector_formats[cnt][-1]
-			print "This format is a vector format"
-			vector_or_raster = 2
+	if datatype: #if raster format has to be polygonized into vector format
+		with open('libs/ogr_raster_formats.csv','rb') as csvfile:
+			raster_formats = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
+		for cnt in range(0,len(raster_formats)):
+			if datatype == raster_formats[cnt][1]:
+				print "Detected format:",raster_formats[cnt][0]
+				if raster_formats[cnt][-1]!='Yes':
+					print "Please be aware:"
+					print "Is format compiled in standard GDAL?",raster_formats[cnt][-1]
+				print "Ths format  is a raster format"
+				vector_or_raster = 1
+		with open('libs/ogr_vector_formats.csv','rb') as csvfile:
+			vector_formats = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
+		for cnt in range(0,len(vector_formats)):
+			if datatype == vector_formats[cnt][1]:
+				print "Detected format:",vector_formats[cnt][0]
+				if vector_formats[cnt][-1]!='Yes':
+					print "Please be aware:"
+					print "Is format compiled in standard GDAL?",vector_formats[cnt][-1]
+				print "This format is a vector format"
+				vector_or_raster = 2
+		if vector_or_raster == 0:
+			print "Error: Format",datatype,\
+				"not found. Check libs/*.csv for available formats."
+			exit()
 	if vector_or_raster == 0:
-		print "Error: Format",datatype,\
-			"not found. Check libs/*.csv for available formats."
-		exit()
+		vector_or_raster = 2 # Assuming vector format if no datatype specified.
 
-	#ignore, if already in GeoJSON format
 	if datatype=="GeoJSON":
-		pass
+		outputFile=inputFile#ignore, if already in GeoJSON format
+		print "No parsing needed"
 	else:
-		#vectorize if in raster format
-		if vector_or_raster == 2:
-			pass
-		elif vector_or_raster == 1:
-			gdal_polygonize.polygonize(inputFile,outputFolder+"/"+"polygonised.json",
-				"GeoJSON",quiet_flag=0)
-			
-			
-
-
-	#rawData = open(inputFile,'r')
-		
-
-	#Parse to json, if elements are not json
-
-	#Save	
-	#with open(outputFolder+"datatiles.json", 'w') as f:
-	#	json.dump(datatiles,f)
-	#print "Written to "+outputFolder+"datatiles.json"
+		#vectorize if in raster format and user agrees
+		if vector_or_raster == 1:
+			if input("Your file is a raster format. Convert to vector format? (y/n)").lower == "y":
+				gdal_polygonize.polygonize(inputFile,outputFolder+"/polygonised.json",
+					"GeoJSON",quiet_flag=0) #not tested
+				inputFile=outputFolder+"/polygonised.json"
+		#get layers of input file
+		layers = ogrinfo.main(["-so",inputFile])
+		if len(layers)>1:
+			# Select layers (one or all)
+			print 'bu'
+			choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
+			if choseLayer==0: # iterate over each layer
+				for i in range(0,len(layers)):
+					print "Converting layer",layers[i],"(",i+1,"out of",len(layers),"layers)..."
+					# avoid GeoJSON error (GeoJSON cannot overwrite files)
+					_,outputFile=os.path.split(outputFolder+"/"+inputFile+str(i+1)+".json")
+					try:
+						os.remove(outputFile)
+					except OSError:
+						pass	
+					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
+					print ''
+					print "Converted to",outputFile,"in",outputFolder
+			else: #only convert one layer
+				_,outputFile=os.path.split(outputFolder+"/"+inputFile+".json")
+				print "Converting layer",layers[choseLayer-1],"..."
+				try:
+					os.remove(outputFile)
+				except OSError:
+					pass	
+				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1]]) #convert layer
+				print ''
+				print "Converted to",outputFile,"in",outputFolder
+		else:
+			_,outputFile=os.path.split(outputFolder+"/"+inputFile+".json")
+			print "Converting..."
+			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
+			print ''
+			print "Converted to",outputFile,"in",outputFolder
+	return outputFolder+"/"+outputFile

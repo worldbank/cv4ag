@@ -524,7 +524,6 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
         if poClipDst is None:
             print("FAILURE: cannot load dest clip geometry\n" )
             return Usage()
-
 # --------------------------------------------------------------------
 #      Open data source.
 # --------------------------------------------------------------------
