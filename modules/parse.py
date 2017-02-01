@@ -2,6 +2,7 @@ from osgeo import gdal
 import utils.ogr2ogr as ogr2ogr
 import utils.ogrinfo as ogrinfo
 import utils.gdal_polygonize_edited as gdal_polygonize
+import get_stats
 import os,csv
 import json
 
@@ -97,7 +98,6 @@ def parse(inputFile=None,outputFolder="data",\
 		layers = ogrinfo.main(["-so",inputFile])
 		if len(layers)>1:
 			# Select layers (one or all)
-			print 'bu'
 			choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
 			if choseLayer==0: # iterate over each layer
 				for i in range(0,len(layers)):
@@ -130,4 +130,5 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
+	get_stats.get_stats(outputFile)
 	return outputFolder+"/"+outputFile

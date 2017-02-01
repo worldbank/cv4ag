@@ -14,15 +14,12 @@ The framewoArk consists of four parts
 5. Application
 """
 import argparse,sys,os
+#import subdirectories to python path
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse
-#import subdirectories to python path
+import parse,get_satellite
 #-------------------------------------------------------------------
-
-def get_satellite():
-	pass
 
 def overlay():
 	pass
@@ -110,7 +107,7 @@ if __name__ == "__main__":
 			scriptFile=scriptFile,datatype=datatype,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
-		get_satellite()
+		get_satellite.get_satellite()
 		overlay()
 		train()
 		ml()
@@ -120,7 +117,7 @@ if __name__ == "__main__":
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 	elif selectedModule == 'satellite':
-		get_satellite()
+		get_satellite.get_satellite()
 	elif selectedModule == 'overlay':
 		overlay()
 	elif selectedModule == 'train':
