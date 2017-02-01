@@ -76,7 +76,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	
 	# Save the result
 	fileName=outputFolder+'/'+outputFile
-	with open(fileName, 'w') as f:
+	with open(fileName, 'a+') as f:
 			json.dump(datatiles,f)
 	print "Written to",fileName
 	return [fileName,datatype]

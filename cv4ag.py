@@ -66,9 +66,9 @@ if __name__ == "__main__":
 		help='Output folder.')
 	cmdParser.add_argument('-d',metavar='GDAL_CODE',
 		type=str,default=None,
-		help='Datatype. Will try to find automatically if not provided\
+		help='Datatype. Will try to find automatically if not provided.\
 			See www.gdal.org/formats_list.html and \
-			www.gdal.org/ogr_formats.html for GDAL_CODEs.')
+			www.gdal.org/ogr_formats.html, or libs/ogr_*_formats.csv for GDAL_CODEs.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')

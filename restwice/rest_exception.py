@@ -1,0 +1,2 @@
+class RestwiceException(Exception):
+    pass
