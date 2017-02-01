@@ -103,16 +103,18 @@ def parse(inputFile=None,outputFolder="data",\
 				for i in range(0,len(layers)):
 					print "Converting layer",layers[i],"(",i+1,"out of",len(layers),"layers)..."
 					# avoid GeoJSON error (GeoJSON cannot overwrite files)
-					_,outputFile=os.path.split(outputFolder+"/"+inputFile+str(i+1)+".json")
+					_,outputFile=os.path.split(inputFile+str(i+1)+".json")
+					outputFile=outputFolder+"/"+outputFile
 					try:
 						os.remove(outputFile)
 					except OSError:
 						pass	
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
-					print "Converted to",outputFile,"in",outputFolder
+					print "Converted to",outputFile
 			else: #only convert one layer
-				_,outputFile=os.path.split(outputFolder+"/"+inputFile+".json")
+				_,outputFile=os.path.split(inputFile+".json")
+				outputFile=outputFolder+"/"+outputFile
 				print "Converting layer",layers[choseLayer-1],"..."
 				try:
 					os.remove(outputFile)
@@ -120,11 +122,12 @@ def parse(inputFile=None,outputFolder="data",\
 					pass	
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1]]) #convert layer
 				print ''
-				print "Converted to",outputFile,"in",outputFolder
+				print "Converted to",outputFile
 		else:
-			_,outputFile=os.path.split(outputFolder+"/"+inputFile+".json")
+			_,outputFile=os.path.split(inputFile+".json")
+			outputFile=outputFolder+"/"+outputFile
 			print "Converting..."
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
-			print "Converted to",outputFile,"in",outputFolder
+			print "Converted to",outputFile
 	return outputFolder+"/"+outputFile
