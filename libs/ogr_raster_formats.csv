@@ -1,0 +1,89 @@
+Aeronav FAA files,AeronavFAA,No,Yes,Yes
+AmigoCloud API,AmigoCloud,Yes,Yes,"No, needs libcurl"
+ESRI ArcObjects,ArcObjects,No,Yes,"No, needs ESRI ArcObjects"
+Arc/Info Binary Coverage,AVCBin,No,Yes,Yes
+Arc/Info .E00 (ASCII) Coverage,AVCE00,No,Yes,Yes
+Arc/Info Generate,ARCGEN,No,No,Yes
+Atlas BNA,BNA,Yes,No,Yes
+AutoCAD DWG,CAD,No,Yes,Yes (internal libopencad provided)
+AutoCAD DWG,DWG,No,No,"No, needs Open Design Alliance Teigha library"
+AutoCAD DXF,DXF,Yes,No,Yes
+Carto,Carto,Yes,Yes,"No, needs libcurl"
+Cloudant / CouchDB,Cloudant,Yes,Yes,"No, needs libcurl"
+CouchDB / GeoCouch,CouchDB,Yes,Yes,"No, needs libcurl"
+Comma Separated Value (.csv),CSV,Yes,No,Yes
+OGC CSW (Catalog Service for the Web),CSW,No,Yes,"No, needs libcurl"
+Czech Cadastral Exchange Data Format,VFK,No,Yes,"No, needs libsqlite3"
+DB2 Spatial,DB2ODBC,Yes,Yes,"No, needs ODBC library"
+DODS/OPeNDAP,DODS,No,Yes,"No, needs libdap"
+EDIGEO,EDIGEO,No,Yes,Yes
+ElasticSearch,ElasticSearch,Yes,Yes,"No, needs libcurl"
+ESRI FileGDB,FileGDB,Yes,Yes,"No, needs FileGDB API library"
+ESRI Personal GeoDatabase,PGeo,No,Yes,"No, needs ODBC library"
+ESRI ArcSDE,SDE,No,Yes,"No, needs ESRI SDE"
+ESRI Shapefile / DBF,ESRI Shapefile,Yes,Yes,Yes
+FMEObjects Gateway,FMEObjects Gateway,No,Yes,"No, needs FME"
+GeoJSON,GeoJSON,Yes,Yes,Yes
+Géoconcept Export,Geoconcept,Yes,Yes,Yes
+Geomedia .mdb,Geomedia,No,No,"No, needs ODBC library"
+GeoPackage,GPKG,Yes,Yes,"No, needs libsqlite3"
+GeoRSS,GeoRSS,Yes,Yes,Yes (read support needs libexpat)
+Google Fusion Tables,GFT,Yes,Yes,"No, needs libcurl"
+GML,GML,Yes,Yes,Yes (read support needs Xerces or libexpat)
+GMLAS,GMLAS,Yes,Yes,Yes (requires Xerces)
+GMT,GMT,Yes,Yes,Yes
+GPSBabel,GPSBabel,Yes,Yes,Yes (needs GPSBabel and GPX driver)
+GPX,GPX,Yes,Yes,Yes (read support needs libexpat)
+GRASS Vector Format,GRASS,No,Yes,"No, needs libgrass"
+"GPSTrackMaker (.gtm, .gtz)",GPSTrackMaker,Yes,Yes,Yes
+Hydrographic Transfer Format,HTF,No,Yes,Yes
+Idrisi Vector (.VCT),Idrisi,No,Yes,Yes
+Informix DataBlade,IDB,Yes,Yes,"No, needs Informix DataBlade"
+INTERLIS,"""Interlis 1"" and ""Interlis 2""",Yes,Yes,"No, needs Xerces"
+INGRES,INGRES,Yes,No,"No, needs INGRESS"
+JML,OpenJUMP .jml,Yes,No,Yes (read support needs libexpat)
+KML,KML,Yes,Yes,Yes (read support needs libexpat)
+LIBKML,LIBKML,Yes,Yes,"No, needs libkml"
+Mapinfo File,MapInfo File,Yes,Yes,Yes
+Microstation DGN,DGN,Yes,No,Yes
+Access MDB (PGeo and Geomedia capable),MDB,No,Yes,"No, needs JDK/JRE"
+Memory,Memory,Yes,Yes,Yes
+MongoDB,MongoDB,Yes,Yes,"No, needs Mongo C++ client library"
+MySQL,MySQL,No,Yes,"No, needs MySQL library"
+NAS - ALKIS,NAS,No,Yes,"No, needs Xerces"
+NetCDF,netCDF,Yes,Yes,"No, needs libnetcdf"
+Oracle Spatial,OCI,Yes,Yes,"No, needs OCI library"
+ODBC,ODBC,No,Yes,"No, needs ODBC library"
+MS SQL Spatial,MSSQLSpatial,Yes,Yes,"No, needs ODBC library"
+Open Document Spreadsheet,ODS,Yes,No,"No, needs libexpat"
+"OGDI Vectors (VPF, VMAP, DCW)",OGDI,No,Yes,"No, needs OGDI library"
+OpenAir,OpenAir,No,Yes,Yes
+ESRI FileGDB,OpenFileGDB,No,Yes,Yes
+OpenStreetMap XML and PBF,OSM,No,Yes,"No, needs libsqlite3 (and libexpat for OSM XML)"
+PCI Geomatics Database File,PCIDSK,Yes,Yes,"Yes, using internal PCIDSK SDK (from GDAL 1.7.0)"
+Geospatial PDF,PDF,Yes,Yes,Yes (read supports need libpoppler or libpodofo support)
+PDS,PDS,No,Yes,Yes
+Planet Labs Scenes API,PLScenes,No,Yes,"No, needs libcurl"
+PostgreSQL SQL dump,PGDump,Yes,Yes,Yes
+PostgreSQL/PostGIS,PostgreSQL/PostGIS,Yes,Yes,"No, needs PostgreSQL client library (libpq)"
+EPIInfo .REC,REC,No,No,Yes
+S-57 (ENC),S57,No,Yes,Yes
+SDTS,SDTS,No,Yes,Yes
+SEG-P1 / UKOOA P1/90,SEGUKOOA,No,Yes,Yes
+SEG-Y,SEGY,No,No,Yes
+Selafin/Seraphin format,Selafin,Yes,Partial (only EPSG code),Yes
+Norwegian SOSI Standard,SOSI,No,Yes,"No, needs FYBA library"
+SQLite/SpatiaLite,SQLite,Yes,Yes,"No, needs libsqlite3 or libspatialite"
+SUA,SUA,No,Yes,Yes
+SVG,SVG,No,Yes,"No, needs libexpat"
+Storage and eXchange Format,SXF,No,Yes,Yes
+UK .NTF,UK. NTF,No,Yes,Yes
+U.S. Census TIGER/Line,TIGER,No,Yes,Yes
+VRT - Virtual Datasource,VRT,No,Yes,Yes
+OGC WFS (Web Feature Service),WFS,Yes,Yes,"No, needs libcurl"
+MS Excel format,XLS,No,No,"No, needs libfreexl"
+MS Office Open XML spreadsheet,XLSX,Yes,No,"No, needs libexpat"
+X-Plane/Flightgear aeronautical data,XPLANE,No,Yes,Yes
+VDV-451/VDV-452/IDF,VDV,Yes,Yes,Yes
+Walk,Walk,No,Yes,"No, needs ODBC library"
+WAsP .map format,WAsP,Yes,Yes,Yes

@@ -1,0 +1,152 @@
+Arc/Info ASCII Grid,AAIGrid,Yes,Yes,2GB,Yes
+ACE2,ACE2,No,Yes,--,Yes
+ADRG/ARC Digitilized Raster Graphics (.gen/.thf),ADRG,Yes,Yes,--,Yes
+Arc/Info Binary Grid (.adf),AIG,No,Yes,--,Yes
+AIRSAR Polarimetric,AIRSAR,No,No,--,Yes
+Azavea Raster Grid,ARG,Yes,Yes,--,Yes
+"Magellan BLX Topo (.blx, .xlb)",BLX,Yes,Yes,--,Yes
+Bathymetry Attributed Grid (.bag),BAG,No,Yes,2GiB,"No, needs libhdf5"
+Microsoft Windows Device Independent Bitmap (.bmp),BMP,Yes,Yes,4GiB,Yes
+BPG (Better Portable Graphics),BPG,No,No,---,"No, needs libbpg (manual build required for now)"
+BSB Nautical Chart Format (.kap),BSB,No,Yes,--,"Yes, can be disabled"
+VTP Binary Terrain Format (.bt),BT,Yes,Yes,--,Yes
+AutoCAD DWG Raster layer,CAD,No,Yes,--,Yes (internal libopencad provided)
+CALS Type I,CALS,Yes,No,--,Yes
+CEOS (Spot for instance),CEOS,No,No,--,Yes
+DRDC COASP SAR Processor Raster,COASP,No,No,--,Yes
+TerraSAR-X Complex SAR Data Product,COSAR,No,No,--,Yes
+Convair PolGASP data,CPG,No,Yes,--,Yes
+USGS LULC Composite Theme Grid,CTG,No,Yes,--,Yes
+DB2,DB2,Yes,Yes,No limits,"No, needs ODBC (and any or all of PNG, JPEG, WEBP drivers)"
+DirectDraw Surface,DDS,Yes,No,,"No, needs Crunch Lib"
+Derived,DERIVED,No,Yes,--,Yes
+Spot DIMAP (metadata.dim),DIMAP,No,Yes,--,Yes
+ELAS DIPEx,DIPEx,No,Yes,--,Yes
+DODS / OPeNDAP,DODS,No,Yes,--,"No, needs libdap"
+First Generation USGS DOQ (.doq),DOQ1,No,Yes,--,Yes
+New Labelled USGS DOQ (.doq),DOQ2,No,Yes,--,Yes
+"Military Elevation Data (.dt0, .dt1, .dt2)",DTED,Yes,Yes,--,Yes
+Arc/Info Export E00 GRID,E00GRID,No,Yes,--,Yes
+ECRG Table Of Contents (TOC.xml),ECRGTOC,No,Yes,--,Yes
+ERDAS Compressed Wavelets (.ecw),ECW,Yes,Yes,,"No, needs ECW SDK"
+ESRI .hdr Labelled,EHdr,Yes,Yes,No limits,Yes
+Erdas Imagine Raw,EIR,No,Yes,--,Yes
+NASA ELAS,ELAS,Yes,Yes,--,Yes
+ENVI .hdr Labelled Raster,ENVI,Yes,Yes,No limits,Yes
+Epsilon - Wavelet compressed images,EPSILON,Yes,No,--,"No, needs EPSILON library"
+ERMapper (.ers),ERS,Yes,Yes,,Yes
+Envisat Image Product (.n1),ESAT,No,No,--,Yes
+EOSAT FAST Format,FAST,No,Yes,--,Yes
+FIT,FIT,Yes,No,--,Yes
+FITS (.fits),FITS,Yes,No,--,"No, needs libcfitsio"
+Fuji BAS Scanner Image,FujiBAS,No,No,--,Yes
+Generic Binary (.hdr Labelled),GENBIN,No,No,--,Yes
+GeoPackage,GPKG,Yes,Yes,No limits,"No, needs libsqlite3 (and any or all of PNG, JPEG, WEBP drivers)"
+Oracle Spatial GeoRaster,GEORASTER,Yes,Yes,No limits,"No, needs Oracle client libraries"
+GSat File Format,GFF,No,No,--,Yes
+Graphics Interchange Format (.gif),GIF,Yes,No,2GB,Yes (internal GIF library provided)
+WMO GRIB1/GRIB2 (.grb),GRIB,No,Yes,2GB,"Yes, can be disabled"
+GMT Compatible netCDF,GMT,Yes,Yes,2GB,"No, needs libnetcdf"
+GRASS Raster Format,GRASS,No,Yes,--,"No, needs libgrass"
+GRASS ASCII Grid,GRASSASCIIGrid,No,Yes,--,Yes
+Golden Software ASCII Grid,GSAG,Yes,Yes,--,Yes
+Golden Software Binary Grid,GSBG,Yes,Yes,4GiB (32767x32767 of 4 bytes each + 56 byte header),Yes
+Golden Software Surfer 7 Binary Grid,GS7BG,Yes,Yes,4GiB,Yes
+GSC Geogrid,GSC,Yes,No,--,Yes
+Generic Tagged Arrays (.gta),GTA,Yes,Yes,,"No, needs libgta"
+TIFF / BigTIFF / GeoTIFF (.tif),GTiff,Yes,Yes,4GiB for classical TIFF / No limits for BigTIFF,Yes (internal libtiff and libgeotiff provided)
+NOAA .gtx vertical datum shift,GTX,Yes,Yes,,Yes
+GXF - Grid eXchange File,GXF,No,Yes,4GiB,Yes
+Hierarchical Data Format Release 4 (HDF4),HDF4,Yes,Yes,2GiB,"No, needs libdf"
+Hierarchical Data Format Release 5 (HDF5),HDF5,No,Yes,2GiB,"No, needs libhdf5"
+HF2/HFZ heightfield raster,HF2,Yes,Yes,-,Yes
+Erdas Imagine (.img),HFA,Yes,Yes,No limits2,Yes
+Image Display and Analysis (WinDisp),IDA,Yes,Yes,2GB,Yes
+"ILWIS Raster Map (.mpr,.mpl)",ILWIS,Yes,Yes,--,Yes
+Intergraph Raster,INGR,Yes,Yes,2GiB,Yes
+IRIS,IRIS,No,Yes,--,Yes
+ISCE raster,ISCE,Yes,No,--,Yes
+USGS Astrogeology ISIS cube (Version 2),ISIS2,Yes,Yes,--,Yes
+USGS Astrogeology ISIS cube (Version 3),ISIS3,No,Yes,--,Yes
+JAXA PALSAR Product Reader (Level 1.1/1.5),JAXAPALSAR,No,No,--,Yes
+Japanese DEM (.mem),JDEM,No,Yes,--,Yes
+JPEG JFIF (.jpg),JPEG,Yes,Yes,4GiB (max dimensions 65500x65500),Yes (internal libjpeg provided)
+JPEG-LS,JPEGLS,Yes,No,--,"No, needs CharLS library"
+"JPEG2000 (.jp2, .j2k)",JPEG2000,Yes,Yes,2GiB,"No, needs libjasper"
+"JPEG2000 (.jp2, .j2k)",JP2ECW,Yes,Yes,500MB,"No, needs ECW SDK"
+"JPEG2000 (.jp2, .j2k)",JP2KAK,Yes,Yes,No limits,"No, needs Kakadu library"
+"JPEG2000 (.jp2, .j2k)",JP2Lura,Yes,Yes,,"No, needs Lurawave library"
+"JPEG2000 (.jp2, .j2k)",JP2MrSID,Yes,Yes,,"No, needs MrSID SDK"
+"JPEG2000 (.jp2, .j2k)",JP2OpenJPEG,Yes,Yes,,"No, needs OpenJPEG library (v2)"
+JPIP (based on Kakadu),JPIPKAK,No,Yes,,"No, needs Kakadu library"
+KEA,KEA,Yes,Yes,--,"No, needs libkea and libhdf5 libraries"
+KMLSUPEROVERLAY,KMLSUPEROVERLAY,Yes,Yes,,Yes
+KRO,KRO,Yes,No,--,Yes
+NOAA Polar Orbiter Level 1b Data Set (AVHRR),L1B,No,Yes,--,Yes
+Erdas 7.x .LAN and .GIS,LAN,No,Yes,2GB,Yes
+FARSITE v.4 LCP Format,LCP,Yes,Yes,No limits,Yes
+Daylon Leveller Heightfield,Leveller,No,Yes,2GB,Yes
+NADCON .los/.las Datum Grid Shift,LOSLAS,No,Yes,,Yes
+MBTiles,MBTiles,Yes,Yes,--,No (needs OGR SQLite driver)
+OziExplorer .MAP,MAP,No,Yes,--,Yes
+In Memory Raster,MEM,Yes,Yes,,Yes
+Vexcel MFF,MFF,Yes,Yes,No limits,Yes
+Vexcel MFF2,MFF2 (HKV),Yes,Yes,No limits,Yes
+MG4 Encoded Lidar,MG4Lidar,No,Yes,--,"No, needs LIDAR SDK"
+Meta Raster Format,MRF,Yes,Yes,--,Yes
+Multi-resolution Seamless Image Database,MrSID,No,Yes,--,"No, needs MrSID SDK"
+Meteosat Second Generation,MSG,No,Yes,,"No, needs msg library"
+EUMETSAT Archive native (.nat),MSGN,No,Yes,,Yes
+NLAPS Data Format,NDF,No,Yes,No limits,Yes
+NOAA NGS Geoid Height Grids,NGSGEOID,No,Yes,,Yes
+"NITF (.ntf, .nsf, .gn?, .hr?, .ja?, .jg?, .jn?, .lf?, .on?, .tl?, .tp?, etc.)",NITF,Yes,Yes,10GB,Yes
+NetCDF,netCDF,Yes,Yes,2GB,"No, needs libnetcdf"
+NTv2 Datum Grid Shift,NTv2,Yes,Yes,,Yes
+Northwood/VerticalMapper Classified Grid Format .grc/.tab,NWT_GRC,No,Yes,--,Yes
+Northwood/VerticalMapper Numeric Grid Format .grd/.tab,NWT_GRD,No,Yes,--,Yes
+OGDI Bridge,OGDI,No,Yes,--,"No, needs OGDI library"
+OZI OZF2/OZFX3,OZI,No,Yes,--,No
+PCI .aux Labelled,PAux,Yes,No,No limits,Yes
+PCI Geomatics Database File,PCIDSK,Yes,Yes,No limits,Yes
+PCRaster,PCRaster,Yes,Yes,,Yes (internal libcsf provided)
+Geospatial PDF,PDF,Yes,Yes,--,"Yes (but needs libpoppler, libpodofo or PDFium for read support)"
+NASA Planetary Data System,PDS,No,Yes,--,Yes
+Planet Labs Mosaics API,PLMosaic,No,Yes,--,"No, needs libcurl"
+Portable Network Graphics (.png),PNG,Yes,No,,Yes (internal libpng provided)
+PostGIS Raster (previously WKTRaster),PostGISRaster,No,Yes,--,"No, needs PostgreSQL library"
+"Netpbm (.ppm,.pgm)",PNM,Yes,No,No limits,Yes
+"PHOTOMOD raster file (.prf,.x-dem)",PRF,No,Yes,No limits,Yes
+R Object Data Store,R,Yes,No,--,Yes
+Rasdaman,RASDAMAN,No,No,No limits,No (needs raslib)
+Rasterlite - Rasters in SQLite DB,Rasterlite,Yes,Yes,--,No (needs OGR SQLite driver)
+Rasterlite2 - Rasters in SQLite DB,SQLite,No,Yes,--,"No (needs libsqlite3, librasterlite2, libspatialite)"
+Swedish Grid RIK (.rik),RIK,No,Yes,4GB,Yes (internal zlib is used if necessary)
+"Raster Matrix Format (*.rsw, .mtw)",RMF,Yes,Yes,4GB,Yes
+ROI_PAC Raster,ROI_PAC,Yes,Yes,--,Yes
+"Raster Product Format/RPF (CADRG, CIB)",RPFTOC,No,Yes,--,Yes
+RadarSat2 XML (product.xml),RS2,No,Yes,4GB,Yes
+R Raster (.grd),RRASTER,No,Yes,-,Yes
+Idrisi Raster,RST,Yes,Yes,No limits,Yes
+Sentinel 1 SAR SAFE (manifest.safe),SAFE,No,Yes,No limits,Yes
+Sentinel 2,SENTINEL2,No,Yes,No limits,Yes
+SAGA GIS Binary format,SAGA,Yes,Yes,--,Yes
+SAR CEOS,SAR_CEOS,No,Yes,--,Yes
+ArcSDE Raster,SDE,No,Yes,--,"No, needs ESRI SDE"
+USGS SDTS DEM (*CATD.DDF),SDTS,No,Yes,--,Yes
+SGI Image Format,SGI,Yes,Yes,--,Yes
+Snow Data Assimilation System,SNODAS,No,Yes,--,Yes
+Standard Raster Product (ASRP/USRP),SRP,No,Yes,2GB,Yes
+SRTM HGT Format,SRTMHGT,Yes,Yes,--,Yes
+Terragen Heightfield (.ter),TERRAGEN,Yes,No,--,Yes
+EarthWatch/DigitalGlobe .TIL,TIL,No,No,--,Yes
+TerraSAR-X Product,TSX,Yes,No,--,Yes
+USGS ASCII DEM / CDED (.dem),USGSDEM,Yes,Yes,--,Yes
+VICAR,VICAR,No,Yes,--,Yes
+GDAL Virtual (.vrt),VRT,Yes,Yes,--,Yes
+OGC Web Coverage Service,WCS,No,Yes,--,"No, needs libcurl"
+WEBP,WEBP,Yes,No,--,"No, needs libwebp"
+"OGC Web Map Service, and TMS, WorldWind, On Earth tiled, VirtualEarth, ArcGIS REST, IIP)",WMS,No,Yes,--,"No, needs libcurl"
+OGC Web Map Tile Service,WMTS,No,Yes,--,"No, needs libcurl"
+X11 Pixmap (.xpm),XPM,Yes,No,,Yes
+ASCII Gridded XYZ,XYZ,Yes,Yes,--,Yes
+ZMap Plus Grid,ZMap,Yes,Yes,,Yes

@@ -10,6 +10,7 @@ from country_bounding_boxes import (
       country_subunits_by_iso_code
     )
 from utils.overpass_client import OverpassClient
+import json
 
 # Query string to OSM to provide landuse data, with the query key later
 # placed in the middle
@@ -21,13 +22,17 @@ query_end=''']
 (._;>;);
 out;
 '''
+# Output is GeoJSON format
+datatype="GeoJSON"
 
-def script(countryISO='US',query='landuse'):
+def script(countryISO='US',query='landuse',outputFolder='data/',
+	outputFile='datatiles.json'):
 	"""
 	Main function executed by top
 
 	'countryISO': Country for which BBox data should be downloaded
-	Returns land use data tiles in country
+	Returns list with [filename,datatype], where datatype is the
+		GDAL_CODE
 	"""
 	subunits=[]
 	#Load country data
@@ -68,6 +73,10 @@ def script(countryISO='US',query='landuse'):
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
 	print 'Total elements found: %d' % len(datatiles)
-
-	return [datatiles,'json']
-	# Cache the result
+	
+	# Save the result
+	fileName=outputFolder+'/'+outputFile
+	with open(fileName, 'w') as f:
+			json.dump(datatiles,f)
+	print "Written to",fileName
+	return [fileName,datatype]
