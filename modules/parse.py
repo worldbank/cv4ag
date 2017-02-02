@@ -123,7 +123,7 @@ def parse(inputFile=None,outputFolder="data",\
 					get_stats.get_stats(outputFile)
 			else: #only convert one layer
 				print inputFile
-				_,outputFile=os.path.split(inputFile+".json")
+				_,outputFile=os.path.split(inputFile+str(choseLayer)+".json")
 				print outputFile
 				outputFile=outputFolder+"/"+outputFile
 				print outputFile
