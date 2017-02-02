@@ -88,6 +88,9 @@ def parse(inputFile=None,outputFolder="data",\
 		inputFileCopy=inputFile
 	else:
 		inputFileCopy="      "
+	# Remove slash if it is at the end of input file
+	if inputFile[-1]=="/":
+		inputFile=inputFile[0:-1]
 	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
@@ -119,8 +122,11 @@ def parse(inputFile=None,outputFolder="data",\
 					print "Converted to",outputFile
 					get_stats.get_stats(outputFile)
 			else: #only convert one layer
+				print inputFile
 				_,outputFile=os.path.split(inputFile+".json")
+				print outputFile
 				outputFile=outputFolder+"/"+outputFile
+				print outputFile
 				print "Converting layer",layers[choseLayer-1],"..."
 				try:
 					os.remove(outputFile)
@@ -138,4 +144,4 @@ def parse(inputFile=None,outputFolder="data",\
 			print ''
 			print "Converted to",outputFile
 			get_stats.get_stats(outputFile)
-	return outputFolder+"/"+outputFile
+	return outputFile
