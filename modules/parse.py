@@ -10,11 +10,12 @@ def overwrite(outputFile):
 	'''remove file if already exists. necessary as GeoJSON engine cannot
 	overwrite files'''
 	try:
-		overwrite_answer=input(outputFile+" already exists. Overwrite? (y) ")
-		if overwrite_answer=="y":
-			os.remove(outputFile)
-		else:
-			outputFile=input("Provide alternative filename: ")
+		if os.path.exists(outputFile):
+			overwrite_answer=raw_input(outputFile+" already exists. Overwrite? (y/n) ")
+			if overwrite_answer=="y":
+				os.remove(outputFile)
+			else:
+				outputFile=raw_input("Provide alternative filename: ")
 	except OSError:
 		pass	
 	return outputFile

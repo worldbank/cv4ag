@@ -31,7 +31,13 @@ def get_stats(filename,topnr=15,key='Descriptio'):
 	#For feature maps
 	try:
 		for feature in elements['features']:
-			type_key = feature['properties']['Descriptio']
+			try:
+				type_key = feature['properties'][key]
+			except KeyError:
+				print "Error: Keyword",key,"not found in",filename
+				print "Cannot get statistics..."
+				return 0
+				
 			stats[type_key] = (stats[type_key]+1)\
 				if type_key in stats else 1
 			#print feature['geometry']['coordinates']
@@ -63,3 +69,4 @@ def get_stats(filename,topnr=15,key='Descriptio'):
 		numberoftabs=len(type_key_stat[0])/8	
 		tabs="\t"*(6-numberoftabs)
 		print type_key_stat[0]+tabs+str(type_key_stat[1])
+	return 0
