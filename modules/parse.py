@@ -91,6 +91,7 @@ def parse(inputFile=None,outputFolder="data",\
 	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
+			get_stats.get_stats(outputFile)
 	else:
 		#vectorize if in raster format and user agrees
 		if vector_or_raster == 1:
@@ -116,6 +117,7 @@ def parse(inputFile=None,outputFolder="data",\
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
+					get_stats.get_stats(outputFile)
 			else: #only convert one layer
 				_,outputFile=os.path.split(inputFile+".json")
 				outputFile=outputFolder+"/"+outputFile
@@ -127,6 +129,7 @@ def parse(inputFile=None,outputFolder="data",\
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1]]) #convert layer
 				print ''
 				print "Converted to",outputFile
+				get_stats.get_stats(outputFile)
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
@@ -134,5 +137,5 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-	get_stats.get_stats(outputFile)
+			get_stats.get_stats(outputFile)
 	return outputFolder+"/"+outputFile
