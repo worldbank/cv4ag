@@ -1,3 +1,4 @@
+#!usr/bin/python
 from osgeo import gdal
 import utils.ogr2ogr as ogr2ogr
 import utils.ogrinfo as ogrinfo
@@ -19,7 +20,6 @@ def parse(inputFile=None,outputFolder="data",\
 	'script': Script that returns input data. Has to contain script(.) function that returns the filename of the output file (of course, scripts can be run outside of this framework)
 	'scriptArg': Arguments for script, if any
 	"""
-	
 	#Execute script, if given. This should allow to users to load data from 
 	#custom scripts.
 	if scriptFile:
@@ -83,10 +83,14 @@ def parse(inputFile=None,outputFolder="data",\
 			exit()
 	if vector_or_raster == 0:
 		vector_or_raster = 2 # Assuming vector format if no datatype specified.
-
-	if datatype=="GeoJSON":
-		outputFile=inputFile#ignore, if already in GeoJSON format
-		print "No parsing needed"
+	# mitigate index error if length of json file name >=4 characters
+	if len(inputFile)>=4:
+		inputFileCopy=inputFile
+	else:
+		inputFileCopy="      "
+	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
+			outputFile=inputFile#ignore, if already in GeoJSON format
+			print "No parsing needed"
 	else:
 		#vectorize if in raster format and user agrees
 		if vector_or_raster == 1:

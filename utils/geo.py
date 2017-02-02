@@ -4,8 +4,8 @@ import math
 image_width = 1280
 image_height = 1280
 
-ELEMENTS_FILENAME = 'data/elements.json'
-WAYS_DATA_FILENAME = 'data/ways.json'
+#ELEMENTS_FILENAME = 'data/elements.json'
+#WAYS_DATA_FILENAME = 'data/ways.json'
 
 # Go through the ways, build the polygon, and compute the centroid that we'll
 # use to download the mapbox satellite image

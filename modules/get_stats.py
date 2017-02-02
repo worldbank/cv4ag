@@ -1,3 +1,4 @@
+#!usr/bin/python
 '''
 Print some stats on all the elements we've found
 '''
@@ -10,6 +11,7 @@ def get_stats(filename):
 	print 'Loading %s...' % filename
 	elements = []
 	counter = 0
+	print filename
 	with open(filename, 'r') as f:
 		elements = json.load(f)
 	print 'Total elements found: %d' % len(elements)

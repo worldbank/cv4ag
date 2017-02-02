@@ -14,7 +14,7 @@ import json
 
 # Query string to OSM to provide landuse data, with the query key later
 # placed in the middle
-query_begin = '''
+query_begin = '''\
 way
   ['''
 query_end=''']
@@ -59,24 +59,24 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	n = bbox[3]
 	print "Coordinates:",w,s,e,n
 
-	print query
+	print "Key:",query
 
 	# Country is split into 100 boxes, as (for the us) sample is too big
 	# (timeout)
 	# Number of Boxes = (samples-1)^2 boxes.
 	samples = 11  # 100 boxes
-
+	fullquery = query_begin+query+query_end
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
 	datatiles = overpass_client.get_bbox_elements(
-	    ql_template=query_begin+query+query_end,
+	    ql_template=fullquery,
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
 	print 'Total elements found: %d' % len(datatiles)
 	
 	# Save the result
 	fileName=outputFolder+'/'+outputFile
-	with open(fileName, 'a+') as f:
+	with open(fileName, 'w+') as f:
 			json.dump(datatiles,f)
 	print "Written to",fileName
 	return [fileName,datatype]
