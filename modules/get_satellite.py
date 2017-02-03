@@ -6,7 +6,6 @@ from random import shuffle
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 import os,json
-import pyproj as pyproj # Import the pyproj module
 def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data'):
 	if not inputFile:
 		print "Error: Provide input file."
