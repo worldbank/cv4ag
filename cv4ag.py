@@ -42,7 +42,7 @@ if __name__ == "__main__":
 	cmdParser = myParse(\
 		description='Machine Learning Framework for Agricultural Data.',
 		add_help=True)
-	cmdParser.add_argument('MODULE',
+	cmdParser.add_argument('module',
 		metavar='OPTION',
 		type=str,default=False,
 		help='The modules to be loaded. OPTION: \n\
@@ -52,6 +52,10 @@ if __name__ == "__main__":
 			overlay - overlay classification with satellite data. \n\
 			train - train.\n\
 			ml - apply machine learning algorithm.')
+	cmdParser.add_argument('mapbox_token',
+		metavar='MAPBOX_TOKEN',
+		type=str,default=False,nargs='?',
+		help='Mapbox token to download satellite images .')
 	cmdParser.add_argument('-i',
 		type=str,default=None,metavar='FILE',
 		help='Input file. Do not give if data obtained by script.')
@@ -61,6 +65,12 @@ if __name__ == "__main__":
 	cmdParser.add_argument('-o',metavar='PATH',
 		type=str,default="data/",
 		help='Output folder.')
+	cmdParser.add_argument('-c',metavar='N',
+		type=int,default=1000,
+		help='Number of satellite images to download.')
+	cmdParser.add_argument('-z',metavar='N',
+		type=int,default=17,
+		help='Zoom level. Max=19')
 #	cmdParser.add_argument('-o1',metavar='PATH',
 #		type=str,default="data/",
 #		help='Output file after parsing stage.')
@@ -90,10 +100,13 @@ if __name__ == "__main__":
 		type=str,default=None,
 		help='Argument 4 for script.')
 	cmdArgs = vars(cmdParser.parse_args())
-	selectedModule = cmdArgs.get('MODULE')
+	selectedModule = cmdArgs.get('module')
+	mapboxtoken = cmdArgs.get('mapbox_token')
 	inputFile = cmdArgs.get('i')
 	outputFolder = cmdArgs.get('o')
+	zoomLevel= cmdArgs.get('z')
 	datatype = cmdArgs.get('d')
+	satelliteCount = cmdArgs.get('c')
 	scriptFile = cmdArgs.get('s')
 	scriptArg1 = cmdArgs.get('arg1')
 	scriptArg2 = cmdArgs.get('arg2')
@@ -103,11 +116,13 @@ if __name__ == "__main__":
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':
+		inputFile=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
-		get_satellite.get_satellite()
+		get_satellite.get_satellite(inputFile,mapboxtoken,
+			satelliteCount,zoomLevel,outputFolder)
 		overlay()
 		train()
 		ml()
@@ -117,7 +132,8 @@ if __name__ == "__main__":
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 	elif selectedModule == 'satellite':
-		get_satellite.get_satellite()
+		get_satellite.get_satellite(inputFile,mapboxtoken,
+			satelliteCount,zoomLevel,outputFolder)
 	elif selectedModule == 'overlay':
 		overlay()
 	elif selectedModule == 'train':

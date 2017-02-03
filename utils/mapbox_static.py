@@ -13,11 +13,10 @@ MAPBOX_ENDPOINT = (
 
 # Params
 MAPBOX_MAPID = 'zugaldia.mfecmd32'
-MAPBOX_ACCESS_TOKEN = os.environ["mapbox_token"]
+#MAPBOX_ACCESS_TOKEN = os.environ["mapbox_token"]
 MAPBOX_FORMAT = 'png'
 MAPBOX_WIDTH = '1280'
 MAPBOX_HEIGHT = '1280'
-MAPBOX_ZOOM = 19  # Max zoom
 
 
 class MapboxStatic(object):
@@ -42,29 +41,32 @@ class MapboxStatic(object):
         statinfo = os.stat(filepath)
         return statinfo.st_size
 
-    def get_url(self, latitude, longitude):
+    def get_url(self, latitude, longitude,mapbox_zoom,access_token):
         return MAPBOX_ENDPOINT.format(
             mapid=MAPBOX_MAPID,
             lon=longitude,
             lat=latitude,
-            zoom=MAPBOX_ZOOM,
+            zoom=mapbox_zoom, #19= Max zoom
             width=MAPBOX_WIDTH,
             height=MAPBOX_HEIGHT,
             format=MAPBOX_FORMAT,
-            access_token=MAPBOX_ACCESS_TOKEN)
+            access_token=access_token)
 
-    def download_tile(self, element_id, url):
+    def download_tile(self, element_id, url,verbose=True):
         filepath = self._get_filepath(element_id=element_id)
         if os.path.isfile(filepath):
-            print '[mapbox static] Tile already downloaded (%s).' % filepath
+	    if verbose:
+		    print '[mapbox static] Tile already downloaded (%s).' % filepath
             return
-        print '[mapbox static] Donwloading tile (%s).' % filepath
+	if verbose:
+		print '[mapbox static] Downloading tile (%s).' % filepath
         urllib.urlretrieve(url=url, filename=filepath)
 
         # Detect if we have actual imagery here
         filesize = self._get_filesize(filepath=filepath)
         if filesize < 50000:
-            print 'Deleting downloaded file, it looks like an empty image.'
+	    if verbose:
+		    print 'Deleting downloaded file, it looks like an empty image. Check zoom level'
             os.remove(filepath)
             return False
         return True

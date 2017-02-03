@@ -6,7 +6,14 @@ Print some stats on all the elements we've found
 import json
 import operator
 
-def get_stats(filename,topnr=15):
+def get_stats(filename,topnr=15,key='Descriptio'):
+	'''
+	Shows statistics of features. 
+
+	'filename': filename
+	'topnr': show statistics for the first topnr categories
+	'key': Look for this keyword within feature map
+	'''
 	# Load the file
 	print 'Loading %s...' % filename
 	elements = []
