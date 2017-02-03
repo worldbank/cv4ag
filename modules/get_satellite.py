@@ -82,7 +82,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 			access_token=mapboxtoken,
 			width=pixel,
 			height=pixel)
-#		print url
+		print url
 #		element_id_sport = '%s_%s' % (sport, element_id_str)
 		#download data
 		success = mapbox_static.download_tile(

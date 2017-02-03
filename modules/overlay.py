@@ -47,24 +47,24 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		elements = json.load(f)
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
-		index = find_between(image,"_",".png")
-		print image,index
-
+		index = int(find_between(image,"_",".png"))
+		av_lat,av_lon=latLon(elements[index]) # get center points
+		#Calculate image coordinates
 	#	element	
 
-	#rasterize data
-	print 'Converting %s...' % inputFile
-	tifile=outputFolder+"/"+os.path.split(inputFile)[-1][0:-5]+".tif" #path for raster tif file
-	try:
-		os.remove(tifile)
-	except OSError:
-		pass
-	open(tifile,'a+').close() #create file if it does not exist
-	gdal_rasterize.rasterize(	\
-		inputFile,
-		tifile,
-		ts=[500,500],
-		tr=[1,1])
+		#rasterize corresponding data
+		print 'Converting %s...' % inputFile
+		tifile=outputFolder+"/"+os.path.split(inputFile)[-1][0:-5]+".tif" #path for raster tif file
+		try:
+			os.remove(tifile)
+		except OSError:
+			pass
+		open(tifile,'a+').close() #create file if it does not exist
+		gdal_rasterize.rasterize(	\
+			inputFile,
+			tifile,
+			ts=[500,500],
+			tr=[1,1])
 
 		
 	
