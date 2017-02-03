@@ -10,16 +10,20 @@ class CoordConvert(object):
 		#self.osgb36=pyproj.Proj("+init=EPSG:27700") # UK Ordnance Survey, 1936 datum
 	
 	def getCoordSystem(self,geojson):
+		''' initialise coordinate system according to geojson file '''
 		name= geojson['crs']['properties']['name']
 		if "EPSG".lower() in name.lower():
 			print "Identified coordinate system is EPSG:"+str(name[-4:])
 			code=str(name[-4:])
 		else:
 			code=str(4326)  #if not found, assume standard format
-		self.epsg=pyproj.Proj("+init=EPSG:"+code))
+		self.epsg=pyproj.Proj("+init=EPSG:"+code)
 		return int(code)
 	
 	def convert(self,lat,lon):
-		'''converts to wgs84'''
+		'''
+		converts to wgs84
+		return (longitude,latitude) (!)
+		'''
 		return pyproj.transform(self.epsg, self.wgs84, lat, lon)
 			
