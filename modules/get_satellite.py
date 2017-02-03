@@ -5,8 +5,9 @@ Get satellite data according to input file.
 from random import shuffle
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
+from modules.getFeatures import latLon
 import os,json
-def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data'):
+def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data',pixel=1280):
 	if not inputFile:
 		print "Error: Provide input file."
 		exit()
@@ -51,21 +52,14 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 	for element in element_list:
 		element_id_str = index_list[c]
 
-		#sport = element.get('tags', {}).get('sport', 'unknown').lower()
-		#if element_id_str in ways_data and sport == target_sport:
+			#sport = element.get('tags', {}).get('sport', 'unknown').lower()
+			#if element_id_str in ways_data and sport == target_sport:
 		if total_downloaded >= count:
 			break
 	#	print '> Element: %s (%s)' % (element.get('id'), sport)
 		try: #feature map
 			#figure out center of polygon
-			alat=[] #all lattitutes for nodes
-			alon=[] #all longitudes for nodes
-			for coordinate in element['geometry']['coordinates'][0][0]:
-				alat.append(coordinate[0])
-				alon.append(coordinate[1])
-			#calculate center
-			av_lat=	(max(alat)+min(alat))/2 
-			av_lon= (max(alon)+min(alon))/2
+			av_lat,av_lon=latLon(element)
 			#Convert to standard format
 			if code != 4319: # if not already in wgs84 standard format
 				latlon= myCoordConvert.convert(av_lat,av_lon)
@@ -85,7 +79,9 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 			latitude=latitude,
 			longitude=longitude,
 			mapbox_zoom=17,
-			access_token=mapboxtoken)
+			access_token=mapboxtoken,
+			width=pixel,
+			height=pixel)
 #		print url
 #		element_id_sport = '%s_%s' % (sport, element_id_str)
 		#download data

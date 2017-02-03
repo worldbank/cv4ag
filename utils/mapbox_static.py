@@ -15,8 +15,6 @@ MAPBOX_ENDPOINT = (
 MAPBOX_MAPID = 'zugaldia.mfecmd32'
 #MAPBOX_ACCESS_TOKEN = os.environ["mapbox_token"]
 MAPBOX_FORMAT = 'png'
-MAPBOX_WIDTH = '1280'
-MAPBOX_HEIGHT = '1280'
 
 
 class MapboxStatic(object):
@@ -41,14 +39,14 @@ class MapboxStatic(object):
         statinfo = os.stat(filepath)
         return statinfo.st_size
 
-    def get_url(self, latitude, longitude,mapbox_zoom,access_token):
+    def get_url(self, latitude, longitude,mapbox_zoom,access_token,width=1280,height=1280):
         return MAPBOX_ENDPOINT.format(
             mapid=MAPBOX_MAPID,
             lon=longitude,
             lat=latitude,
             zoom=mapbox_zoom, #19= Max zoom
-            width=MAPBOX_WIDTH,
-            height=MAPBOX_HEIGHT,
+            width=width,
+            height=height,
             format=MAPBOX_FORMAT,
             access_token=access_token)
 

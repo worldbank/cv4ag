@@ -22,11 +22,12 @@ query_end=''']
 (._;>;);
 out;
 '''
-# Output is GeoJSON format
-datatype="GeoJSON"
+# Output is OSM format
+
+datatype="OSM"
 
 def script(countryISO='US',query='landuse',outputFolder='data/',
-	outputFile='datatiles.json'):
+	outputFile='datatiles.osm'):
 	"""
 	Main function executed by top
 

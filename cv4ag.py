@@ -69,7 +69,10 @@ if __name__ == "__main__":
 		help='Number of satellite images to download.')
 	cmdParser.add_argument('-z',metavar='N',
 		type=int,default=17,
-		help='Zoom level. Max=19')
+		help='Zoom level. Min=15, Max=19. See libs/satellite_resolutions.csv for resolutions.')
+	cmdParser.add_argument('-p',metavar='N',
+		type=int,default=1280,
+		help='Satellite images have size NxN pixel.')
 #	cmdParser.add_argument('-o1',metavar='PATH',
 #		type=str,default="data/",
 #		help='Output file after parsing stage.')
@@ -106,6 +109,7 @@ if __name__ == "__main__":
 	zoomLevel= cmdArgs.get('z')
 	datatype = cmdArgs.get('d')
 	satelliteCount = cmdArgs.get('c')
+	pixel = cmdArgs.get('p')
 	scriptFile = cmdArgs.get('s')
 	scriptArg1 = cmdArgs.get('arg1')
 	scriptArg2 = cmdArgs.get('arg2')
@@ -120,9 +124,15 @@ if __name__ == "__main__":
 			scriptFile=scriptFile,datatype=datatype,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
-		get_satellite.get_satellite(inputFile,mapboxtoken,
-			satelliteCount,zoomLevel,outputFolder)
-		overlay.overlay(outputFolder,inputFile)
+		get_satellite.get_satellite(inputFile=inputFile,
+			mapboxtoken=mapboxtoken,
+			count=satelliteCount,
+			zoomLevel=zoomLevel,
+			outputFolder=outputFolder,
+			pixel=pixel)
+		overlay.overlay(outputFolder,inputFile,
+			pixel=pixel,
+			zoomLevel=zoomLevel)
 		train()
 		ml()
 	elif selectedModule == 'parse':
@@ -131,10 +141,16 @@ if __name__ == "__main__":
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 	elif selectedModule == 'satellite':
-		get_satellite.get_satellite(inputFile,mapboxtoken,
-			satelliteCount,zoomLevel,outputFolder)
+		get_satellite.get_satellite(inputFile=inputFile,
+			mapboxtoken=mapboxtoken,
+			count=satelliteCount,
+			zoomLevel=zoomLevel,
+			outputFolder=outputFolder,
+			pixel=pixel)
 	elif selectedModule == 'overlay':
-		overlay.overlay(outputFolder,inputFile)
+		overlay.overlay(outputFolder,inputFile,
+			pixel=pixel,
+			zoomLevel=zoomLevel)
 	elif selectedModule == 'train':
 		train()
 	elif selectedModule == 'mltrain':
