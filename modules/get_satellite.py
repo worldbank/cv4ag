@@ -94,5 +94,5 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		    url=url,verbose=True)
 		if success:
 			total_downloaded += 1
-			print c+1,'/',count
+			print total_downloaded+1,'/',count
 		c += 1
