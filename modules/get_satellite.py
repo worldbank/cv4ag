@@ -11,7 +11,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		print "Error: Provide input file."
 		exit()
 	if not mapboxtoken:
-		print "Error: Provide mapbox token (visit www.mapbox.com)."
+		print "Error: Provide mapbox token (more informations on www.mapbox.com)."
 		exit()
 	#parser.add_argument('--sport',
 	 #   type=str, default='baseball',

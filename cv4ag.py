@@ -18,11 +18,9 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite
+import parse,get_satellite,overlay
 #-------------------------------------------------------------------
 
-def overlay():
-	pass
 
 def train():
 	pass
@@ -64,7 +62,8 @@ if __name__ == "__main__":
 		help='Script file to obtain data')
 	cmdParser.add_argument('-o',metavar='PATH',
 		type=str,default="data/",
-		help='Output folder.')
+		help='Output folder. Satellite data are put in and read from\
+			PATH/sat/.')
 	cmdParser.add_argument('-c',metavar='N',
 		type=int,default=1000,
 		help='Number of satellite images to download.')
@@ -123,7 +122,7 @@ if __name__ == "__main__":
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 		get_satellite.get_satellite(inputFile,mapboxtoken,
 			satelliteCount,zoomLevel,outputFolder)
-		overlay()
+		overlay.overlay(outputFolder,inputFile)
 		train()
 		ml()
 	elif selectedModule == 'parse':
@@ -135,7 +134,7 @@ if __name__ == "__main__":
 		get_satellite.get_satellite(inputFile,mapboxtoken,
 			satelliteCount,zoomLevel,outputFolder)
 	elif selectedModule == 'overlay':
-		overlay()
+		overlay.overlay(outputFolder,inputFile)
 	elif selectedModule == 'train':
 		train()
 	elif selectedModule == 'mltrain':
