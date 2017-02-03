@@ -6,6 +6,18 @@ import utils.gdal_polygonize_edited as gdal_polygonize
 import get_stats
 import os,csv
 import json
+def overwrite(outputFile):
+	'''remove file if already exists. necessary as GeoJSON engine cannot
+	overwrite files'''
+	try:
+		overwrite_answer=input(outputFile+" already exists. Overwrite? (y) ")
+		if overwrite_answer=="y":
+			os.remove(outputFile)
+		else:
+			outputFile=input("Provide alternative filename: ")
+	except OSError:
+		pass	
+	return outputFile
 
 def parse(inputFile=None,outputFolder="data",\
 	outputFile="datatiles.json",datatype=None,\
@@ -102,6 +114,7 @@ def parse(inputFile=None,outputFolder="data",\
 				gdal_polygonize.polygonize(inputFile,outputFolder+"/polygonised.json",
 					"GeoJSON",quiet_flag=0) #not tested
 				inputFile=outputFolder+"/polygonised.json"
+
 		#get layers of input file
 		layers = ogrinfo.main(["-so",inputFile])
 		if len(layers)>1:
@@ -109,39 +122,33 @@ def parse(inputFile=None,outputFolder="data",\
 			choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
 			if choseLayer==0: # iterate over each layer
 				for i in range(0,len(layers)):
+					#create filename
 					print "Converting layer",layers[i],"(",i+1,"out of",len(layers),"layers)..."
-					# avoid GeoJSON error (GeoJSON cannot overwrite files)
 					_,outputFile=os.path.split(inputFile+str(i+1)+".json")
 					outputFile=outputFolder+"/"+outputFile
-					try:
-						os.remove(outputFile)
-					except OSError:
-						pass	
+					# avoid GeoJSON error (GeoJSON cannot overwrite files)
+					outputFile=overwrite(outputFile)
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
-					get_stats.get_stats(outputFile)
+					get_stats.get_stats(outputFile)#get statistics
 			else: #only convert one layer
 				print inputFile
 				_,outputFile=os.path.split(inputFile+str(choseLayer)+".json")
-				print outputFile
 				outputFile=outputFolder+"/"+outputFile
-				print outputFile
 				print "Converting layer",layers[choseLayer-1],"..."
-				try:
-					os.remove(outputFile)
-				except OSError:
-					pass	
+				outputFile=overwrite(outputFile)
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1]]) #convert layer
 				print ''
 				print "Converted to",outputFile
-				get_stats.get_stats(outputFile)
+				get_stats.get_stats(outputFile)#get statistics
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
 			print "Converting..."
+			outputFile=overwrite(outputFile)
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-			get_stats.get_stats(outputFile)
+			get_stats.get_stats(outputFile) #get statistics
 	return outputFile
