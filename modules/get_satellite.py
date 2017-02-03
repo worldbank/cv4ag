@@ -28,18 +28,18 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 
 	# Given list1 and list2
 	element_list = []
-	try:
-		index_list = range(len(elements['features'])) #featue map
-		myCoordConvert = CoordConvert()
-		code=myCoordConvert.getCoordSystem(elements)
-	except TypeError:
-		index_list = range(len(elements)) #OSM map
+	#try:
+	index_list = range(len(elements['features'])) #featue map
+	myCoordConvert = CoordConvert()
+	code=myCoordConvert.getCoordSystem(elements)
+#	except TypeError:
+#		index_list = range(len(elements)) #OSM map
 	shuffle(index_list)
 	for i in index_list:
-		try:
-			element_list.append(elements['features'][i]) #feature map
-		except TypeError:
-			element_list.append(elements[i]) #OSM map
+#	try:
+		element_list.append(elements['features'][i]) #feature map
+#		except TypeError:
+#			element_list.append(elements[i]) #OSM map
 
 	# Now we're gonna download the satellite images for these locations
 	_,namespace= os.path.split(inputFile) #get input file name as namespace
@@ -57,21 +57,21 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		if total_downloaded >= count:
 			break
 	#	print '> Element: %s (%s)' % (element.get('id'), sport)
-		try: #feature map
-			#figure out center of polygon
-			av_lat,av_lon=latLon(element)
-			#Convert to standard format
-			if code != 4319: # if not already in wgs84 standard format
-				latlon= myCoordConvert.convert(av_lat,av_lon)
-				latitude=latlon[1]
-				longitude=latlon[0]
-			else: #if already in wgs84 format
-				latitude= av_lat
-				longitude= av_lot
+	#	try: #feature map
+		#figure out center of polygon
+		av_lat,av_lon=latLon(element)
+		#Convert to standard format
+		if code != 4319: # if not already in wgs84 standard format
+			latlon= myCoordConvert.convert(av_lat,av_lon)
+			latitude=latlon[1]
+			longitude=latlon[0]
+		else: #if already in wgs84 format
+			latitude= av_lat
+			longitude= av_lot
 					
-		except KeyError:  #OSM
-			latitude=element.get('lat')
-			longitude=element.get('lon')
+#		except KeyError:  #OSM
+#			latitude=element.get('lat')
+#			longitude=element.get('lon')
 
 		#get url
 		print "Coordinates: "+str(latitude)+','+str(longitude)

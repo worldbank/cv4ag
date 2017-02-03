@@ -47,7 +47,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		elements = json.load(f)
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
-		# For example: pitch_volleyball_268478401.png -> 268478401
 		index = find_between(image,"_",".png")
 		print image,index
 
