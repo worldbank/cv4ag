@@ -9,8 +9,7 @@ from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
 from modules.getFeatures import latLon,find_between
 
-# also requires gdal (ex
-
+trainingDataFolder="/train/"
 
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	'''
@@ -53,7 +52,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
 			latlon= myCoordConvert.convert(av_lat,av_lon)
-			print latlon
 			latitude=latlon[1]
 			longitude=latlon[0]
 		else: #if already in wgs84 format
@@ -61,33 +59,37 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 			longitude= av_lot
 		#Calculate image coordinates in WSG 84
 		image_box_raw= myImageCoord.getImageCoord(latitude,longitude)
-		print image_box_raw
 		#Convert back to original format
 		if code != 4319: # if not already in wgs84 standard format
 			image_box=\
-				myCoordConvert.convertBack(image_box_raw[1],image_box_raw[0])
-			#	myCoordConvert.convertBack(108.,16.)
+				myCoordConvert.convertBack(image_box_raw[0],image_box_raw[1])
 		else:
 			image_box=image_box_raw
-		image_box_x = image_box[1]
-		image_box_y = image_box[0]	
-		print image_box
-		print image_box_x,image_box_y
+		image_lon = image_box[0]
+		image_lat = image_box[1]	
 
 		#rasterize corresponding data
-		print 'Converting %s...' % inputFile
-		tifile=outputFolder+"/"+os.path.split(inputFile)[-1][0:-5]+".tif" #path for raster tif file
+		print 'Converting %s...' % image
+		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-5]+".tif" #path for raster tif file
+		if not os.path.isdir(outputFolder+trainingDataFolder):
+		    try:
+			os.mkdir(outputFolder+trainingDataFolder)
+			print 'Training data folder created: %s' \
+			    % outputFolder+trainingDataFolder
+		    except Exception as e:
+			print 'Failed to create the training datafolder' 
 		try:
 			os.remove(tifile)
 		except OSError:
 			pass
-		open(tifile,'a+').close() #create file if it does not exist
+		#open(tifile,'a+').close() #create file if it does not exist already
 		gdal_rasterize.rasterize(	\
 			inputFile,
 			tifile,
-			ts=[500,500],
-			tr=[1,1])
-
+			tr=[pixel,pixel],		# set resolution
+			te=[min(image_lon),min(image_lat),\
+				max(image_lon),max(image_lat)]\
+			)				# set image limits in te
 		
 	
 	# We need the elements from inputFile
