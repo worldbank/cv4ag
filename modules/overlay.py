@@ -7,18 +7,10 @@ import os
 import utils.gdal_rasterize as gdal_rasterize
 from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
-from modules.getFeatures import latLon
+from modules.getFeatures import latLon,find_between
 
 # also requires gdal (ex
 
-def find_between(s, first, last ):
-	'''find substrings. used to get index out of image filename'''
-	try:
-	    start = s.rindex( first ) + len( first )
-	    end = s.rindex( last, start )
-	    return s[start:end]
-	except ValueError:
-	    return ""
 
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	'''
@@ -54,7 +46,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	code=myCoordConvert.getCoordSystem(elements)
 	#Get imageconverter
 	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
-	print myImageCoord.toMeter(15)
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
@@ -62,12 +53,26 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
 			latlon= myCoordConvert.convert(av_lat,av_lon)
+			print latlon
 			latitude=latlon[1]
 			longitude=latlon[0]
 		else: #if already in wgs84 format
 			latitude= av_lat
 			longitude= av_lot
-		#Calculate image coordinates
+		#Calculate image coordinates in WSG 84
+		image_box_raw= myImageCoord.getImageCoord(latitude,longitude)
+		print image_box_raw
+		#Convert back to original format
+		if code != 4319: # if not already in wgs84 standard format
+			image_box=\
+				myCoordConvert.convertBack(image_box_raw[1],image_box_raw[0])
+			#	myCoordConvert.convertBack(108.,16.)
+		else:
+			image_box=image_box_raw
+		image_box_x = image_box[1]
+		image_box_y = image_box[0]	
+		print image_box
+		print image_box_x,image_box_y
 
 		#rasterize corresponding data
 		print 'Converting %s...' % inputFile

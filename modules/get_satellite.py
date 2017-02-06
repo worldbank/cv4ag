@@ -62,9 +62,9 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		av_lat,av_lon=latLon(element)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			latlon= myCoordConvert.convert(av_lat,av_lon)
-			latitude=latlon[1]
+			latlon= myCoordConvert.convert(av_lon,av_lat)
 			longitude=latlon[0]
+			latitude=latlon[1]
 		else: #if already in wgs84 format
 			latitude= av_lat
 			longitude= av_lot
@@ -82,7 +82,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 			access_token=mapboxtoken,
 			width=pixel,
 			height=pixel)
-		print url
+		#print url
 #		element_id_sport = '%s_%s' % (sport, element_id_str)
 		#download data
 		success = mapbox_static.download_tile(
