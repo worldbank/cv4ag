@@ -2,6 +2,7 @@
 transform coordinates'''
 
 import pyproj as pyproj # Import the pyproj module
+from modules.getFeatures import find_between
 
 class CoordConvert(object):
 	def __init__(self):
@@ -13,8 +14,8 @@ class CoordConvert(object):
 		''' initialise coordinate system according to geojson file '''
 		name= geojson['crs']['properties']['name']
 		if "EPSG".lower() in name.lower():
-			print "Identified coordinate system is EPSG:"+str(name[-4:])
-			code=str(name[-4:])
+			code=find_between(name, ':')
+			print "Identified coordinate system is EPSG:"+str(code)
 		else:
 			code=str(4326)  #if not found, assume standard format
 		self.epsg=pyproj.Proj("+init=EPSG:"+code)
@@ -27,3 +28,9 @@ class CoordConvert(object):
 		'''
 		return pyproj.transform(self.epsg, self.wgs84, lat, lon)
 			
+	def convertBack(self,lat,lon):
+		'''
+		converts to wgs84
+		return (longitude,latitude) (!)
+		'''
+		return pyproj.transform(self.wgs84, self.epsg, lat, lon)

@@ -5,9 +5,13 @@ Overlay classes and satellite data
 import json
 import os
 import utils.gdal_rasterize as gdal_rasterize
+from utils.coordinate_converter import CoordConvert
+from utils.getImageCoordinates import imageCoordinates
+from modules.getFeatures import latLon
+
 # also requires gdal (ex
 
-def find_between( s, first, last ):
+def find_between(s, first, last ):
 	'''find substrings. used to get index out of image filename'''
 	try:
 	    start = s.rindex( first ) + len( first )
@@ -45,12 +49,25 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	print 'Opening %s...' % inputFile
 	with open(inputFile, 'r') as f:
 		elements = json.load(f)
+	#Get coordinate system
+	myCoordConvert = CoordConvert()
+	code=myCoordConvert.getCoordSystem(elements)
+	#Get imageconverter
+	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
+	print myImageCoord.toMeter(15)
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
-		av_lat,av_lon=latLon(elements[index]) # get center points
+		av_lat,av_lon=latLon(elements['features'][index]) # get center points
+		#Convert to standard format
+		if code != 4319: # if not already in wgs84 standard format
+			latlon= myCoordConvert.convert(av_lat,av_lon)
+			latitude=latlon[1]
+			longitude=latlon[0]
+		else: #if already in wgs84 format
+			latitude= av_lat
+			longitude= av_lot
 		#Calculate image coordinates
-	#	element	
 
 		#rasterize corresponding data
 		print 'Converting %s...' % inputFile
