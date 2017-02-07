@@ -61,26 +61,29 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
 		av_lat,av_lon=latLon(elements['features'][index]) # get center points
+		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			latlon= myCoordConvert.convert(av_lon,av_lat)
-			longitude=latlon[0]
-			latitude=latlon[1]
+			lotlan= myCoordConvert.convert(av_lon,av_lat)
+			longitude=lotlan[0]
+			latitude=lotlan[1]
 		else: #if already in wgs84 format
 			latitude= av_lat
 			longitude= av_lot
+		print "Coordinates WSG84: "+str(longitude)+','+str(latitude)
 		#Calculate image coordinates in WSG 84
 		image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
 		#print 'Coordinates:',latitude,longitude
 		#Convert back to original format
 		if code != 4319: # if not already in wgs84 standard format
 			image_box=\
-				myCoordConvert.convertBack(image_box_raw[0],image_box_raw[1])
+				myCoordConvert.convertBack(image_box_lon,image_box_lat)
 		else:
 			image_box=image_box_raw
-		print image_box
 		image_lon = image_box[1]
 		image_lat = image_box[0]	
+		print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
+		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		#rasterize corresponding data
 		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
@@ -132,20 +135,16 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 		    except Exception as e:
 			print 'Failed to create the check datafolder' 
 		try:
-			os.remove(tifile)
-			os.remove(tifile+'*')
+			os.remove(checkfile)
 		except OSError:
 			pass
-	#	background = Image.open(outputFolder+'/sat/'+image)
-	#	foreground = Image.open(tifile)
+		background = Image.open(outputFolder+'/sat/'+image)
+		foreground = Image.open(tifile)
 
-	#	background.paste(foreground, (0, 0), foreground)
-	#	background.save(checkfile)
+		background.paste(foreground, (0, 0), foreground)
+		background.save(checkfile)
 	#Remove aux-files
-	try:
-		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")
-	except OSError:
-		pass
-	# We need the elements from inputFile
-	#with open(inputFile, 'r') as f:
-	#	elements = json.load(f)
+#	try:
+#		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")
+#	except OSError:
+#		pass

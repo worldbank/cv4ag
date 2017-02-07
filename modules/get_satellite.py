@@ -49,6 +49,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 
 	total_downloaded = 0
 	c = 0
+	print "------------------- Getting Satellite data -------------------"
 	for element in element_list:
 		element_id_str = index_list[c]
 
@@ -60,15 +61,20 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		av_lat,av_lon=latLon(element)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			latlon= myCoordConvert.convert(av_lon,av_lat)
-			longitude=latlon[0]
-			latitude=latlon[1]
+			lotlan= myCoordConvert.convert(av_lon,av_lat)
+			longitude=lotlan[0]
+			latitude=lotlan[1]
 		else: #if already in wgs84 format
 			latitude= av_lat
 			longitude= av_lot
 					
+#		except KeyError:  #OSM
+#			latitude=element.get('lat')
+#			longitude=element.get('lon')
+
 		#get url
-		print "Coordinates: "+str(latitude)+','+str(longitude)
+		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
+		print "Coordinates WSG64: "+str(longitude)+','+str(latitude)
 		url = mapbox_static.get_url(
 			latitude=latitude,
 			longitude=longitude,
