@@ -21,16 +21,16 @@ class CoordConvert(object):
 		self.epsg=pyproj.Proj("+init=EPSG:"+code)
 		return int(code)
 	
-	def convert(self,lat,lon):
+	def convert(self,lon,lat):
 		'''
 		converts to wgs84
 		return (longitude,latitude) (!)
 		'''
-		return pyproj.transform(self.epsg, self.wgs84, lon, lat)
+		return pyproj.transform(self.epsg, self.wgs84, lat, lon)
 			
-	def convertBack(self,lat,lon):
+	def convertBack(self,lon,lat):
 		'''
 		converts from wgs84
 		return (longitude,latitude) (!)
 		'''
-		return pyproj.transform(self.wgs84, self.epsg, lon, lat)
+		return pyproj.transform(self.wgs84, self.epsg, lat, lon)

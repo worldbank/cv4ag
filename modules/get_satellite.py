@@ -54,8 +54,6 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 
 			#sport = element.get('tags', {}).get('sport', 'unknown').lower()
 			#if element_id_str in ways_data and sport == target_sport:
-		if total_downloaded >= count:
-			break
 	#	print '> Element: %s (%s)' % (element.get('id'), sport)
 	#	try: #feature map
 		#figure out center of polygon
@@ -69,10 +67,6 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 			latitude= av_lat
 			longitude= av_lot
 					
-#		except KeyError:  #OSM
-#			latitude=element.get('lat')
-#			longitude=element.get('lon')
-
 		#get url
 		print "Coordinates: "+str(latitude)+','+str(longitude)
 		url = mapbox_static.get_url(
@@ -90,5 +84,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		    url=url,verbose=True)
 		if success:
 			total_downloaded += 1
-			print total_downloaded+1,'/',count
+			print total_downloaded,'/',count
 		c += 1
+		if total_downloaded >= count:
+			break

@@ -60,5 +60,5 @@ class imageCoordinates(object):
 		lon_bottomleft=self.add_meters_lon(lon,lat_bottom,-(self.pixel/2)*meterPerPixel)
 		lon_bottomright=self.add_meters_lon(lon,lat_bottom,(self.pixel/2)*meterPerPixel)
 
-		return [[lat_upper,lat_upper,lat_bottom,lat_bottom],\
-			[lon_upperleft,lon_upperright,lon_bottomleft,lon_bottomright]]
+		return [lat_upper,lat_upper,lat_bottom,lat_bottom],\
+			[lon_upperleft,lon_upperright,lon_bottomleft,lon_bottomright]
