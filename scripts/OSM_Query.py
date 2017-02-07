@@ -24,7 +24,7 @@ out;
 '''
 # Output is OSM format
 
-datatype="OSM"
+datatype="GeoJSON"
 
 def script(countryISO='US',query='landuse',outputFolder='data/',
 	outputFile='OSMdatatiles.json'):

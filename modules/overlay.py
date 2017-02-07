@@ -12,7 +12,7 @@ from modules.getFeatures import latLon,find_between
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
-
+# find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=0):
 	'''
@@ -52,8 +52,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	av_lats=[]
 	av_lons=[]
 	cnt = 1
-
-
 
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
@@ -125,8 +123,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
 		print str(image_box_lat[2])[:-5],'\t',str(image_box_lon[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lat[3])[:-5],'\t',str(image_box_lon[3])[:-5]
-		#print te	
-		#print size,te
+		
 		#rasterize
 		gdal_rasterize.rasterize(	\
 			inputFile,
