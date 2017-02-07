@@ -1,6 +1,6 @@
 #!usr/bin/python
 """
-Script to download Open Street Map data of land use
+Script to download Open Street Map data of land use. Converts to GeoJSON
 Lukas Arnold
 WB-DIME
 Jan 31 2017
@@ -75,8 +75,9 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	    samples=samples)
 	print 'Total elements found: %d' % len(d)
 	
-	# Save the result
 	fileName=outputFolder+'/'+outputFile
+
+	#Create GeoJSON string
 	geojson= '''
 		{
 	    "type": "FeatureCollection",
@@ -84,6 +85,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	    "features": ['''
 	cnt = 0.
 	lene=len(d)
+	#loop through elements and append to GeoJSON string
 	for e in d :
 		print cnt*100./lene,"% done.\r", 
 		cnt+=1
@@ -105,18 +107,17 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 							break
 				geojson=geojson[0:-1]+"]]]}},"
 	geojson=geojson[0:-1]+"\n]\n}"
+	print " "
 	with open(fileName, 'w+') as f:
-			json.dump(geojson,f)
+			json.dump(geojson,f) #save as geojson file
 	#replace escape characters
 	with open(fileName, 'r') as file :
 	  filedata = file.read()[1:-1]
-
 	# Replace the target string
 	filedata = filedata.replace('\\n', '')
 	filedata = filedata.replace('\\t', '')
 	filedata = filedata.replace('\\"', '"')
-
-	# Write the file out again
+	# Save the result
 	with open(fileName, 'w') as file:
 	  file.write(filedata)
 
