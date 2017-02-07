@@ -8,8 +8,8 @@ def latLon(element):
 	alat=[] #all lattitutes for nodes
 	alon=[] #all longitudes for nodes
 	for coordinate in element['geometry']['coordinates'][0][0]:
-		alat.append(coordinate[0])
-		alon.append(coordinate[1])
+		alat.append(coordinate[1])
+		alon.append(coordinate[0])
 	#calculate center
 	av_lat= (max(alat)+min(alat))/2 
 	av_lon= (max(alon)+min(alon))/2

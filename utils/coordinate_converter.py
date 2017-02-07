@@ -29,7 +29,7 @@ class CoordConvert(object):
 		converts to wgs84
 		return (longitude,latitude) (!)
 		'''
-		return pyproj.transform(self.epsg, self.wgs84, lat, lon)
+		return pyproj.transform(self.epsg, self.wgs84, lon, lat)
 			
 	def convertBack(self,lon,lat):
 		'''
