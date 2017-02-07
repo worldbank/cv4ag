@@ -58,7 +58,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 	#	print '> Element: %s (%s)' % (element.get('id'), sport)
 	#	try: #feature map
 		#figure out center of polygon
-		av_lat,av_lon=latLon(element)
+		av_lon,av_lat=latLon(element)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
 			lotlan= myCoordConvert.convert(av_lon,av_lat)
@@ -66,7 +66,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 			latitude=lotlan[1]
 		else: #if already in wgs84 format
 			latitude= av_lat
-			longitude= av_lot
+			longitude= av_lon
 					
 #		except KeyError:  #OSM
 #			latitude=element.get('lat')

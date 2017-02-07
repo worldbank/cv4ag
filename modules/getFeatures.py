@@ -13,7 +13,7 @@ def latLon(element):
 	#calculate center
 	av_lat= (max(alat)+min(alat))/2 
 	av_lon= (max(alon)+min(alon))/2
-	return av_lat,av_lon
+	return av_lon,av_lat
 
 def find_between(s, first, last=None ):
         '''find substrings. used to get index out of image filename'''
