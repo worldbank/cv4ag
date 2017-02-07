@@ -104,8 +104,8 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 			pass
 		#set rasterize settings
 		size=[pixel,pixel]
-		te=[min(image_lon),min(image_lat),\
-				max(image_lon),max(image_lat)]
+		te=[min(image_lat),min(image_lon),\
+				max(image_lat),max(image_lon)] #Latitude/longitude mixed up?
 		print "Image bounderies:"
 		print str(image_box_lat[0])[:-7],'\t',str(image_box_lon[0])[:-7],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lat[1])[:-7],'\t',str(image_box_lon[1])[:-7]
