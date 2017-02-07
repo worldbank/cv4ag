@@ -6,12 +6,12 @@ Print some stats on all the elements we've found
 import json
 import operator
 
-def get_stats(filename,topnr=15,key='Descriptio'):
+def get_stats(filename,top=15,key='Descriptio',verbose=True):
 	'''
 	Shows statistics of features. 
 
 	'filename': filename
-	'topnr': show statistics for the first topnr categories
+	'top': show statistics for the first top categories
 	'key': Look for this keyword within feature map
 	'''
 	# Load the file
@@ -63,10 +63,13 @@ def get_stats(filename,topnr=15,key='Descriptio'):
 	# Sort the type_keys by value, and reverse (descending values)
 	stats = sorted(stats.items(), key=operator.itemgetter(1))
 	stats = list(reversed(stats))
-	print "Frequency statistics of",topnr,"most common proporties:"
+	print "Frequency statistics of",top,"most common proporties:"
 	# Show statistics
-	for type_key_stat in stats[:topnr]:
+	listofmostelements = []
+	for type_key_stat in stats[:top]:
 		numberoftabs=len(type_key_stat[0])/8	
 		tabs="\t"*(6-numberoftabs)
-		print type_key_stat[0]+tabs+str(type_key_stat[1])
-	return 0
+		listofmostelements.append(type_key_stat[0])
+		if verbose:
+			print type_key_stat[0]+tabs+str(type_key_stat[1])
+	return listofmostelements

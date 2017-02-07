@@ -99,6 +99,9 @@ if __name__ == "__main__":
 		type=int,default=0,
 		help='Format of longitudinal/lateral shift.\
 		0: As fraction of image. 1: Georeferenced unites.')
+	cmdParser.add_argument('--top',metavar=['N'],
+		type=str,default=None,
+		help='Get N most frequent classes.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -129,11 +132,12 @@ if __name__ == "__main__":
 	lonshift= cmdArgs.get('lonshift')
 	latshift= cmdArgs.get('latshift')
 	shiftformat = cmdArgs.get('shiftformat')
+	top = cmdArgs.get('top')
 	
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':
-		inputFile=\
+		inputFile,stats=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
@@ -148,7 +152,9 @@ if __name__ == "__main__":
 			pixel=pixel,
 			zoomLevel=zoomLevel,
 			lonshift=lonshift,latshift=latshift,
-			shiftformat=shiftformat
+			shiftformat=shiftformat,
+			top=top,
+			stats=stats
 			)
 		train()
 		ml()

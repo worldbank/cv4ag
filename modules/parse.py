@@ -21,7 +21,7 @@ def overwrite(outputFile):
 	return outputFile
 
 def parse(inputFile=None,outputFolder="data",\
-	outputFile="datatiles.json",datatype=None,\
+	outputFile="datatiles.json",datatype=None,top=15,\
 	scriptFile=None, scriptArg1=None,scriptArg2=None,\
 	scriptArg3=None,scriptArg4=None):
 	"""
@@ -32,6 +32,8 @@ def parse(inputFile=None,outputFolder="data",\
 	'inputFile': Filename for input data
 	'script': Script that returns input data. Has to contain script(.) function that returns the filename of the output file (of course, scripts can be run outside of this framework)
 	'scriptArg': Arguments for script, if any
+
+	return file name and labels for most frequent features
 	"""
 	#Execute script, if given. This should allow to users to load data from 
 	#custom scripts.
@@ -151,5 +153,5 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-			get_stats.get_stats(outputFile) #get statistics
-	return outputFile
+			stats=get_stats.get_stats(outputFile,top) #get statistics
+	return outputFile,stats

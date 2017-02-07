@@ -4,17 +4,18 @@ Overlay classes and satellite data
 '''
 import json
 import os
-from PIL import Image
 import utils.gdal_rasterize as gdal_rasterize
+from PIL import Image
 from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
 from modules.getFeatures import latLon,find_between
+from modules.get_stats import get_stats
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
 # find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
-	shiftformat=0):
+	shiftformat=0,top=15,stats=None):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -43,7 +44,20 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	print 'Opening %s...' % inputFile
 	with open(inputFile, 'r') as f:
 		elements = json.load(f)
+	#Get statistics if not in input
+	if not stats:
+		stats=get_stats(inputFile,top,verbose=False)
 	#Create json-file for each layer
+	cnt_feature=0
+	for feature in stats:
+		print "Processing feature",feature
+		cnt_feature+=1
+		print cnt_feature,"/",len(stats)
+		#Make directory for subfiles
+		if not os.path.isdir(outputFolder+inputFile):
+		#	os.mkdir(outputFolder+inputFile)
+			print 'Container created. Extracting features:'
+
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements)
@@ -56,7 +70,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
-		av_lat,av_lon=latLon(elements['features'][index]) # get center points
+		av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
@@ -116,6 +130,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		size=[pixel,pixel]
 		te=[west-lonshift_calc,south-latshift_calc,\
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
+		print te
 		print "Image bounderies:"
 		print str(image_box_lat[0])[:-5],'\t',str(image_box_lon[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lat[1])[:-5],'\t',str(image_box_lon[1])[:-5]
