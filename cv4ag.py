@@ -89,6 +89,16 @@ if __name__ == "__main__":
 			See www.gdal.org/formats_list.html or\
 			www.gdal.org/ogr_formats.html \
 			(or libs/*_formats.csv for FILETYPE_CODEs.')
+	cmdParser.add_argument('--lonshift',metavar=['N.N'],
+		type=float,default=0,
+		help='Longitudanal shift of training data.')
+	cmdParser.add_argument('--latshift',metavar=['N.N'],
+		type=float,default=0,
+		help='Lateral shift of training data .')
+	cmdParser.add_argument('--shiftformat',metavar=['N'],
+		type=int,default=0,
+		help='Format of longitudinal/lateral shift.\
+		0: As fraction of image. 1: Georeferenced unites.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -115,6 +125,10 @@ if __name__ == "__main__":
 	scriptArg2 = cmdArgs.get('arg2')
 	scriptArg3 = cmdArgs.get('arg3')
 	scriptArg4 = cmdArgs.get('arg4')
+	scriptArg4 = cmdArgs.get('arg4')
+	lonshift= cmdArgs.get('lonshift')
+	latshift= cmdArgs.get('latshift')
+	shiftformat = cmdArgs.get('shiftformat')
 	
 	# Execute according to options
 	print "Option:",selectedModule
@@ -132,7 +146,10 @@ if __name__ == "__main__":
 			pixel=pixel)
 		overlay.overlay(outputFolder,inputFile,
 			pixel=pixel,
-			zoomLevel=zoomLevel)
+			zoomLevel=zoomLevel,
+			lonshift=lonshift,latshift=latshift,
+			shiftformat=shiftformat
+			)
 		train()
 		ml()
 	elif selectedModule == 'parse':
@@ -150,7 +167,10 @@ if __name__ == "__main__":
 	elif selectedModule == 'overlay':
 		overlay.overlay(outputFolder,inputFile,
 			pixel=pixel,
-			zoomLevel=zoomLevel)
+			zoomLevel=zoomLevel,
+			lonshift=lonshift,latshift=latshift,
+			shiftformat=shiftformat
+			)
 	elif selectedModule == 'train':
 		train()
 	elif selectedModule == 'mltrain':

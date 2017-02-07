@@ -139,7 +139,7 @@ def parse(inputFile=None,outputFolder="data",\
 				outputFile=outputFolder+"/"+outputFile
 				print "Converting layer",layers[choseLayer-1],"..."
 				outputFile=overwrite(outputFile)
-				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1]]) #convert layer
+				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
 				get_stats.get_stats(outputFile)#get statistics

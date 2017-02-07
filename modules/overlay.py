@@ -13,7 +13,8 @@ from modules.getFeatures import latLon,find_between
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
 
-def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
+def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
+	shiftformat=0):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -42,6 +43,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	print 'Opening %s...' % inputFile
 	with open(inputFile, 'r') as f:
 		elements = json.load(f)
+	#Create json-file for each layer
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements)
@@ -49,14 +51,10 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
 	av_lats=[]
 	av_lons=[]
-	#for index in range(0,len(elements['features'])):
-	#	try:
-	#		av_lat,av_lon=latLon(elements['features'][index]) # get center points
-	#	except IndexError:
-	#		pass
-	#	av_lats.append(av_lat)
-	#	av_lons.append(av_lon)
 	cnt = 1
+
+
+
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
@@ -80,9 +78,9 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 				myCoordConvert.convertBack(image_box_lon,image_box_lat)
 		else:
 			image_box=image_box_raw
-		image_lon = image_box[1]
-		image_lat = image_box[0]	
-		print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
+		image_lat = image_box[1]
+		image_lon = image_box[0]	
+		print "Coordinates Native corner: "+str(image_lat[0])+','+str(image_lon[0])
 		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		#rasterize corresponding data
@@ -102,18 +100,32 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 			os.remove(tifile+"*")
 		except OSError:
 			pass
+		#shift factor
+		west=(image_lon[0]+image_lon[2])/2
+		south=min(image_lat)
+		east=(image_lon[1]+image_lon[3])/2
+		north=max(image_lat)
+		if shiftformat == 0:					#if fraction as shift unit
+			lonshift_calc=lonshift*abs(east-west)
+			latshift_calc=latshift*abs(north-south)
+		else:
+			lonshift_calc=lonshift
+			latshift_calc=latshift
+		print "Shift applied:"
+		print "Longitudinal \t",lonshift_calc
+		print "Lateral \t",latshift_calc
 		#set rasterize settings
 		size=[pixel,pixel]
-		te=[min(image_lat),min(image_lon),\
-				max(image_lat),max(image_lon)] #Latitude/longitude mixed up?
+		te=[west-lonshift_calc,south-latshift_calc,\
+			east-lonshift_calc,north-latshift_calc] #image bounderies 
 		print "Image bounderies:"
-		print str(image_box_lat[0])[:-7],'\t',str(image_box_lon[0])[:-7],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lat[1])[:-7],'\t',str(image_box_lon[1])[:-7]
-		print '\t|\t\t\t\t\t\t\t\t|\t'
-		print '\t|\t\t\t\t\t\t\t\t|\t'
-		print str(image_box_lat[2])[:-7],'\t',str(image_box_lon[2])[:-7],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lat[3])[:-7],'\t',str(image_box_lon[3])[:-7]
-		print te	
+		print str(image_box_lat[0])[:-5],'\t',str(image_box_lon[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
+			str(image_box_lat[1])[:-5],'\t',str(image_box_lon[1])[:-5]
+		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
+		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
+		print str(image_box_lat[2])[:-5],'\t',str(image_box_lon[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
+			str(image_box_lat[3])[:-5],'\t',str(image_box_lon[3])[:-5]
+		#print te	
 		#print size,te
 		#rasterize
 		gdal_rasterize.rasterize(	\
@@ -125,8 +137,8 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 			te=te,
 			burn_values=[200])				# set image limits in te
 
-		#Create test images more visual checks
-		checkfile=outputFolder+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for raster tif file
+		#Create test images for visual checks
+		checkfile=outputFolder+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
 		if not os.path.isdir(outputFolder+checkDataFolder):
 		    try:
 			os.mkdir(outputFolder+checkDataFolder)
@@ -140,9 +152,9 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None):
 			pass
 		background = Image.open(outputFolder+'/sat/'+image)
 		foreground = Image.open(tifile)
-
 		background.paste(foreground, (0, 0), foreground)
 		background.save(checkfile)
+
 	#Remove aux-files
 #	try:
 #		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")

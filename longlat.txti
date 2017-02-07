@@ -1,0 +1,20 @@
+mellanbyphybrisacuk:cv4ag la15163$ python cv4ag.py -i data/Vietnam.gdb1.json -z 17 -c 1 --latshift 0.059 --lonshift -0.148 overlay $MapboxAccessToken 
+Option: overlay
+Number of images found: 1
+Opening data/Vietnam.gdb1.json...
+Identified coordinate system is EPSG:3405
+Fit done.
+Coordinates Native: 1204292.58518,675718.745099
+Coordinates WSG84: 106.609504671,10.8890729945
+Coordinates Native corner: 1205032.05213,674966.533954
+Coordinates WSG84 corner: 106.602660089,10.8957941862
+1/1
+Converting Vietnam.gdb1.json_34911.png to Vietnam.gdb1.json_34911train.png
+Shift applied:
+Longitudinal 	-221.48632089
+Lateral 	88.1938180836
+Image bounderies:
+10.89579 	106.6026 	----	----	----	----	----	---- 10.89579 	106.6163
+	|										|	
+	|										|	
+10.88235 	106.6026 	----	----	----	----	----	---- 10.88235 	106.6163

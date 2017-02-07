@@ -12,12 +12,15 @@ class CoordConvert(object):
 	
 	def getCoordSystem(self,geojson):
 		''' initialise coordinate system according to geojson file '''
-		name= geojson['crs']['properties']['name']
-		if "EPSG".lower() in name.lower():
-			code=find_between(name, ':')
-			print "Identified coordinate system is EPSG:"+str(code)
-		else:
-			code=str(4326)  #if not found, assume standard format
+		try:
+			name= geojson['crs']['properties']['name']
+			if "EPSG".lower() in name.lower():
+				code=find_between(name, ':')
+				print "Identified coordinate system is EPSG:"+str(code)
+			else:
+				code=str(4326)  #if not found, assume standard format
+		except KeyError:
+			code=raw_input("EPSG Code for projection not found. Enter EPSC code manually: ")
 		self.epsg=pyproj.Proj("+init=EPSG:"+code)
 		return int(code)
 	

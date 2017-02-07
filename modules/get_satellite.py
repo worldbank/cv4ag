@@ -78,7 +78,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		url = mapbox_static.get_url(
 			latitude=latitude,
 			longitude=longitude,
-			mapbox_zoom=17,
+			mapbox_zoom=zoomLevel,
 			access_token=mapboxtoken,
 			width=pixel,
 			height=pixel)
