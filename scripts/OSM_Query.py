@@ -27,7 +27,7 @@ out;
 datatype="OSM"
 
 def script(countryISO='US',query='landuse',outputFolder='data/',
-	outputFile='datatiles.osm'):
+	outputFile='OSMdatatiles.json'):
 	"""
 	Main function executed by top
 
@@ -69,15 +69,56 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	fullquery = query_begin+query+query_end
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
-	datatiles = overpass_client.get_bbox_elements(
+	d = overpass_client.get_bbox_elements(
 	    ql_template=fullquery,
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
-	print 'Total elements found: %d' % len(datatiles)
+	print 'Total elements found: %d' % len(d)
 	
 	# Save the result
 	fileName=outputFolder+'/'+outputFile
+	geojson= '''
+		{
+	    "type": "FeatureCollection",
+		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4326" } },
+	    "features": ['''
+	cnt = 0.
+	lene=len(d)
+	for e in d :
+		print cnt*100./lene,"% done.\r", 
+		cnt+=1
+		if e['type']=='way':
+	#		if  e['area']=='yes':
+				geojson+='''
+				    {
+					"type": "Feature",'''+\
+						"\n\t\t\t\"properties\":{\"Descriptio\":\""+\
+						e['tags']['landuse']+"\"},"
+				geojson+='''
+					"geometry" : {
+					    "type": "MultiPolygon",
+					    "coordinates":[[['''
+				for node in e['nodes']:
+					for e2 in d: 
+						if (e2['type']=='node' and e2['id'] == node):
+							geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
+							break
+				geojson=geojson[0:-1]+"]]]}},"
+	geojson=geojson[0:-1]+"\n]\n}"
 	with open(fileName, 'w+') as f:
-			json.dump(datatiles,f)
+			json.dump(geojson,f)
+	#replace escape characters
+	with open(fileName, 'r') as file :
+	  filedata = file.read()[1:-1]
+
+	# Replace the target string
+	filedata = filedata.replace('\\n', '')
+	filedata = filedata.replace('\\t', '')
+	filedata = filedata.replace('\\"', '"')
+
+	# Write the file out again
+	with open(fileName, 'w') as file:
+	  file.write(filedata)
+
 	print "Written to",fileName
 	return [fileName,datatype]
