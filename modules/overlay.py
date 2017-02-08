@@ -6,6 +6,8 @@ import json
 import os
 import utils.gdal_rasterize as gdal_rasterize
 from PIL import Image
+from functools import partial
+from multiprocessing import Pool
 from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
 from modules.getFeatures import latLon,find_between
@@ -13,9 +15,75 @@ from modules.get_stats import get_stats
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
+
+def rasterLayer(i,stats,layerpath,size,te):
+	'''converts feature geojson to png image'''
+	feature=stats[i]
+	i+=1
+	print "Layer "+str(i)+"/"+str(len(stats))+'\t Processing feature: '+feature
+	outFile=layerpath+"/f_"+str(i)+".png"
+	featureFile =layerpath+"/f_"+str(i)+".json" 
+	try:
+		os.remove(outFile)
+	except OSError:
+		pass
+	gdal_rasterize.rasterize(	\
+		featureFile,
+		outFile,
+		ts=size,		# set resolution
+		out_format='PNG',
+		init=0,
+		te=te,
+		burn_values=[i])				# set image limits in te
+
+	#make 0s transparent to prepare for merge	
+	img = Image.open(outFile)
+	img = img.convert("RGBA")
+	datas = img.getdata()
+	newData = []
+	for item in datas:
+	    if item[0] == 0 and item[1] == 0 and item[2] == 0:
+		newData.append((0, 0, 0, 0))
+	    else:
+		newData.append(item)
+	img.putdata(newData)
+	img.save(outFile, "PNG")
+
+	#os.remove(featureFile)
+
+def createLayer(i,stats,layerpath,inputFile):
+	'''creates sub geojson files with only one feature property'''
+	feature=stats[i]
+	print "Processing feature:",feature
+	i+=1
+	print i,"/",len(stats)
+	featureFile = layerpath+"/f_"+str(i)+".json"
+	if not os.path.isfile(featureFile): 
+		with open(inputFile,'r') as f:
+			featureElements=json.load(f)
+		#delete every item that is not feature
+		cntdel=0
+		for i in range(0,len(featureElements['features'])):
+			#print featureElements['features'][cntdel]['properties']
+			if featureElements['features'][cntdel]['properties']['Descriptio']!=feature:
+				#print "del", featureElements['features'][cnt_featureelement]
+				del featureElements['features'][cntdel]	
+			else:
+				cntdel+=1
+		#for i in range(0,len(featureElements['features'])):
+		#	print featureElements['features'][i]['properties']
+		try:
+			os.remove(featureFile)
+		except OSError:
+			pass
+		with open(featureFile,'w+') as f:
+			featureElements=json.dump(featureElements,f)
+	else:
+		print "File",featureFile,"already exists."
+
 # find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
-	shiftformat=0,top=15,stats=None):
+	shiftformat=0,top=15,stats=None,count=None):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -48,33 +116,18 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	if not stats:
 		stats=get_stats(inputFile,top,verbose=False)
 	#Create json-file for each layer
-	cnt_feature=0
 	#Make directory for subfiles
-	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1]+"Folder"
+	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]+"_SideData"
 	if not os.path.isdir(layerpath):
 		os.mkdir(layerpath)
-	#create subfile for each feature
-	for feature in stats: 
-		print "Processing feature:",feature
-		cnt_feature+=1
-		print cnt_feature,"/",len(stats)
-		featureFile = layerpath+"/"+feature+".json"
-		with open(inputFile,'r') as f:
-			featureElements=json.load(f)
-		#delete every item that is not feature
-		cntdel=0
-		for i in range(0,len(featureElements['features'])):
-			#print featureElements['features'][cntdel]['properties']
-			if featureElements['features'][cntdel]['properties']['Descriptio']!=feature:
-				#print "del", featureElements['features'][cnt_featureelement]
-				del featureElements['features'][cntdel]	
-			else:
-				cntdel+=1
-		#for i in range(0,len(featureElements['features'])):
-		#	print featureElements['features'][i]['properties']
-		os.remove(featureFile)
-		with open(featureFile,'w+') as f:
-			featureElements=json.dump(featureElements,f)
+		args.append([stats,i,layerpath,inputFile])
+	#initialize multi-core processing
+	pool = Pool()
+	#create subfile for each feature	
+	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile) #pool only takes 1-argument functions
+	pool.map(partial_createLayer, range(0,len(stats)))
+	pool.close()
+	pool.join()
 
 
 	#Get coordinate system
@@ -115,9 +168,12 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		#rasterize corresponding data
-		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print str(cnt)+'/'+str(len(image_files))
 		cnt+=1
+		if count: 		#abort if maximum limit set and cnt above maximum limit
+			if cnt>count:
+				break
+		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print 'Converting',image,'to',os.path.split(tifile)[-1]
 		if not os.path.isdir(outputFolder+trainingDataFolder):
 		    try:
@@ -126,11 +182,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			    % outputFolder+trainingDataFolder
 		    except Exception as e:
 			print 'Failed to create the training datafolder' 
-		try:
-			os.remove(tifile)
-			os.remove(tifile+"*")
-		except OSError:
-			pass
 		#shift factor
 		west=(image_lon[0]+image_lon[2])/2
 		south=min(image_lat)
@@ -159,21 +210,45 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			str(image_box_lat[3])[:-5],'\t',str(image_box_lon[3])[:-5]
 		
 		#rasterize
-		gdal_rasterize.rasterize(	\
-			inputFile,
-			tifile,
-			ts=size,		# set resolution
-			out_format='PNG',
-			init=0,
-			te=te,
-			burn_values=[200])				# set image limits in te
+		#rasterLayer(0,stats,layerpath,size,te)
+		pool = Pool()
+		partial_rasterLayer=partial(rasterLayer,stats=stats,layerpath=layerpath,size=size,te=te) #pool only takes 1-argument functions
+		pool.map(partial_rasterLayer, range(0,len(stats)))
+		pool.close()
+		pool.join()
+		print ''	
+		#create output file
+		try: #remove output file, if it already exists
+			os.remove(tifile)
+		except OSError:
+			pass
+		#merge first two pictures
+		print "Merging images..."
+		imgFile=layerpath+"/f_"+str(1)+".png"
+		background = Image.open(imgFile)
+		imgFile=layerpath+"/f_"+str(2)+".png"
+		foreground = Image.open(imgFile)
+		background.paste(foreground, (0, 0), foreground)
+		background.save(tifile)
+		if len(stats)>2:
+			for i in range(3,len(stats)+1):
+				imgFile=layerpath+"/f_"+str(1)+".png"
+				background = Image.open(imgFile)
+				foreground = Image.open(tifile)
+				background.paste(foreground, (0, 0), foreground)
+				background.save(tifile)
+		#convert back to grayscale
+		img = Image.open(tifile)
+		img = img.convert("L")
+		img.save(tifile, "PNG")
+		print "Class label image",tifile,"created."
 
 		#Create test images for visual checks
 		checkfile=outputFolder+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
 		if not os.path.isdir(outputFolder+checkDataFolder):
 		    try:
 			os.mkdir(outputFolder+checkDataFolder)
-			print 'Training data folder created: %s' \
+			print 'Check data folder created: %s' \
 			    % outputFolder+checkDataFolder
 		    except Exception as e:
 			print 'Failed to create the check datafolder' 

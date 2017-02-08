@@ -100,7 +100,7 @@ if __name__ == "__main__":
 		help='Format of longitudinal/lateral shift.\
 		0: As fraction of image. 1: Georeferenced unites.')
 	cmdParser.add_argument('--top',metavar=['N'],
-		type=str,default=None,
+		type=str,default=15,
 		help='Get N most frequent classes.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
@@ -154,7 +154,8 @@ if __name__ == "__main__":
 			lonshift=lonshift,latshift=latshift,
 			shiftformat=shiftformat,
 			top=top,
-			stats=stats
+			stats=stats,
+			count=satelliteCount
 			)
 		train()
 		ml()
@@ -175,7 +176,9 @@ if __name__ == "__main__":
 			pixel=pixel,
 			zoomLevel=zoomLevel,
 			lonshift=lonshift,latshift=latshift,
-			shiftformat=shiftformat
+			shiftformat=shiftformat,
+			top=top,
+			count=satelliteCount
 			)
 	elif selectedModule == 'train':
 		train()

@@ -63,7 +63,8 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True):
 	# Sort the type_keys by value, and reverse (descending values)
 	stats = sorted(stats.items(), key=operator.itemgetter(1))
 	stats = list(reversed(stats))
-	print "Frequency statistics of",top,"most common proporties:"
+	if verbose:
+		print "Frequency statistics of",top,"most common properties:"
 	# Show statistics
 	listofmostelements = []
 	for type_key_stat in stats[:top]:
