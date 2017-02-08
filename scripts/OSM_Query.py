@@ -105,7 +105,6 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 		cnt+=1
 		if e['type']=='node':
 			ids[str(e['id'])]=[e['lon'],e['lat']]
-	print ids
 	#creade list of nodes with ids.
 	#coordlist=[]
 	#cnt = 0.
