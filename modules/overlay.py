@@ -121,7 +121,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]+"_SideData"
 	if not os.path.isdir(layerpath):
 		os.mkdir(layerpath)
-		args.append([stats,i,layerpath,inputFile])
 	#initialize multi-core processing
 	pool = Pool()
 	#create subfile for each feature	

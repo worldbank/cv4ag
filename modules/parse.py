@@ -6,13 +6,16 @@ import utils.gdal_polygonize_edited as gdal_polygonize
 import get_stats
 import os,csv
 import json
-def overwrite(outputFile):
+def overwrite(outputFile,promptoverwrite=False):
 	'''remove file if already exists. necessary as GeoJSON engine cannot
 	overwrite files'''
 	try:
 		if os.path.exists(outputFile):
-			overwrite_answer=raw_input(outputFile+" already exists. Overwrite? (y/n) ")
-			if overwrite_answer=="y":
+			if promptoverwrite:
+				overwrite_answer=raw_input(outputFile+" already exists. Overwrite? (y/n) ")
+			else:
+				overwrite_answer=''
+			if overwrite_answer=="y" or (not promptoverwrite):
 				os.remove(outputFile)
 			else:
 				outputFile=raw_input("Provide alternative filename: ")
@@ -21,7 +24,7 @@ def overwrite(outputFile):
 	return outputFile
 
 def parse(inputFile=None,outputFolder="data",\
-	outputFile="datatiles.json",datatype=None,top=15,\
+	outputFile="datatiles.json",datatype=None,top=15,layernumber=None,\
 	scriptFile=None, scriptArg1=None,scriptArg2=None,\
 	scriptArg3=None,scriptArg4=None):
 	"""
@@ -122,7 +125,10 @@ def parse(inputFile=None,outputFolder="data",\
 		layers = ogrinfo.main(["-so",inputFile])
 		if len(layers)>1:
 			# Select layers (one or all)
-			choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
+			if not layernumber:
+				choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
+			else:
+				choseLayer = layernumber
 			if choseLayer==0: # iterate over each layer
 				for i in range(0,len(layers)):
 					#create filename

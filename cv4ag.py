@@ -102,6 +102,9 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--top',metavar=['N'],
 		type=int,default=15,
 		help='Get N most frequent classes.')
+	cmdParser.add_argument('--layer',metavar=['N'],
+		type=int,default=None,
+		help='Number of layer to be trained on.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -131,6 +134,7 @@ if __name__ == "__main__":
 	scriptArg4 = cmdArgs.get('arg4')
 	lonshift= cmdArgs.get('lonshift')
 	latshift= cmdArgs.get('latshift')
+	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
 	top = cmdArgs.get('top')
 	
@@ -139,7 +143,7 @@ if __name__ == "__main__":
 	if selectedModule == 'all':
 		inputFile,stats=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,
+			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber , 
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 		get_satellite.get_satellite(inputFile=inputFile,
@@ -161,7 +165,7 @@ if __name__ == "__main__":
 		ml()
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,
+			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber , 
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 	elif selectedModule == 'satellite':
