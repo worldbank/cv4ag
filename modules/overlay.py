@@ -12,6 +12,7 @@ from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
 from modules.getFeatures import latLon,find_between
 from modules.get_stats import get_stats
+from libs.colorlist import colorlist
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
@@ -83,7 +84,7 @@ def createLayer(i,stats,layerpath,inputFile):
 
 # find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
-	shiftformat=0,top=15,stats=None,count=None):
+	shiftformat=0,top=10,stats=None,count=None):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -168,11 +169,11 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		#rasterize corresponding data
-		print str(cnt)+'/'+str(len(image_files))
-		cnt+=1
 		if count: 		#abort if maximum limit set and cnt above maximum limit
 			if cnt>count:
 				break
+		print str(cnt)+'/'+str(len(image_files))
+		cnt+=1
 		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print 'Converting',image,'to',os.path.split(tifile)[-1]
 		if not os.path.isdir(outputFolder+trainingDataFolder):
@@ -200,7 +201,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		size=[pixel,pixel]
 		te=[west-lonshift_calc,south-latshift_calc,\
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
-		print te
+		#print te
 		print "Image bounderies:"
 		print str(image_box_lat[0])[:-5],'\t',str(image_box_lon[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lat[1])[:-5],'\t',str(image_box_lon[1])[:-5]
@@ -237,11 +238,6 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 				foreground = Image.open(tifile)
 				background.paste(foreground, (0, 0), foreground)
 				background.save(tifile)
-		#convert back to grayscale
-		img = Image.open(tifile)
-		img = img.convert("L")
-		img.save(tifile, "PNG")
-		print "Class label image",tifile,"created."
 
 		#Create test images for visual checks
 		checkfile=outputFolder+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
@@ -257,10 +253,33 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		except OSError:
 			pass
 		background = Image.open(outputFolder+'/sat/'+image)
-		foreground = Image.open(tifile)
-		background.paste(foreground, (0, 0), foreground)
+		brightened = Image.open(tifile)
+		#brighten up visual images for check file
+		#make 0s transparent to prepare for merge	
+		datas = brightened.getdata()
+		newData = []
+		print "Creating check image..."
+		try:
+			for item in datas:
+				for i in range(0,len(stats)):	
+					if item[0] == 0 and item[1] == 0 and item[2] == 0 and item[3]==0:
+						newData.append(item)
+						break
+					elif item[0] == i and item[1] == i and item[2] == i and item[3]==255:
+						newData.append(colorlist[i-1])
+						break
+			brightened.putdata(newData)
+		except IndexError:
+			print "Warning: Color list for visual check file too short"
+
+		background.paste(brightened, (0, 0), brightened)
 		background.save(checkfile)
 
+		#convert back to grayscale
+		img = Image.open(tifile)
+		img = img.convert("L")
+		img.save(tifile, "PNG")
+		print "Class label image",tifile," and check image created."
 	#Remove aux-files
 #	try:
 #		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")

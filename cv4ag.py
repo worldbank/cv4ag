@@ -100,7 +100,7 @@ if __name__ == "__main__":
 		help='Format of longitudinal/lateral shift.\
 		0: As fraction of image. 1: Georeferenced unites.')
 	cmdParser.add_argument('--top',metavar=['N'],
-		type=str,default=15,
+		type=int,default=15,
 		help='Get N most frequent classes.')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
