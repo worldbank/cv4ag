@@ -105,6 +105,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 		cnt+=1
 		if e['type']=='node':
 			ids[str(e['id'])]=[e['lon'],e['lat']]
+	print ids
 	#creade list of nodes with ids.
 	#coordlist=[]
 	#cnt = 0.
@@ -138,8 +139,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 					    "type": "MultiPolygon",
 					    "coordinates":[[['''
 				for node in e['nodes']:
-					if cnt<lene/2:
-						geojson+="["+str(ids[str(node)][0])+","+str(ids[str(node)][1])+"],"
+					geojson+="["+str(ids[str(node)][0])+","+str(ids[str(node)][1])+"],"
 #						for e2 in d: 
 #							if (e2['type']=='node' and e2['id'] == node):
 #								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
