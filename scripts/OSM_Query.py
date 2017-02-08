@@ -147,7 +147,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 						lat=str(ids[str(node)][1])
 					except KeyError:
 						print ''
-						print '\tNode',node,'not found in library.\n\
+						print '\tNode',node,'not found in library.\
 							Download informations from openstreetmap.org ...'
 						response=urllib2.urlopen('http://api.openstreetmap.org/api/0.6/node/'+str(node))
 						fullxml = str(response.read())
