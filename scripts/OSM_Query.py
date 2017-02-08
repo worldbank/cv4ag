@@ -92,8 +92,35 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	    "type": "FeatureCollection",
 		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4326" } },
 	    "features": ['''
+	#create faster node searchs
+	print "Create library for faster node searches"
+	#get max id
+	maxid=0
 	cnt = 0.
+	ids={}
+	for e in d:
+		print "\t Library creation:",cnt*100./lene,"% done.\r", 
+		cnt+=1
+		if e['type']=='node':
+			ids[str(e['id'])]=[e['lon'],e['lat']]
+	#creade list of nodes with ids.
+	#coordlist=[]
+	#cnt = 0.
+	#for i in range(0,maxid+1):
+	#	print "\t Step 2/3:",cnt*100./maxid+1,"% done.\r", 
+	#	cnt+=1
+	#	coordlist.append([0,0])
+	#cnt = 0.
+	#rint ""
+	#for e in d:
+	#	print "\t Step 3/3:",cnt*100./lene,"% done.\r", 
+	#	cnt+=1
+	#	if e['type']=='node':
+	#		coordlist(e['id'])[0]=e['lon']
+	#		coordlist(e['id'])[1]=e['lat']
 	#loop through elements and append to GeoJSON string
+	cnt = 0.
+	print ""
 	for e in d :
 		cnt+=1
 		print "Conversion to GeoJSON:",cnt*100./lene,"% done.\r", 
@@ -110,15 +137,16 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 					    "coordinates":[[['''
 				for node in e['nodes']:
 					if cnt<lene/2:
-						for e2 in d: 
-							if (e2['type']=='node' and e2['id'] == node):
-								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
-								break
-					else:
-						for e2 in dr: 
-							if (e2['type']=='node' and e2['id'] == node):
-								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
-								break
+						geojson+="["+str(ids[str(node)][0])+","+str(ids[str(node)][1])+"],"
+#						for e2 in d: 
+#							if (e2['type']=='node' and e2['id'] == node):
+#								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
+#								break
+#					else:
+#						for e2 in dr: 
+#							if (e2['type']=='node' and e2['id'] == node):
+#								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
+#								break
 				geojson=geojson[0:-1]+"]]]}},"
 	geojson=geojson[0:-1]+"\n]\n}"
 	print " "
