@@ -134,7 +134,7 @@ def parse(inputFile=None,outputFolder="data",\
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
-					get_stats.get_stats(outputFile)#get statistics
+					stats=get_stats.get_stats(outputFile,top) #get statistics
 			else: #only convert one layer
 				print inputFile
 				_,outputFile=os.path.split(inputFile+str(choseLayer)+".json")
@@ -144,7 +144,7 @@ def parse(inputFile=None,outputFolder="data",\
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
-				get_stats.get_stats(outputFile)#get statistics
+				stats=get_stats.get_stats(outputFile,top) #get statistics
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
@@ -154,4 +154,10 @@ def parse(inputFile=None,outputFolder="data",\
 			print ''
 			print "Converted to",outputFile
 			stats=get_stats.get_stats(outputFile,top) #get statistics
+	#reference stats if not already done:
+	try:	
+		if stats:
+			print ""	
+	except UnboundLocalError:
+		stats=None
 	return outputFile,stats

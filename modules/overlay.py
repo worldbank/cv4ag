@@ -49,14 +49,33 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		stats=get_stats(inputFile,top,verbose=False)
 	#Create json-file for each layer
 	cnt_feature=0
-	for feature in stats:
-		print "Processing feature",feature
+	#Make directory for subfiles
+	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1]+"Folder"
+	if not os.path.isdir(layerpath):
+		os.mkdir(layerpath)
+	#create subfile for each feature
+	for feature in stats: 
+		print "Processing feature:",feature
 		cnt_feature+=1
 		print cnt_feature,"/",len(stats)
-		#Make directory for subfiles
-		if not os.path.isdir(outputFolder+inputFile):
-		#	os.mkdir(outputFolder+inputFile)
-			print 'Container created. Extracting features:'
+		featureFile = layerpath+"/"+feature+".json"
+		with open(inputFile,'r') as f:
+			featureElements=json.load(f)
+		#delete every item that is not feature
+		cntdel=0
+		for i in range(0,len(featureElements['features'])):
+			#print featureElements['features'][cntdel]['properties']
+			if featureElements['features'][cntdel]['properties']['Descriptio']!=feature:
+				#print "del", featureElements['features'][cnt_featureelement]
+				del featureElements['features'][cntdel]	
+			else:
+				cntdel+=1
+		#for i in range(0,len(featureElements['features'])):
+		#	print featureElements['features'][i]['properties']
+		os.remove(featureFile)
+		with open(featureFile,'w+') as f:
+			featureElements=json.dump(featureElements,f)
+
 
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
