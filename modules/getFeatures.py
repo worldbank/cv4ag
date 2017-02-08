@@ -15,12 +15,15 @@ def latLon(element):
 	av_lon= (max(alon)+min(alon))/2
 	return av_lon,av_lat
 
-def find_between(s, first, last=None ):
+def find_between(s, first, last=None, lastfirst=False ):
         '''find substrings. used to get index out of image filename'''
         try:
             start = s.rindex( first ) + len( first )
 	    if last:
-            	end = s.rindex( last, start )
+		if lastfirst:
+			end = s.index(last,start)
+		else:
+			end = s.rindex( last, start )
             	return s[start:end]
 	    else:
             	return s[start:]

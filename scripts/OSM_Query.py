@@ -11,7 +11,9 @@ from country_bounding_boxes import (
     )
 from utils.overpass_client import OverpassClient
 from numpy import floor
+from modules.getFeatures import find_between
 import json
+import urllib2
 
 # Query string to OSM to provide landuse data, with the query key later
 # placed in the middle
@@ -105,6 +107,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 		cnt+=1
 		if e['type']=='node':
 			ids[str(e['id'])]=[e['lon'],e['lat']]
+
 	#creade list of nodes with ids.
 	#coordlist=[]
 	#cnt = 0.
@@ -123,9 +126,10 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	#loop through elements and append to GeoJSON string
 	cnt = 0.
 	print ""
+	print "Convert to GeoJSON file",fileName
 	for e in d :
 		cnt+=1
-		print "Conversion to GeoJSON:",cnt*100./lene,"% done.\r", 
+		print "\tConversion to GeoJSON:",cnt*100./lene,"% done.\r", 
 		if e['type']=='way':
 	#		if  e['area']=='yes':
 				geojson+='''
@@ -138,7 +142,19 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 					    "type": "MultiPolygon",
 					    "coordinates":[[['''
 				for node in e['nodes']:
-					geojson+="["+str(ids[str(node)][0])+","+str(ids[str(node)][1])+"],"
+					try:
+						lon=str(ids[str(node)][0])
+						lat=str(ids[str(node)][1])
+					except KeyError:
+						print ''
+						print '\tNode',node,'not found in library.\n\
+							Download informations from openstreetmap.org ...'
+						response=urllib2.urlopen('http://api.openstreetmap.org/api/0.6/node/'+str(node))
+						fullxml = str(response.read())
+						lon=find_between(fullxml,"lon=\"","\"",lastfirst=True)
+						lat=find_between(fullxml,"lat=\"","\"",lastfirst=True)
+					
+					geojson+="["+lon+","+lat+"],"
 #						for e2 in d: 
 #							if (e2['type']=='node' and e2['id'] == node):
 #								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
