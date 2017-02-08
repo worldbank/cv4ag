@@ -279,9 +279,21 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		img = img.convert("L")
 		img.save(tifile, "PNG")
 		print "Class label image",tifile," and check image created."
-	#Remove aux-files
-#	try:
-#		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")
-#	except OSError:
-#		pass
-### CLEANUP
+	#Clean up side data
+	for i in range(0,len(stats)):
+		try:
+			os.remove(layerpath+"/f_"+str(i)+".json")
+		except OSError:
+			pass
+		try:
+			os.remove(layerpath+"/f_"+str(i)+".png")
+		except OSError:
+			pass
+		try:
+			os.remove(layerpath+"/f_"+str(i)+".png.aux.xml")
+		except OSError:
+			pass
+	try:
+		os.rmdir(layerpath)
+	except OSError:
+		pass

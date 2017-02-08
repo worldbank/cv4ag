@@ -63,13 +63,15 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	e = bbox[2]
 	n = bbox[3]
 	print "Coordinates:",w,s,e,n
-
 	print "Key:",query
-			####GET THE RIGHT NUMBER OF BBOX
 	# Country is split into 100 boxes, as (for the us) sample is too big
 	# (timeout)
 	# Number of Boxes = (samples-1)^2 boxes.
-	samples = 11  # 100 boxes
+	#calculate number of boxes
+	mindiff=min([abs(w-e),abs(n-s)])
+	samples=int(floor((mindiff*8)+2))
+	print "Number of queries:",(samples-1)**2
+	#samples = 11  # 100 boxes
 	fullquery = query_begin+query+query_end
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
