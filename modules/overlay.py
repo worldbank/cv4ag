@@ -284,3 +284,4 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 #		os.remove(outputFolder+trainingDataFolder+"*.aux.xml")
 #	except OSError:
 #		pass
+### CLEANUP

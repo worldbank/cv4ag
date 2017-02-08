@@ -27,7 +27,7 @@ out;
 datatype="GeoJSON"
 
 def script(countryISO='US',query='landuse',outputFolder='data/',
-	outputFile='OSMdatatiles.json'):
+	outputFile='OSMdatatiles_'):
 	"""
 	Main function executed by top
 
@@ -61,11 +61,11 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	print "Coordinates:",w,s,e,n
 
 	print "Key:",query
-
+			####GET THE RIGHT NUMBER OF BBOX
 	# Country is split into 100 boxes, as (for the us) sample is too big
 	# (timeout)
 	# Number of Boxes = (samples-1)^2 boxes.
-	samples = 11  # 100 boxes
+	samples = 2  # 100 boxes
 	fullquery = query_begin+query+query_end
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
@@ -74,8 +74,9 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
 	print 'Total elements found: %d' % len(d)
+	dr=list(reversed(d))
 	
-	fileName=outputFolder+'/'+outputFile
+	fileName=outputFolder+'/'+outputFile+str(subunits[subunit-1].name).replace(" ","_")+".json"
 
 	#Create GeoJSON string
 	geojson= '''
@@ -87,8 +88,8 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	lene=len(d)
 	#loop through elements and append to GeoJSON string
 	for e in d :
-		print cnt*100./lene,"% done.\r", 
 		cnt+=1
+		print "Conversion to GeoJSON:",cnt*100./lene,"% done.\r", 
 		if e['type']=='way':
 	#		if  e['area']=='yes':
 				geojson+='''
@@ -101,10 +102,16 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 					    "type": "MultiPolygon",
 					    "coordinates":[[['''
 				for node in e['nodes']:
-					for e2 in d: 
-						if (e2['type']=='node' and e2['id'] == node):
-							geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
-							break
+					if cnt<lene/2:
+						for e2 in d: 
+							if (e2['type']=='node' and e2['id'] == node):
+								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
+								break
+					else:
+						for e2 in dr: 
+							if (e2['type']=='node' and e2['id'] == node):
+								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
+								break
 				geojson=geojson[0:-1]+"]]]}},"
 	geojson=geojson[0:-1]+"\n]\n}"
 	print " "
