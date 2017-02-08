@@ -10,6 +10,7 @@ from country_bounding_boxes import (
       country_subunits_by_iso_code
     )
 from utils.overpass_client import OverpassClient
+from numpy import floor
 import json
 
 # Query string to OSM to provide landuse data, with the query key later
@@ -26,15 +27,18 @@ out;
 
 datatype="GeoJSON"
 
-def script(countryISO='US',query='landuse',outputFolder='data/',
+def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	outputFile='OSMdatatiles_'):
 	"""
 	Main function executed by top
 
 	'countryISO': Country for which BBox data should be downloaded
+	'query': Tag for OSM query to search for
+	'partOfData': Part of total data of a country to be processed
 	Returns list with [filename,datatype], where datatype is the
 		GDAL_CODE
 	"""
+	partOfData=float(partOfData)
 	subunits=[]
 	#Load country data
 	for c in country_subunits_by_iso_code(countryISO):
@@ -65,7 +69,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	# Country is split into 100 boxes, as (for the us) sample is too big
 	# (timeout)
 	# Number of Boxes = (samples-1)^2 boxes.
-	samples = 2  # 100 boxes
+	samples = 11  # 100 boxes
 	fullquery = query_begin+query+query_end
 	#Get Elements from OSM
 	overpass_client = OverpassClient(endpoint='fr')
@@ -73,8 +77,12 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 	    ql_template=fullquery,
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
-	print 'Total elements found: %d' % len(d)
+	lene=len(d)
+	print 'Total elements found: %d' % lene
+	boundery_index=int(floor(partOfData*lene))
+	d=d[0:boundery_index]	
 	dr=list(reversed(d))
+	lene=boundery_index
 	
 	fileName=outputFolder+'/'+outputFile+str(subunits[subunit-1].name).replace(" ","_")+".json"
 
@@ -85,7 +93,6 @@ def script(countryISO='US',query='landuse',outputFolder='data/',
 		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4326" } },
 	    "features": ['''
 	cnt = 0.
-	lene=len(d)
 	#loop through elements and append to GeoJSON string
 	for e in d :
 		cnt+=1
