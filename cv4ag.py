@@ -18,11 +18,8 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite,overlay,train
+import parse,get_satellite,overlay,train,clean
 #-------------------------------------------------------------------
-def clear():
-	pass
-
 def ml():
 	pass
 
@@ -208,7 +205,7 @@ if __name__ == "__main__":
 	elif selectedModule == 'mltrain':
 		ml()
 	elif selectedModule == 'clear':
-		clear()
+		clean.clear()
 	else:
 		print "error - no valid option"
 		cmdParser.print_help()

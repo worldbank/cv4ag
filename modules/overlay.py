@@ -110,10 +110,14 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
 		and f.startswith(os.path.split(inputFile)[-1][:-5])] #has to be png image and start with input filename
 	if len(image_files)==0:
-		print "No images found in",subpath+satDataFolder[0:-1]
+		print "Error: No images found in",subpath+satDataFolder[0:-1]
 		exit()
 	else:
 		print "Number of images found:",len(image_files)
+		if count:
+			print "Create",count,"images"
+		else:
+			print "Create",len(image_files),"images"
 
 	print 'Get GIS elements...'
 	if not elements:

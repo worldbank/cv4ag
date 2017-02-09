@@ -22,5 +22,5 @@ def train(outputFolder,inputFile):
 			id2= int(find_between(f2,"_","train.png"))
 			if id1==id2:
 				with open(subpath+"/train.txt",'a+') as f:
-					f.write("\n"+str(os.path.abspath(f1))+" "+\
-						str(os.path.abspath(f2)))
+					f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
+						str(os.path.abspath(trainpath+"/"+f2)))
