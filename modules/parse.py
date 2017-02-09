@@ -24,7 +24,7 @@ def overwrite(outputFile,promptoverwrite=False):
 	return outputFile
 
 def parse(inputFile=None,outputFolder="data",\
-	outputFile="datatiles.json",datatype=None,top=15,layernumber=None,\
+	outputFile="datatiles.json",datatype=None,top=15,layernumber=None,key='Descriptio',\
 	scriptFile=None, scriptArg1=None,scriptArg2=None,\
 	scriptArg3=None,scriptArg4=None):
 	"""
@@ -112,7 +112,7 @@ def parse(inputFile=None,outputFolder="data",\
 	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
-			get_stats.get_stats(outputFile)
+			get_stats.get_stats(outputFile,top,key=key)
 	else:
 		#vectorize if in raster format and user agrees
 		if vector_or_raster == 1:
@@ -140,7 +140,7 @@ def parse(inputFile=None,outputFolder="data",\
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
-					stats=get_stats.get_stats(outputFile,top) #get statistics
+					stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
 			else: #only convert one layer
 				print inputFile
 				_,outputFile=os.path.split(inputFile+str(choseLayer)+".json")
@@ -150,7 +150,7 @@ def parse(inputFile=None,outputFolder="data",\
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
-				stats=get_stats.get_stats(outputFile,top) #get statistics
+				stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
@@ -159,7 +159,7 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-			stats=get_stats.get_stats(outputFile,top) #get statistics
+			stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
 	#reference stats if not already done:
 	try:	
 		if stats:

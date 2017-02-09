@@ -36,6 +36,7 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True):
 			except KeyError:
 				print "Error: Keyword",key,"not found in",filename
 				print "Cannot get statistics..."
+				exit()
 				return 0
 				
 			stats[type_key] = (stats[type_key]+1)\

@@ -52,7 +52,7 @@ def rasterLayer(i,stats,layerpath,size,te):
 
 	#os.remove(featureFile)
 
-def createLayer(i,stats,layerpath,inputFile):
+def createLayer(i,stats,layerpath,inputFile,key):
 	'''creates sub geojson files with only one feature property'''
 	feature=stats[i]
 	print "Processing feature:",feature
@@ -66,7 +66,7 @@ def createLayer(i,stats,layerpath,inputFile):
 		cntdel=0
 		for i in range(0,len(featureElements['features'])):
 			#print featureElements['features'][cntdel]['properties']
-			if featureElements['features'][cntdel]['properties']['Descriptio']!=feature:
+			if featureElements['features'][cntdel]['properties'][key]!=feature:
 				#print "del", featureElements['features'][cnt_featureelement]
 				del featureElements['features'][cntdel]	
 			else:
@@ -84,7 +84,7 @@ def createLayer(i,stats,layerpath,inputFile):
 
 # find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
-	shiftformat=0,top=10,stats=None,count=None):
+	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -115,7 +115,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		elements = json.load(f)
 	#Get statistics if not in input
 	if not stats:
-		stats=get_stats(inputFile,top,verbose=False)
+		stats=get_stats(inputFile,top,verbose=True,key=key)
 	#Create json-file for each layer
 	#Make directory for subfiles
 	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]+"_SideData"
@@ -124,7 +124,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	#initialize multi-core processing
 	pool = Pool()
 	#create subfile for each feature	
-	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile) #pool only takes 1-argument functions
+	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
 	pool.map(partial_createLayer, range(0,len(stats)))
 	pool.close()
 	pool.join()
@@ -146,7 +146,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			lotlan= myCoordConvert.convert(av_lon,av_lat)
+			lotlan= myCoordConvert.convert(av_lon,av_lat,epsg)
 			longitude=lotlan[0]
 			latitude=lotlan[1]
 		else: #if already in wgs84 format

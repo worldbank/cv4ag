@@ -102,6 +102,12 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--top',metavar=['N'],
 		type=int,default=15,
 		help='Get N most frequent classes.')
+	cmdParser.add_argument('--key',
+		type=str,default='Descriptio',
+		help='Set parameter key for category in GIS file to classify data.')
+	cmdParser.add_argument('--epsg',metavar=['N'],
+		type=int,default=None,
+		help='EPSG format for GIS data. Is read from data if not set.'
 	cmdParser.add_argument('--layer',metavar=['N'],
 		type=int,default=None,
 		help='Number of layer to be trained on.')
@@ -136,14 +142,17 @@ if __name__ == "__main__":
 	latshift= cmdArgs.get('latshift')
 	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
+	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
+	top = cmdArgs.get('epsg')
 	
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':
 		inputFile,stats=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber , 
+			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber ,
+			key=key,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 		get_satellite.get_satellite(inputFile=inputFile,
@@ -151,6 +160,7 @@ if __name__ == "__main__":
 			count=satelliteCount,
 			zoomLevel=zoomLevel,
 			outputFolder=outputFolder,
+			epsg=epsg,
 			pixel=pixel)
 		overlay.overlay(outputFolder,inputFile,
 			pixel=pixel,
@@ -159,13 +169,16 @@ if __name__ == "__main__":
 			shiftformat=shiftformat,
 			top=top,
 			stats=stats,
-			count=satelliteCount
+			count=satelliteCount,
+			epsg=epsg,
+			key=key
 			)
 		train()
 		ml()
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber , 
+			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber, 
+			key=key,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
 	elif selectedModule == 'satellite':
@@ -182,7 +195,8 @@ if __name__ == "__main__":
 			lonshift=lonshift,latshift=latshift,
 			shiftformat=shiftformat,
 			top=top,
-			count=satelliteCount
+			count=satelliteCount,
+			key=key
 			)
 	elif selectedModule == 'train':
 		train()

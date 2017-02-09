@@ -7,7 +7,7 @@ from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon
 import os,json
-def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data',pixel=1280):
+def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data',pixel=1280,epsg=None):
 	if not inputFile:
 		print "Error: Provide input file."
 		exit()
@@ -61,7 +61,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		av_lon,av_lat=latLon(element)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			lotlan= myCoordConvert.convert(av_lon,av_lat)
+			lotlan= myCoordConvert.convert(av_lon,av_lat,epsg)
 			longitude=lotlan[0]
 			latitude=lotlan[1]
 		else: #if already in wgs84 format
