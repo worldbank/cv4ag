@@ -159,7 +159,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 		    {
 			"type": "Feature",'''+\
 				"\n\t\t\t\"properties\":{\"Descriptio\":\""+\
-				e['tags']['landuse']+"\"},")
+				tag+"\"},")
 		geojson.append('''
 			"geometry" : {
 			    "type": "MultiPolygon",

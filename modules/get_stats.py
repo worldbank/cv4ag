@@ -58,7 +58,7 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True):
 			except AttributeError:
 				pass
 
-	print "Total elements",elements_stats
+	#print "Total elements",elements_stats
 
 	# Sort the type_keys by value, and reverse (descending values)
 	stats = sorted(stats.items(), key=operator.itemgetter(1))
