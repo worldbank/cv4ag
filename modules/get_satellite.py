@@ -6,8 +6,9 @@ from random import shuffle
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon
+from libs.foldernames import satDataFolder
 import os,json
-def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,
+def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	outputFolder='data',pixel=1280,epsg=None,elements=None):
 
 	if not inputFile:
@@ -29,26 +30,28 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,
 	# Randomize elements list to make sure we don't download all pics from the
 	# same sample
 
-	# Given list1 and list2
 	element_list = []
-	#try:
 	index_list = range(len(elements['features'])) #featue map
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements,epsg)
-#	except TypeError:
-#		index_list = range(len(elements)) #OSM map
 	shuffle(index_list)
 	for i in index_list:
-#	try:
 		element_list.append(elements['features'][i]) #feature map
-#		except TypeError:
-#			element_list.append(elements[i]) #OSM map
 
 	# Now we're gonna download the satellite images for these locations
-	_,namespace= os.path.split(inputFile) #get input file name as namespace
+	namespace= os.path.split(inputFile)[-1][:-5] #get input file name as namespace
+	#create folders
+	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
+	if not os.path.isdir(subpath):
+		os.mkdir(subpath)
+		print 'Directory',subpath,'created'
+	if not os.path.isdir(subpath+satDataFolder):
+		os.mkdir(subpath+satDataFolder)
+		print 'Directory',subpath+satDataFolder,'created'
+
 	mapbox_static = MapboxStatic(
 	    namespace=namespace,
-	    root_folder=outputFolder+'/sat')
+	    root_folder=subpath+satDataFolder[0:-1])
 
 	total_downloaded = 0
 	c = 0

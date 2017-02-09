@@ -18,11 +18,9 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite,overlay
+import parse,get_satellite,overlay,train
 #-------------------------------------------------------------------
-
-
-def train():
+def clear():
 	pass
 
 def ml():
@@ -44,12 +42,13 @@ if __name__ == "__main__":
 		metavar='OPTION',
 		type=str,default=False,
 		help='The modules to be loaded. OPTION: \n\
-			all - all modules.\n\
+			all - all modules (except clear).\n\
 			parse - input file parser.\n\
 			satellite - get satellite data.\n\
 			overlay - overlay classification with satellite data. \n\
 			train - train.\n\
-			ml - apply machine learning algorithm.')
+			ml - apply machine learning algorithm.\n\
+			clear - clear generated data from previous run on input file')
 	cmdParser.add_argument('mapbox_token',
 		metavar='MAPBOX_TOKEN',
 		type=str,default=False,nargs='?',
@@ -175,7 +174,8 @@ if __name__ == "__main__":
 			key=key,
 			elements=elements\
 			)
-		train()
+		train.train(outputFolder=outputFolder,
+			inputFile=inputFile)
 		ml()
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
@@ -203,9 +203,12 @@ if __name__ == "__main__":
 			key=key
 			)
 	elif selectedModule == 'train':
-		train()
+		train.train(outputFolder=outputFolder,
+			inputFile=inputFile)
 	elif selectedModule == 'mltrain':
 		ml()
+	elif selectedModule == 'clear':
+		clear()
 	else:
 		print "error - no valid option"
 		cmdParser.print_help()

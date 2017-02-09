@@ -13,16 +13,15 @@ from utils.getImageCoordinates import imageCoordinates
 from modules.getFeatures import latLon,find_between
 from modules.get_stats import get_stats
 from libs.colorlist import colorlist
+from libs.foldernames import *
 
-trainingDataFolder="/train/"
-checkDataFolder="/check/"
-def rasterLayer(i,stats,layerpath,size,te):
+def rasterLayer(i,stats,subpath,size,te):
 	'''converts feature geojson to png image'''
 	feature=stats[i]
 	i+=1
 	print "Layer "+str(i)+"/"+str(len(stats))+'\t Processing feature: '+feature
-	outFile=layerpath+"/f_"+str(i)+".png"
-	featureFile =layerpath+"/f_"+str(i)+".json" 
+	outFile=subpath+"/f_"+str(i)+".png"
+	featureFile =subpath+"/"+featureDataFolder+"/f_"+str(i)+".json" 
 	try:
 		os.remove(outFile)
 	except OSError:
@@ -51,12 +50,12 @@ def rasterLayer(i,stats,layerpath,size,te):
 
 	#os.remove(featureFile)
 
-def createLayer(i,stats,layerpath,inputFile,key):
+def createLayer(i,stats,subpath,inputFile,key):
 	'''creates sub geojson files with only one feature property'''
 	feature=stats[i]
 	i+=1
 	print "Processing feature:",feature,i,"/",len(stats)
-	featureFile = layerpath+"/f_"+str(i)+".json"
+	featureFile = subpath+"/"+featureDataFolder+"/f_"+str(i)+".json"
 	if not os.path.isfile(featureFile): 
 		with open(inputFile,'r') as f:
 			elementsInstance=json.load(f)
@@ -80,7 +79,6 @@ def createLayer(i,stats,layerpath,inputFile,key):
 	else:
 		print "File",featureFile,"already exists."
 
-# find all features, create files only with feature,convert all to different band,merge
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
 	elements=None):
@@ -98,14 +96,21 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	#set outputFolder to directory above the /sat directory
 	if outputFolder[-1]=="/":
 		outputFolder=outputFolder[0:-1]
-	if outputFolder[-3:]=="sat":
+	if outputFolder[-3:]==satDataFolder[1:-1]:
 		outputFolder=outputFolder[0:-4]
 
+	#Make directory for subfiles
+	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
+	for subsubpath in ['',trainingDataFolder,checkDataFolder,testDataFolder,featureDataFolder]:
+		if not os.path.isdir(subpath+subsubpath):
+			os.mkdir(subpath+subsubpath)
+			print 'Directory',subpath+subsubpath,'created'
+
 	#load data and check if images in folder
-	image_files = [f for f in os.listdir(outputFolder+"/sat") if f.endswith('.png') \
-		and f.startswith(os.path.split(inputFile)[-1])] #has to be png image and start with input filename
+	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
+		and f.startswith(os.path.split(inputFile)[-1][:-5])] #has to be png image and start with input filename
 	if len(image_files)==0:
-		print "No images found in",outputFolder+"/sat"
+		print "No images found in",subpath+satDataFolder[0:-1]
 		exit()
 	else:
 		print "Number of images found:",len(image_files)
@@ -119,15 +124,11 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	if not stats:
 		stats,_=get_stats(inputFile,top,verbose=True,key=key)
 	#Create json-file for each layer
-	#Make directory for subfiles
-	layerpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]+"_SideData"
-	if not os.path.isdir(layerpath):
-		os.mkdir(layerpath)
 	#initialize multi-core processing
 	pool = Pool()
 	print 'Map to cores...'	
 	#create subfile for each feature	
-	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
+	partial_createLayer=partial(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
 	pool.map(partial_createLayer, range(0,len(stats)))
 	pool.close()
 	pool.join()
@@ -167,7 +168,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			image_box=image_box_raw
 		image_lat = image_box[1]
 		image_lon = image_box[0]	
-		print "Coordinates Native corner: "+str(image_lat[0])+','+str(image_lon[0])
+		print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
 		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		#rasterize corresponding data
@@ -176,15 +177,8 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 				break
 		print str(cnt)+'/'+str(len(image_files))
 		cnt+=1
-		tifile=outputFolder+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
+		tifile=subpath+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print 'Converting',image,'to',os.path.split(tifile)[-1]
-		if not os.path.isdir(outputFolder+trainingDataFolder):
-		    try:
-			os.mkdir(outputFolder+trainingDataFolder)
-			print 'Training data folder created: %s' \
-			    % outputFolder+trainingDataFolder
-		    except Exception as e:
-			print 'Failed to create the training datafolder' 
 		#shift factor
 		west=(image_lon[0]+image_lon[2])/2
 		south=min(image_lat)
@@ -205,18 +199,18 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
 		#print te
 		print "Image bounderies:"
-		print str(image_box_lat[0])[:-5],'\t',str(image_box_lon[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lat[1])[:-5],'\t',str(image_box_lon[1])[:-5]
+		print str(image_box_lon[0])[:-5],'\t',str(image_box_lat[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
+			str(image_box_lon[1])[:-5],'\t',str(image_box_lat[1])[:-5]
 		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
 		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
-		print str(image_box_lat[2])[:-5],'\t',str(image_box_lon[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lat[3])[:-5],'\t',str(image_box_lon[3])[:-5]
+		print str(image_box_lon[2])[:-5],'\t',str(image_box_lat[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
+			str(image_box_lon[3])[:-5],'\t',str(image_box_lat[3])[:-5]
 		
 		#rasterize
-		#rasterLayer(0,stats,layerpath,size,te)
+		#rasterLayer(0,stats,subpath,size,te)
 		pool = Pool()
 		print 'Map to cores...'	
-		partial_rasterLayer=partial(rasterLayer,stats=stats,layerpath=layerpath,size=size,te=te) #pool only takes 1-argument functions
+		partial_rasterLayer=partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) #pool only takes 1-argument functions
 		pool.map(partial_rasterLayer, range(0,len(stats)))
 		pool.close()
 		pool.join()
@@ -228,34 +222,27 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			pass
 		#merge first two pictures
 		print "Merging images..."
-		imgFile=layerpath+"/f_"+str(1)+".png"
+		imgFile=subpath+"/f_"+str(1)+".png"
 		background = Image.open(imgFile)
-		imgFile=layerpath+"/f_"+str(2)+".png"
+		imgFile=subpath+"/f_"+str(2)+".png"
 		foreground = Image.open(imgFile)
 		background.paste(foreground, (0, 0), foreground)
 		background.save(tifile)
 		if len(stats)>2:
 			for i in range(3,len(stats)+1):
-				imgFile=layerpath+"/f_"+str(i)+".png"
+				imgFile=subpath+"/f_"+str(i)+".png"
 				background = Image.open(tifile)
 				foreground = Image.open(imgFile)
 				background.paste(foreground, (0, 0), foreground)
 				background.save(tifile)
 
 		#Create test images for visual checks
-		checkfile=outputFolder+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
-		if not os.path.isdir(outputFolder+checkDataFolder):
-		    try:
-			os.mkdir(outputFolder+checkDataFolder)
-			print 'Check data folder created: %s' \
-			    % outputFolder+checkDataFolder
-		    except Exception as e:
-			print 'Failed to create the check datafolder' 
+		checkfile=subpath+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
 		try:
 			os.remove(checkfile)
 		except OSError:
 			pass
-		background = Image.open(outputFolder+'/sat/'+image)
+		background = Image.open(subpath+satDataFolder+image)
 		brightened = Image.open(tifile)
 		#brighten up visual images for check file
 		#make 0s transparent to prepare for merge	
@@ -285,21 +272,21 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print "Class label image",tifile," and check image created."
 	#Clean up side data
 	print "Cleanup..."
-	for i in range(0,len(stats)):
+	for i in range(1,len(stats)+1):
 #		try:
-#			os.remove(layerpath+"/f_"+str(i)+".json")
+#			os.remove(subpath+"/f_"+str(i)+".json")
 #		except OSError:
 #			pass
 		try:
-			os.remove(layerpath+"/f_"+str(i)+".png")
+			os.remove(subpath+"/f_"+str(i)+".png")
 		except OSError:
 			pass
 		try:
-			os.remove(layerpath+"/f_"+str(i)+".png.aux.xml")
+			os.remove(subpath+"/f_"+str(i)+".png.aux.xml")
 		except OSError:
 			pass
 	print "Overlaying done."
 #	try:
-#		os.rmdir(layerpath)
+#		os.rmdir(subpath)
 #	except OSError:
 #		pass
