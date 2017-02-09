@@ -24,7 +24,7 @@ class CoordConvert(object):
 					code=str(4326)  #if not found, assume standard format
 			except KeyError:
 				code=raw_input("EPSG Code for projection not found. Enter EPSC code manually: ")
-		self.epsg=pyproj.Proj("+init=EPSG:"+code)
+		self.epsg=pyproj.Proj("+init=EPSG:"+str(code))
 		return int(code)
 	
 	def convert(self,lon,lat):

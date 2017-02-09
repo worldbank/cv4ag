@@ -7,7 +7,9 @@ from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon
 import os,json
-def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,outputFolder='data',pixel=1280,epsg=None):
+def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,
+	outputFolder='data',pixel=1280,epsg=None,elements=None):
+
 	if not inputFile:
 		print "Error: Provide input file."
 		exit()
@@ -19,9 +21,10 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 	  #  help='Sport tag, for example: baseball, tennis, or soccer.')
 
 	# We need the elements
-	print 'Loading %s...' % inputFile
-	with open(inputFile, 'r') as f:
-		elements = json.load(f)
+	if not elements:
+		print 'Loading %s...' % inputFile
+		with open(inputFile, 'r') as f:
+			elements = json.load(f)
 
 	# Randomize elements list to make sure we don't download all pics from the
 	# same sample
@@ -31,7 +34,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 	#try:
 	index_list = range(len(elements['features'])) #featue map
 	myCoordConvert = CoordConvert()
-	code=myCoordConvert.getCoordSystem(elements)
+	code=myCoordConvert.getCoordSystem(elements,epsg)
 #	except TypeError:
 #		index_list = range(len(elements)) #OSM map
 	shuffle(index_list)
@@ -61,7 +64,7 @@ def get_satellite(inputFile=None,mapboxtoken=None,count=1000,zoomLevel=17,output
 		av_lon,av_lat=latLon(element)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
-			lotlan= myCoordConvert.convert(av_lon,av_lat,epsg)
+			lotlan= myCoordConvert.convert(av_lon,av_lat)
 			longitude=lotlan[0]
 			latitude=lotlan[1]
 		else: #if already in wgs84 format

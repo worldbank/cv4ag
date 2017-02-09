@@ -112,7 +112,7 @@ def parse(inputFile=None,outputFolder="data",\
 	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
-			get_stats.get_stats(outputFile,top,key=key)
+			stats,elements=get_stats.get_stats(outputFile,top,key=key)
 	else:
 		#vectorize if in raster format and user agrees
 		if vector_or_raster == 1:
@@ -140,7 +140,8 @@ def parse(inputFile=None,outputFolder="data",\
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
-					stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
+					stats,_=get_stats.get_stats(outputFile,top,key=key) #get statistics
+					elements=None
 			else: #only convert one layer
 				print inputFile
 				_,outputFile=os.path.split(inputFile+str(choseLayer)+".json")
@@ -150,7 +151,7 @@ def parse(inputFile=None,outputFolder="data",\
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
-				stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
+				stats,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
@@ -159,11 +160,11 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-			stats=get_stats.get_stats(outputFile,top,key=key) #get statistics
+			stats,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
 	#reference stats if not already done:
 	try:	
 		if stats:
 			print ""	
 	except UnboundLocalError:
 		stats=None
-	return outputFile,stats
+	return outputFile,stats,elements

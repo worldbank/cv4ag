@@ -107,7 +107,7 @@ if __name__ == "__main__":
 		help='Set parameter key for category in GIS file to classify data.')
 	cmdParser.add_argument('--epsg',metavar=['N'],
 		type=int,default=None,
-		help='EPSG format for GIS data. Is read from data if not set.'
+		help='EPSG format for GIS data. Is read from data if not set.')
 	cmdParser.add_argument('--layer',metavar=['N'],
 		type=int,default=None,
 		help='Number of layer to be trained on.')
@@ -144,12 +144,12 @@ if __name__ == "__main__":
 	shiftformat = cmdArgs.get('shiftformat')
 	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
-	top = cmdArgs.get('epsg')
+	epsg = cmdArgs.get('epsg')
 	
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':
-		inputFile,stats=\
+		inputFile,stats,elements=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber ,
 			key=key,
@@ -161,7 +161,8 @@ if __name__ == "__main__":
 			zoomLevel=zoomLevel,
 			outputFolder=outputFolder,
 			epsg=epsg,
-			pixel=pixel)
+			pixel=pixel,
+			elements=elements)
 		overlay.overlay(outputFolder,inputFile,
 			pixel=pixel,
 			zoomLevel=zoomLevel,
@@ -171,7 +172,8 @@ if __name__ == "__main__":
 			stats=stats,
 			count=satelliteCount,
 			epsg=epsg,
-			key=key
+			key=key,
+			elements=elements\
 			)
 		train()
 		ml()
@@ -186,6 +188,7 @@ if __name__ == "__main__":
 			mapboxtoken=mapboxtoken,
 			count=satelliteCount,
 			zoomLevel=zoomLevel,
+			epsg=epsg,
 			outputFolder=outputFolder,
 			pixel=pixel)
 	elif selectedModule == 'overlay':
@@ -195,6 +198,7 @@ if __name__ == "__main__":
 			lonshift=lonshift,latshift=latshift,
 			shiftformat=shiftformat,
 			top=top,
+			epsg=epsg,
 			count=satelliteCount,
 			key=key
 			)

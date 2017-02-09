@@ -6,7 +6,7 @@ Print some stats on all the elements we've found
 import json
 import operator
 
-def get_stats(filename,top=15,key='Descriptio',verbose=True):
+def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	'''
 	Shows statistics of features. 
 
@@ -18,46 +18,26 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True):
 	print 'Loading %s...' % filename
 	elements = []
 	counter = 0
-	print filename
-	with open(filename, 'r') as f:
-		elements = json.load(f)
-	try: 
-		print 'Total elements found: %d' % len(elements['features']) #GeoJSON conversion
-	except TypeError:
-		print 'Total elements found: %d' % len(elements) #OSM
+	if not elements:
+		with open(filename, 'r') as f:
+			elements = json.load(f)
+	print 'Total elements found: %d' % len(elements['features']) #GeoJSON conversion
 	# Stats
 	stats = {}
 	elements_stats = {}
 	#For feature maps
-	try:
-		for feature in elements['features']:
-			try:
-				type_key = feature['properties'][key]
-			except KeyError:
-				print "Error: Keyword",key,"not found in",filename
-				print "Cannot get statistics..."
-				exit()
-				return 0
-				
-			stats[type_key] = (stats[type_key]+1)\
-				if type_key in stats else 1
-			#print feature['geometry']['coordinates']
-	except TypeError:
-		#For OSM data 
-		for element in elements:
-			try:
-				element_type = element.get('type')
-				# Find the most popular 
-				if element_type == 'way':
-					type_key = element.get('tags', {}).get('landuse', 'unknown').lower()
-					stats[type_key] = (stats[type_key] + 1) \
-						if type_key in stats else 1
-
-				# Build type stats (nodes and ways)
-				elements_stats[element_type] = (elements_stats[element_type] + 1) \
-					if element_type in elements_stats else 1
-			except AttributeError:
-				pass
+	for feature in elements['features']:
+		try:
+			type_key = feature['properties'][key]
+		except KeyError:
+			print "Error: Keyword",key,"not found in",filename
+			print "Cannot get statistics..."
+			exit()
+			return 0
+			
+		stats[type_key] = (stats[type_key]+1)\
+			if type_key in stats else 1
+		#print feature['geometry']['coordinates']
 
 	#print "Total elements",elements_stats
 
@@ -74,4 +54,4 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True):
 		listofmostelements.append(type_key_stat[0])
 		if verbose:
 			print type_key_stat[0]+tabs+str(type_key_stat[1])
-	return listofmostelements
+	return listofmostelements,elements
