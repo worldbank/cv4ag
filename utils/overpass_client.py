@@ -1,6 +1,7 @@
 from restwice import RestClient
 from restwice import MemcacheLocal
 import numpy as np
+import time
 
 OVERPASS_ENDPOINTS = {
     'de': 'http://overpass-api.de/api/interpreter',
@@ -74,7 +75,19 @@ class OverpassClient(object):
                     query_bb_n=query_bb_n, query_bb_e=query_bb_e)
 
                 # Safe to run multimple times, results are cached
-                result = self.do_query(ql_text=ql_text)
+		try:
+			result = self.do_query(ql_text=ql_text)
+		except ValueError:
+			print 'No anwer received. Try again...'
+			time.sleep(1)
+			try:
+				result = self.do_query(ql_text=ql_text)
+				print 'Succeeded.'
+			except ValueError:
+				print 'No anwer received. Try again...'
+				time.sleep(5)
+				result = self.do_query(ql_text=ql_text)
+
                 partial_elements = result.get('elements', [])
                 print 'Partials elements found: %d' % len(partial_elements)
                 elements += partial_elements

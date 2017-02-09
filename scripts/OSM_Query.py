@@ -91,22 +91,22 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	fileName=outputFolder+'/'+outputFile+str(subunits[subunit-1].name).replace(" ","_")+".json"
 
 	#Create GeoJSON string
-	geojson= '''
+	geojson=[]
+	geojson.append('''
 		{
 	    "type": "FeatureCollection",
 		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4326" } },
-	    "features": ['''
+	    "features": [''')
 	#create faster node searchs
 	print "Create library for faster node searches"
 	#get max id
-	maxid=0
 	cnt = 0.
 	ids={}
 	for e in d:
-		print "\t Library creation:",cnt*100./lene,"% done.\r", 
+		print "\t Library creation:",int(cnt*100./lene),"% done.\r", 
 		cnt+=1
 		if e['type']=='node':
-			ids[str(e['id'])]=[e['lon'],e['lat']]
+			ids[e['id']]=[e['lon'],e['lat']]
 
 	#creade list of nodes with ids.
 	#coordlist=[]
@@ -125,26 +125,22 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	#		coordlist(e['id'])[1]=e['lat']
 	#loop through elements and append to GeoJSON string
 	cnt = 0.
+	cnte = 0
 	print ""
 	print "Convert to GeoJSON file",fileName
+	writetag=[]
+	writecoord=[]
 	for e in d :
 		cnt+=1
-		print "\tConversion to GeoJSON:",cnt*100./lene,"% done.\r", 
+		print "\tGet elemenents:",int(cnt*100./lene),"% done.\r", 
 		if e['type']=='way':
 	#		if  e['area']=='yes':
-				geojson+='''
-				    {
-					"type": "Feature",'''+\
-						"\n\t\t\t\"properties\":{\"Descriptio\":\""+\
-						e['tags']['landuse']+"\"},"
-				geojson+='''
-					"geometry" : {
-					    "type": "MultiPolygon",
-					    "coordinates":[[['''
+				writetag.append(e['tags'][query])
+				writecoord.append([])
 				for node in e['nodes']:
 					try:
-						lon=str(ids[str(node)][0])
-						lat=str(ids[str(node)][1])
+						lon=str(ids[node][0])
+						lat=str(ids[node][1])
 					except KeyError:
 						print ''
 						print '\tNode',node,'not found in library.\
@@ -153,18 +149,27 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 						fullxml = str(response.read())
 						lon=find_between(fullxml,"lon=\"","\"",lastfirst=True)
 						lat=find_between(fullxml,"lat=\"","\"",lastfirst=True)
-					
-					geojson+="["+lon+","+lat+"],"
-#						for e2 in d: 
-#							if (e2['type']=='node' and e2['id'] == node):
-#								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
-#								break
-#					else:
-#						for e2 in dr: 
-#							if (e2['type']=='node' and e2['id'] == node):
-#								geojson+="["+str(e2['lon'])+","+str(e2['lat'])+"],"
-#								break
-				geojson=geojson[0:-1]+"]]]}},"
+					writecoord[cnte].append([lon,lat])
+				cnte+=1
+	cnte2=0
+	print ''
+	for tag in writetag:
+		print "\tCreate GeoJSON:",int(cnte2*100./cnte),"% done.\r", 
+		geojson.append('''
+		    {
+			"type": "Feature",'''+\
+				"\n\t\t\t\"properties\":{\"Descriptio\":\""+\
+				e['tags']['landuse']+"\"},")
+		geojson.append('''
+			"geometry" : {
+			    "type": "MultiPolygon",
+			    "coordinates":[[[''')
+		for coord in writecoord[cnte2]:
+			geojson.append("["+coord[0]+","+coord[1]+"],")
+		cnte2+=1
+		geojson[-1]=geojson[-1][0:-1]+"]]]}},"
+		#geojson=geojson[0:-1]+"]]]}},"
+	geojson=''.join(geojson)	
 	geojson=geojson[0:-1]+"\n]\n}"
 	print " "
 	with open(fileName, 'w+') as f:

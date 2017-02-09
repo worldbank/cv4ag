@@ -232,9 +232,9 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		background.save(tifile)
 		if len(stats)>2:
 			for i in range(3,len(stats)+1):
-				imgFile=layerpath+"/f_"+str(1)+".png"
-				background = Image.open(imgFile)
-				foreground = Image.open(tifile)
+				imgFile=layerpath+"/f_"+str(i)+".png"
+				background = Image.open(tifile)
+				foreground = Image.open(imgFile)
 				background.paste(foreground, (0, 0), foreground)
 				background.save(tifile)
 
