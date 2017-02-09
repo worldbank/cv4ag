@@ -16,7 +16,6 @@ from libs.colorlist import colorlist
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
-featureElements=None
 def rasterLayer(i,stats,layerpath,size,te):
 	'''converts feature geojson to png image'''
 	feature=stats[i]
@@ -55,30 +54,29 @@ def rasterLayer(i,stats,layerpath,size,te):
 def createLayer(i,stats,layerpath,inputFile,key):
 	'''creates sub geojson files with only one feature property'''
 	feature=stats[i]
-	print "Processing feature:",feature
 	i+=1
-	print i,"/",len(stats)
+	print "Processing feature:",feature,i,"/",len(stats)
 	featureFile = layerpath+"/f_"+str(i)+".json"
 	if not os.path.isfile(featureFile): 
-		#with open(inputFile,'r') as f:
-		#	featureElements=json.load(f)
+		with open(inputFile,'r') as f:
+			elementsInstance=json.load(f)
 		#delete every item that is not feature
 		cntdel=0
-		for i in range(0,len(featureElements['features'])):
-			#print featureElements['features'][cntdel]['properties']
-			if featureElements['features'][cntdel]['properties'][key]!=feature:
-				#print "del", featureElements['features'][cnt_featureelement]
-				del featureElements['features'][cntdel]	
+		for i in range(0,len(elementsInstance['features'])):
+			#print elementsInstance['features'][cntdel]['properties']
+			if elementsInstance['features'][cntdel]['properties'][key]!=feature:
+				#print "del", elementsInstance['features'][cnt_featureelement]
+				del elementsInstance['features'][cntdel]	
 			else:
 				cntdel+=1
-		#for i in range(0,len(featureElements['features'])):
-		#	print featureElements['features'][i]['properties']
+		#for i in range(0,len(elementsInstance['features'])):
+		#	print elementsInstance['features'][i]['properties']
 		try:
 			os.remove(featureFile)
 		except OSError:
 			pass
 		with open(featureFile,'w+') as f:
-			featureElements=json.dump(featureElements,f)
+			json.dump(elementsInstance,f)
 	else:
 		print "File",featureFile,"already exists."
 
@@ -90,6 +88,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	Overlays images in satiImageFolder
 	with data in inputFile
 	'''
+	
 	if not zoomLevel:
 		print "Warning: Zoom level not set. Assuming zoom level 17."
 		zoomLevel = 17
@@ -115,9 +114,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	if not elements:
 		print 'Opening %s...' % inputFile
 		with open(inputFile, 'r') as f:
-			featureElements = json.load(f)
-	else:
-		featureElements=elements
+			elements = json.load(f)
 	#Get statistics if not in input
 	if not stats:
 		stats,_=get_stats(inputFile,top,verbose=True,key=key)
@@ -128,6 +125,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		os.mkdir(layerpath)
 	#initialize multi-core processing
 	pool = Pool()
+	print 'Map to cores...'	
 	#create subfile for each feature	
 	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
 	pool.map(partial_createLayer, range(0,len(stats)))
@@ -137,7 +135,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
-	code=myCoordConvert.getCoordSystem(featureElements,epsg)
+	code=myCoordConvert.getCoordSystem(elements,epsg)
 	#Get imageconverter
 	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
 	av_lats=[]
@@ -147,7 +145,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
-		av_lon,av_lat=latLon(featureElements['features'][index]) # get center points
+		av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
@@ -217,6 +215,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		#rasterize
 		#rasterLayer(0,stats,layerpath,size,te)
 		pool = Pool()
+		print 'Map to cores...'	
 		partial_rasterLayer=partial(rasterLayer,stats=stats,layerpath=layerpath,size=size,te=te) #pool only takes 1-argument functions
 		pool.map(partial_rasterLayer, range(0,len(stats)))
 		pool.close()
@@ -285,11 +284,12 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		img.save(tifile, "PNG")
 		print "Class label image",tifile," and check image created."
 	#Clean up side data
+	print "Cleanup..."
 	for i in range(0,len(stats)):
-		try:
-			os.remove(layerpath+"/f_"+str(i)+".json")
-		except OSError:
-			pass
+#		try:
+#			os.remove(layerpath+"/f_"+str(i)+".json")
+#		except OSError:
+#			pass
 		try:
 			os.remove(layerpath+"/f_"+str(i)+".png")
 		except OSError:
@@ -298,7 +298,8 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			os.remove(layerpath+"/f_"+str(i)+".png.aux.xml")
 		except OSError:
 			pass
-	try:
-		os.rmdir(layerpath)
-	except OSError:
-		pass
+	print "Overlaying done."
+#	try:
+#		os.rmdir(layerpath)
+#	except OSError:
+#		pass
