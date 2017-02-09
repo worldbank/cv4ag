@@ -16,7 +16,7 @@ from libs.colorlist import colorlist
 
 trainingDataFolder="/train/"
 checkDataFolder="/check/"
-
+featureElements=None
 def rasterLayer(i,stats,layerpath,size,te):
 	'''converts feature geojson to png image'''
 	feature=stats[i]
@@ -52,7 +52,7 @@ def rasterLayer(i,stats,layerpath,size,te):
 
 	#os.remove(featureFile)
 
-def createLayer(i,stats,layerpath,inputFile,key,featureElements):
+def createLayer(i,stats,layerpath,inputFile,key):
 	'''creates sub geojson files with only one feature property'''
 	feature=stats[i]
 	print "Processing feature:",feature
@@ -111,10 +111,13 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	else:
 		print "Number of images found:",len(image_files)
 
+	print 'Get GIS elements...'
 	if not elements:
 		print 'Opening %s...' % inputFile
 		with open(inputFile, 'r') as f:
-			elements = json.load(f)
+			featureElements = json.load(f)
+	else:
+		featureElements=elements
 	#Get statistics if not in input
 	if not stats:
 		stats,_=get_stats(inputFile,top,verbose=True,key=key)
@@ -126,7 +129,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	#initialize multi-core processing
 	pool = Pool()
 	#create subfile for each feature	
-	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile,key=key,featureElements=elements) #pool only takes 1-argument functions
+	partial_createLayer=partial(createLayer,stats=stats,layerpath=layerpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
 	pool.map(partial_createLayer, range(0,len(stats)))
 	pool.close()
 	pool.join()
@@ -134,7 +137,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
-	code=myCoordConvert.getCoordSystem(elements,epsg)
+	code=myCoordConvert.getCoordSystem(featureElements,epsg)
 	#Get imageconverter
 	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
 	av_lats=[]
@@ -144,7 +147,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	for image in image_files:
 		# The index is between the last underscore and the extension dot
 		index = int(find_between(image,"_",".png"))
-		av_lon,av_lat=latLon(elements['features'][index]) # get center points
+		av_lon,av_lat=latLon(featureElements['features'][index]) # get center points
 		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
