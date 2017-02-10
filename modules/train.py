@@ -4,10 +4,10 @@ from libs.models import *
 from modules.getFeatures import find_between
 from modules.get_stats import get_stats
 
-def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=True):
+def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None):
 	#Get statistics if not in input
 	if not stats:
-		stats,_=get_stats(inputFile,top,verbose=True,key=key,\
+		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
 			elements=elements)
 
 	#net=2 extended training net, net=1 basic training net, net=0 very basic net
@@ -86,8 +86,10 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
 
 	filewritten=False
+	sumfreq=sum(freq)
 	initweight=1./len(stats)
 	classweights=''''''
+	cnt=0 #count number of labelled classes
 	for i in range(firstclass,len(stats)):
 		#Create file with metadata
 		if filewritten==False: #create new file
@@ -99,7 +101,16 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 			with open(subpath+"/meta_classlabels.txt",'a+') as f:
 				f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
 					str(os.path.abspath(trainpath+"/"+f2)))
-		classweights+='class_weighting: '+str(initweight)+"\n"
-	net_configured=net_configured.replace('INSER_CLASS_WEIGHTING',classweights)
+		classweight=freq[cnt]*1./sumfreq #does not have to equal 1
+		classweights+='class_weighting: '+str(classweight)+"\n"
+		if i==0: #i=0 is background. Background weight is set to same as first labelled class
+			print 'Weight for background:\t\t\t\t\t\t',classweight
+		else:
+			numberoftabs=len(stats[cnt])/8	
+			tabs="\t"*(6-numberoftabs)
+			print 'Weight for class '+stats[cnt]+":"+tabs+str(classweight)
+			cnt+=1
+	net_configured=net_configured.replace('INSERT_NUM_CLASSES',str(len(stats)+firstclass)) #number of classes
+	net_configured=net_configured.replace('INSERT_CLASS_WEIGHTING',str(classweights))
 	with open(modelpath+"segnet_train.prototxt","w+") as f:
 		f.write(net_configured)

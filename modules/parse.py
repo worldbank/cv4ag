@@ -112,7 +112,7 @@ def parse(inputFile=None,outputFolder="data",\
 	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
-			stats,elements=get_stats.get_stats(outputFile,top,key=key)
+			stats,freq,elements=get_stats.get_stats(outputFile,top,key=key)
 	else:
 		#vectorize if in raster format and user agrees
 		if vector_or_raster == 1:

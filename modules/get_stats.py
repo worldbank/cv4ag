@@ -17,12 +17,12 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	# Load the file
 	elements = []
 	counter = 0
-	print '\t Get statistics...'
+	print '\tGet statistics...'
 	if not elements:
-		print 'Loading %s...' % filename
+		print '\tLoading %s...' % filename
 		with open(filename, 'r') as f:
 			elements = json.load(f)
-	print 'Total elements found: %d' % len(elements['features']) #GeoJSON conversion
+	print '\tTotal elements found: %d' % len(elements['features']) #GeoJSON conversion
 	# Stats
 	stats = {}
 	elements_stats = {}
@@ -46,7 +46,7 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	stats = sorted(stats.items(), key=operator.itemgetter(1))
 	stats = list(reversed(stats))
 	if verbose:
-		print "Frequency statistics of",top,"most common properties:"
+		print "\tFrequency statistics of",top,"most common properties:"
 	# Show statistics
 	listofmostelements = []
 	numberofmostelements = []
@@ -57,4 +57,4 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 		numberofmostelements.append(type_key_stat[1])
 		if verbose:
 			print type_key_stat[0]+tabs+str(type_key_stat[1])
-	return listofmostelements,elements
+	return listofmostelements,numberofmostelements,elements

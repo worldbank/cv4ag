@@ -132,7 +132,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			elements = json.load(f)
 	#Get statistics if not in input
 	if not stats:
-		stats,_=get_stats(inputFile,top,verbose=True,key=key,\
+		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
 			elements=elements)
 	#Create json-file for each layer
 	print "Create layer files..."
@@ -319,7 +319,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		except OSError:
 			pass
 	print "Overlaying done."
-	return stats
+	return stats,freq
 #	try:
 #		os.rmdir(subpath)
 #	except OSError:

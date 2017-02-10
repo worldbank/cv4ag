@@ -110,6 +110,9 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
 		help='Number of layer to be trained on.')
+	cmdParser.add_argument('-b',metavar='BOOL',
+		type=int,default=0,
+		help='Ignore background for training. \'0\' (classify) or \'1\' (ignore backgournd)')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -142,6 +145,7 @@ if __name__ == "__main__":
 	latshift= cmdArgs.get('latshift')
 	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
+	b = cmdArgs.get('b')
 	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
@@ -149,7 +153,7 @@ if __name__ == "__main__":
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':
-		inputFile,stats,elements=\
+		inputFile,stats,freq,elements=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber ,
 			key=key,
@@ -164,7 +168,7 @@ if __name__ == "__main__":
 			xpixel=xpixel,
 			ypixel=ypixel,
 			elements=elements)
-		stats=overlay.overlay(outputFolder,inputFile,
+		overlay.overlay(outputFolder,inputFile,
 			xpixel=xpixel,
 			ypixel=ypixel,
 			zoomLevel=zoomLevel,
@@ -182,7 +186,9 @@ if __name__ == "__main__":
 			top=top,
 			key=key,
 			stats=stats,
-			elements=elements
+			freq=freq,
+			elements=elements,
+			ignorebackground=b
 			)
 		ml()
 	elif selectedModule == 'parse':
@@ -217,7 +223,8 @@ if __name__ == "__main__":
 		train.train(outputFolder=outputFolder,
 			inputFile=inputFile,
 			top=top,
-			key=key
+			key=key,
+			ignorebackground=b
 			)
 	elif selectedModule == 'mltrain':
 		ml()

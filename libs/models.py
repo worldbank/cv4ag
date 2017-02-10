@@ -494,7 +494,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 11
+    num_output: INSERT_NUM_CLASSES
     kernel_size: 1
     weight_filler {
       type: "msra"
@@ -514,7 +514,7 @@ layer {
   loss_param: {
     weight_by_label_freqs: true
     INSERT_IGNORE_LABEL
-    INSER_CLASS_WEIGHTING
+    INSERT_CLASS_WEIGHTING
   }
 }
 layer {
@@ -2048,7 +2048,7 @@ layer {
     bias_filler {
       type: "constant"
     }
-    num_output: 11
+    num_output: INSERT_NUM_CLASSES
     pad: 1
     kernel_size: 3
   }
@@ -2063,7 +2063,7 @@ layer {
   loss_param: {
     weight_by_label_freqs: true
     INSERT_IGNORE_LABEL
-    INSER_CLASS_WEIGHTING
+    INSERT_CLASS_WEIGHTING
   }
 }
 layer {
