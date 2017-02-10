@@ -29,7 +29,7 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	#For feature maps
 	for feature in elements['features']:
 		try:
-			type_key = feature['properties'][key]
+			type_key = str(feature['properties'][key])
 		except KeyError:
 			print "Error: Keyword",key,"not found in",filename
 			print "Cannot get statistics..."
