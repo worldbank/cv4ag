@@ -181,7 +181,8 @@ if __name__ == "__main__":
 			inputFile=inputFile,
 			top=top,
 			key=key,
-			elements=elements,
+			stats=stats,
+			elements=elements
 			)
 		ml()
 	elif selectedModule == 'parse':
@@ -216,8 +217,7 @@ if __name__ == "__main__":
 		train.train(outputFolder=outputFolder,
 			inputFile=inputFile,
 			top=top,
-			key=key,
-			elements=elements,
+			key=key
 			)
 	elif selectedModule == 'mltrain':
 		ml()

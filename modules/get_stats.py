@@ -49,10 +49,12 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 		print "Frequency statistics of",top,"most common properties:"
 	# Show statistics
 	listofmostelements = []
+	numberofmostelements = []
 	for type_key_stat in stats[:top]:
 		numberoftabs=len(type_key_stat[0])/8	
 		tabs="\t"*(6-numberoftabs)
 		listofmostelements.append(type_key_stat[0])
+		numberofmostelements.append(type_key_stat[1])
 		if verbose:
 			print type_key_stat[0]+tabs+str(type_key_stat[1])
 	return listofmostelements,elements

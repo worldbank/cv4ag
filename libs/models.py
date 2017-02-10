@@ -24,7 +24,7 @@ layer {
   top: "label"
   dense_image_data_param {
     source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
-    batch_size: 4   			# Change this number to a batch size that will fit on your GPU
+    batch_size: BATCHSIZE   			# Change this number to a batch size that will fit on your GPU
     shuffle: true
   }
 }
@@ -533,8 +533,8 @@ layer {
   top: "data"
   top: "label"
   dense_image_data_param {
-    source: "/home/worldbank-ml/ml/SegNet-Tutorial/CamVid/train.txt"	# Change this to the absolute path to your data file
-    batch_size: 1   			# Change this number to a batch size that will fit on your GPU
+    source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
+    batch_size: BATCH_SIZE   			# Change this number to a batch size that will fit on your GPU
     shuffle: true
   }
 }
