@@ -134,6 +134,8 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
 			elements=elements)
+	else:
+		freq=None
 	#Create json-file for each layer
 	print "Create layer files..."
 	if os.path.getsize(inputFile)>500000000:

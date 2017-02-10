@@ -155,7 +155,7 @@ if __name__ == "__main__":
 	if selectedModule == 'all':
 		inputFile,stats,freq,elements=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber ,
+			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber,
 			key=key,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)

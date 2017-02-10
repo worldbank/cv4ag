@@ -6,7 +6,7 @@ from random import shuffle
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon
-from libs.foldernames import satDataFolder
+from libs.foldernames import satDataFolder,testDataFolder
 import os,json
 def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None):
@@ -48,6 +48,9 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	if not os.path.isdir(subpath+satDataFolder):
 		os.mkdir(subpath+satDataFolder)
 		print 'Directory',subpath+satDataFolder,'created'
+	if not os.path.isdir(subpath+testDataFolder):
+		os.mkdir(subpath+testDataFolder)
+		print 'Directory',subpath+testDataFolder,'created'
 
 	mapbox_static = MapboxStatic(
 	    namespace=namespace,

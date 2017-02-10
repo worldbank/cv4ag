@@ -167,4 +167,4 @@ def parse(inputFile=None,outputFolder="data",\
 			print ""	
 	except UnboundLocalError:
 		stats=None
-	return outputFile,stats,elements
+	return outputFile,stats,freq,elements
