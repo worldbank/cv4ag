@@ -85,7 +85,7 @@ def createLayer(i,stats,subpath,inputFile,key):
 	else:
 		print "\tFile",featureFile,"already exists."
 
-def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
+def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
 	elements=None):
 	'''
@@ -163,7 +163,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements,epsg)
 	#Get imageconverter
-	myImageCoord=imageCoordinates(pixel,'libs/zoomLevelResolution.csv',zoomLevel)
+	myImageCoord=imageCoordinates(xpixel,ypixel,'libs/zoomLevelResolution.csv',zoomLevel)
 	av_lats=[]
 	av_lons=[]
 	cnt = 1
@@ -219,7 +219,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		print "Longitudinal \t",lonshift_calc
 		print "Lateral \t",latshift_calc
 		#set rasterize settings
-		size=[pixel,pixel]
+		size=[xpixel,ypixel]
 		te=[west-lonshift_calc,south-latshift_calc,\
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
 		#print te

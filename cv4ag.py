@@ -66,9 +66,12 @@ if __name__ == "__main__":
 	cmdParser.add_argument('-z',metavar='N',
 		type=int,default=17,
 		help='Zoom level. Min=15, Max=19. See libs/satellite_resolutions.csv for resolutions.')
-	cmdParser.add_argument('-p',metavar='N',
-		type=int,default=1280,
-		help='Satellite images have size NxN pixel.')
+	cmdParser.add_argument('-x',metavar='N',
+		type=int,default=480,
+		help='Images have width N pixel.')
+	cmdParser.add_argument('-y',metavar='N',
+		type=int,default=360,
+		help='Images have height N pixel.')
 #	cmdParser.add_argument('-o1',metavar='PATH',
 #		type=str,default="data/",
 #		help='Output file after parsing stage.')
@@ -85,26 +88,26 @@ if __name__ == "__main__":
 			See www.gdal.org/formats_list.html or\
 			www.gdal.org/ogr_formats.html \
 			(or libs/*_formats.csv for FILETYPE_CODEs.')
-	cmdParser.add_argument('--lonshift',metavar=['N.N'],
+	cmdParser.add_argument('--lonshift',metavar='N.N',
 		type=float,default=0,
 		help='Longitudanal shift of training data.')
-	cmdParser.add_argument('--latshift',metavar=['N.N'],
+	cmdParser.add_argument('--latshift',metavar='N.N',
 		type=float,default=0,
 		help='Lateral shift of training data .')
-	cmdParser.add_argument('--shiftformat',metavar=['N'],
+	cmdParser.add_argument('--shiftformat',metavar='N',
 		type=int,default=0,
 		help='Format of longitudinal/lateral shift.\
 		0: As fraction of image. 1: Georeferenced unites.')
-	cmdParser.add_argument('--top',metavar=['N'],
+	cmdParser.add_argument('--top',metavar='N',
 		type=int,default=15,
 		help='Get N most frequent classes.')
 	cmdParser.add_argument('--key',
 		type=str,default='Descriptio',
 		help='Set parameter key for category in GIS file to classify data.')
-	cmdParser.add_argument('--epsg',metavar=['N'],
+	cmdParser.add_argument('--epsg',metavar='N',
 		type=int,default=None,
 		help='EPSG format for GIS data. Is read from data if not set.')
-	cmdParser.add_argument('--layer',metavar=['N'],
+	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
 		help='Number of layer to be trained on.')
 	cmdParser.add_argument('--arg1',
@@ -127,7 +130,8 @@ if __name__ == "__main__":
 	zoomLevel= cmdArgs.get('z')
 	datatype = cmdArgs.get('d')
 	satelliteCount = cmdArgs.get('c')
-	pixel = cmdArgs.get('p')
+	xpixel = cmdArgs.get('x')
+	ypixel = cmdArgs.get('y')
 	scriptFile = cmdArgs.get('s')
 	scriptArg1 = cmdArgs.get('arg1')
 	scriptArg2 = cmdArgs.get('arg2')
@@ -157,10 +161,12 @@ if __name__ == "__main__":
 			zoomLevel=zoomLevel,
 			outputFolder=outputFolder,
 			epsg=epsg,
-			pixel=pixel,
+			xpixel=xpixel,
+			ypixel=ypixel,
 			elements=elements)
 		overlay.overlay(outputFolder,inputFile,
-			pixel=pixel,
+			xpixel=xpixel,
+			ypixel=ypixel,
 			zoomLevel=zoomLevel,
 			lonshift=lonshift,latshift=latshift,
 			shiftformat=shiftformat,
@@ -187,10 +193,13 @@ if __name__ == "__main__":
 			zoomLevel=zoomLevel,
 			epsg=epsg,
 			outputFolder=outputFolder,
-			pixel=pixel)
+			xpixel=xpixel,
+			ypixel=ypixel)
+			
 	elif selectedModule == 'overlay':
 		overlay.overlay(outputFolder,inputFile,
-			pixel=pixel,
+			xpixel=xpixel,
+			ypixel=ypixel,
 			zoomLevel=zoomLevel,
 			lonshift=lonshift,latshift=latshift,
 			shiftformat=shiftformat,

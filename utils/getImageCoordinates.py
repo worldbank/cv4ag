@@ -6,8 +6,9 @@ import pyproj as pyproj # Import the pyproj module
 import numpy,csv
 
 class imageCoordinates(object):
-	def __init__(self,pixel,library,zoomLevel):
-		self.pixel=pixel
+	def __init__(self,xpixel,ypixel,library,zoomLevel):
+		self.xpixel=xpixel
+		self.ypixel=ypixel
 		#load csv data. Rows are zoom levels, column are latitude
 		#and values are meters per pixel
 		with open(library,'rb') as csvfile:
@@ -50,15 +51,15 @@ class imageCoordinates(object):
 		#Get resolution for GPS coordinate
 		meterPerPixel=self.toMeter(abs(lat))
 		#add pixel/2 to each of the four sides
-		lat_upper=self.add_meters_lat(lat,(self.pixel/2)*meterPerPixel)
+		lat_upper=self.add_meters_lat(lat,(self.ypixel/2)*meterPerPixel)
 		
-		lon_upperleft=self.add_meters_lon(lon,lat_upper,-(self.pixel/2)*meterPerPixel)
-		lon_upperright=self.add_meters_lon(lon,lat_upper,(self.pixel/2)*meterPerPixel)
+		lon_upperleft=self.add_meters_lon(lon,lat_upper,-(self.xpixel/2)*meterPerPixel)
+		lon_upperright=self.add_meters_lon(lon,lat_upper,(self.xpixel/2)*meterPerPixel)
 		
-		lat_bottom=self.add_meters_lat(lat,-(self.pixel/2)*meterPerPixel)
+		lat_bottom=self.add_meters_lat(lat,-(self.ypixel/2)*meterPerPixel)
 
-		lon_bottomleft=self.add_meters_lon(lon,lat_bottom,-(self.pixel/2)*meterPerPixel)
-		lon_bottomright=self.add_meters_lon(lon,lat_bottom,(self.pixel/2)*meterPerPixel)
+		lon_bottomleft=self.add_meters_lon(lon,lat_bottom,-(self.xpixel/2)*meterPerPixel)
+		lon_bottomright=self.add_meters_lon(lon,lat_bottom,(self.xpixel/2)*meterPerPixel)
 
 		return [lat_upper,lat_upper,lat_bottom,lat_bottom],\
 			[lon_upperleft,lon_upperright,lon_bottomleft,lon_bottomright]

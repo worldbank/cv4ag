@@ -9,7 +9,7 @@ from modules.getFeatures import latLon
 from libs.foldernames import satDataFolder
 import os,json
 def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
-	outputFolder='data',pixel=1280,epsg=None,elements=None):
+	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None):
 
 	if not inputFile:
 		print "Error: Provide input file."
@@ -86,8 +86,8 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 			longitude=longitude,
 			mapbox_zoom=zoomLevel,
 			access_token=mapboxtoken,
-			width=pixel,
-			height=pixel)
+			width=xpixel,
+			height=ypixel)
 		#print url
 #		element_id_sport = '%s_%s' % (sport, element_id_str)
 		#download data
