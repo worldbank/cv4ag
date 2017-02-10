@@ -214,7 +214,7 @@ if __name__ == "__main__":
 	elif selectedModule == 'mltrain':
 		ml()
 	elif selectedModule == 'clear':
-		clean.clear()
+		clean.clear(inputFile)
 	else:
 		print "error - no valid option"
 		cmdParser.print_help()
