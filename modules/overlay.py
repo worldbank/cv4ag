@@ -66,7 +66,7 @@ def createLayer(i,stats,subpath,inputFile,key):
 		print "\tExtracting layers... ",
 		for i in range(0,len(elementsInstance['features'])):
 			#print elementsInstance['features'][cntdel]['properties']
-			if elementsInstance['features'][cntdel]['properties'][key]!=feature:
+			if str(elementsInstance['features'][cntdel]['properties'][key])!=feature:
 				#print "del", elementsInstance['features'][cnt_featureelement]
 				del elementsInstance['features'][cntdel]	
 			else:
