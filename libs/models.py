@@ -1,16 +1,15 @@
-
 solver=\
-'''net: "PATH_TO_TRAIN.PROTOTXT"  		# Change this to the absolute path to your model file
+'''net: "PATH_TO_TRAINPROTOTXT"  		# Change this to the absolute path to your model file
 test_initialization: false
 test_iter: 1
 test_interval: 10000000
-base_lr: 0.1 #Value 0.001 to 0.1
+base_lr: INSERT_BASE_LR #Value 0.001 to 0.1
 lr_policy: "step"
 gamma: 1.0
 stepsize: 10000000
 display: 20
 momentum: 0.9
-max_iter: 10000 #10000 to 40000
+max_iter: INSERT_MAX_ITER #10000 to 40000
 weight_decay: 0.0005
 snapshot: 1000
 snapshot_prefix: "PATH_TO_OUTPUT"  	# Change this to the absolute path to where you wish to output solver snapshots
@@ -24,7 +23,7 @@ layer {
   top: "data"
   top: "label"
   dense_image_data_param {
-    source: "PATH_TO_TRAIN.TXT"	# Change this to the absolute path to your data file
+    source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
     batch_size: 4   			# Change this number to a batch size that will fit on your GPU
     shuffle: true
   }

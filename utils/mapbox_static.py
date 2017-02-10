@@ -62,7 +62,7 @@ class MapboxStatic(object):
 
         # Detect if we have actual imagery here
         filesize = self._get_filesize(filepath=filepath)
-        if filesize < 50000:
+        if filesize < 500:
 	    if verbose:
 		    print 'Deleting downloaded file, it looks like an empty image. Check zoom level'
             os.remove(filepath)
