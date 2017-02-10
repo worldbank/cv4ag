@@ -15,10 +15,11 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	'key': Look for this keyword within feature map
 	'''
 	# Load the file
-	print 'Loading %s...' % filename
 	elements = []
 	counter = 0
+	print '\t Get statistics...'
 	if not elements:
+		print 'Loading %s...' % filename
 		with open(filename, 'r') as f:
 			elements = json.load(f)
 	print 'Total elements found: %d' % len(elements['features']) #GeoJSON conversion

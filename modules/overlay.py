@@ -57,10 +57,13 @@ def createLayer(i,stats,subpath,inputFile,key):
 	print "Processing feature:",feature,i,"/",len(stats)
 	featureFile = subpath+"/"+featureDataFolder+"/f_"+str(i)+".json"
 	if not os.path.isfile(featureFile): 
+		print "\tOpening input file... ",
 		with open(inputFile,'r') as f:
 			elementsInstance=json.load(f)
+		print "Done."
 		#delete every item that is not feature
 		cntdel=0
+		print "\tExtracting layers... ",
 		for i in range(0,len(elementsInstance['features'])):
 			#print elementsInstance['features'][cntdel]['properties']
 			if elementsInstance['features'][cntdel]['properties'][key]!=feature:
@@ -70,14 +73,17 @@ def createLayer(i,stats,subpath,inputFile,key):
 				cntdel+=1
 		#for i in range(0,len(elementsInstance['features'])):
 		#	print elementsInstance['features'][i]['properties']
+		print "Done."
+		print "\tStoring layer file... ",
 		try:
 			os.remove(featureFile)
 		except OSError:
 			pass
 		with open(featureFile,'w+') as f:
 			json.dump(elementsInstance,f)
+		print "Done."
 	else:
-		print "File",featureFile,"already exists."
+		print "\tFile",featureFile,"already exists."
 
 def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
@@ -126,17 +132,32 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			elements = json.load(f)
 	#Get statistics if not in input
 	if not stats:
-		stats,_=get_stats(inputFile,top,verbose=True,key=key)
+		stats,_=get_stats(inputFile,top,verbose=True,key=key,\
+			elements=elements)
 	#Create json-file for each layer
-	#initialize multi-core processing
-	pool = Pool()
-	print 'Map to cores...'	
-	#create subfile for each feature	
-	partial_createLayer=partial(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
-	pool.map(partial_createLayer, range(0,len(stats)))
-	pool.close()
-	pool.join()
+	print "Create layer files..."
+	if os.path.getsize(inputFile)>50000000:
+		print "Very large input file of size ~",\
+			int(os.path.getsize(inputFile)/1000000),"MB"
+		print "Clearing memory...",
+		elements=True
+		print elements
+		for i in range(0,len(stats)):
+			createLayer(i,stats,subpath,inputFile,key)
+		print 'Reopening %s...' % inputFile
+		with open(inputFile, 'r') as f:
+			elements = json.load(f)
+	#initialize multi-core processing if file size not too large
+	else:
+		pool = Pool()
+		print 'Map to cores...'	
+		#create subfile for each feature	
+		partial_createLayer=partial(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
+		pool.map(partial_createLayer, range(0,len(stats)))
+		pool.close()
+		pool.join()
 
+	print "Layer files created..."
 
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
