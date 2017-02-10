@@ -219,7 +219,6 @@ if __name__ == "__main__":
 			top=top,
 			key=key,
 			elements=elements,
-			top=top
 			)
 	elif selectedModule == 'mltrain':
 		ml()
