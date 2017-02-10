@@ -182,7 +182,6 @@ if __name__ == "__main__":
 			top=top,
 			key=key,
 			elements=elements,
-			top=top
 			)
 		ml()
 	elif selectedModule == 'parse':
