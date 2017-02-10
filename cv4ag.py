@@ -164,7 +164,7 @@ if __name__ == "__main__":
 			xpixel=xpixel,
 			ypixel=ypixel,
 			elements=elements)
-		overlay.overlay(outputFolder,inputFile,
+		stats=overlay.overlay(outputFolder,inputFile,
 			xpixel=xpixel,
 			ypixel=ypixel,
 			zoomLevel=zoomLevel,
@@ -178,7 +178,12 @@ if __name__ == "__main__":
 			elements=elements\
 			)
 		train.train(outputFolder=outputFolder,
-			inputFile=inputFile)
+			inputFile=inputFile,
+			top=top,
+			key=key,
+			elements=elements,
+			top=top
+			)
 		ml()
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
@@ -210,7 +215,12 @@ if __name__ == "__main__":
 			)
 	elif selectedModule == 'train':
 		train.train(outputFolder=outputFolder,
-			inputFile=inputFile)
+			inputFile=inputFile,
+			top=top,
+			key=key,
+			elements=elements,
+			top=top
+			)
 	elif selectedModule == 'mltrain':
 		ml()
 	elif selectedModule == 'clear':

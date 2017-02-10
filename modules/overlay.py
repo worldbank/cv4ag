@@ -169,7 +169,13 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 	cnt = 1
 
 	for image in image_files:
+		#rasterize corresponding data
+		print ''
+		if count: 		#abort if maximum limit set and cnt above maximum limit
+			if cnt>count:
+				break
 		# The index is between the last underscore and the extension dot
+		print str(cnt)+'/'+str(len(image_files))
 		index = int(find_between(image,"_",".png"))
 		av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
@@ -196,11 +202,6 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
 		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
-		#rasterize corresponding data
-		if count: 		#abort if maximum limit set and cnt above maximum limit
-			if cnt>count:
-				break
-		print str(cnt)+'/'+str(len(image_files))
 		cnt+=1
 		tifile=subpath+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print 'Converting',image,'to',os.path.split(tifile)[-1]
@@ -245,7 +246,6 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			pool.map(partial_rasterLayer, range(0,len(stats)))
 			pool.close()
 			pool.join()
-		print ''	
 
 		#create output file
 		try: #remove output file, if it already exists
@@ -256,9 +256,10 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print "Merging images..."
 		imgFile=subpath+"/f_"+str(1)+".png"
 		background = Image.open(imgFile)
-		imgFile=subpath+"/f_"+str(2)+".png"
-		foreground = Image.open(imgFile)
-		background.paste(foreground, (0, 0), foreground)
+		if len(stats)>1:
+			imgFile=subpath+"/f_"+str(2)+".png"
+			foreground = Image.open(imgFile)
+			background.paste(foreground, (0, 0), foreground)
 		background.save(tifile)
 		if len(stats)>2:
 			for i in range(3,len(stats)+1):
@@ -318,6 +319,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		except OSError:
 			pass
 	print "Overlaying done."
+	return stats
 #	try:
 #		os.rmdir(subpath)
 #	except OSError:

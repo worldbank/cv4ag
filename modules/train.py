@@ -2,8 +2,14 @@ import os
 from libs.foldernames import *
 from libs.models import *
 from modules.getFeatures import find_between
+from modules.get_stats import get_stats
 
-def train(outputFolder,inputFile,net=0):
+def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15):
+	#Get statistics if not in input
+	if not stats:
+		stats,_=get_stats(inputFile,top,verbose=True,key=key,\
+			elements=elements)
+
 	#net=2 extended training net, net=1 basic training net, net=0 very basic net
 	#set outputFolder to directory above the /sat directory
 	if outputFolder[-1]=="/":
@@ -43,7 +49,7 @@ def train(outputFolder,inputFile,net=0):
 	#write solver
 	print "Configure solver files and net..."
 	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)))
-	solver_configured=solver.replace('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(indexpath+"segnet_train.txt")))
+	solver_configured=solver.replace('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+"segnet_train.prototxt")))
 	solver_configured=solver.replace('OPTION_GPU_OR_CPU','GPU')
 	if net==0:
 		solver_configured=solver.replace('INSERT_BASE_LR',str(0.3))
@@ -59,7 +65,7 @@ def train(outputFolder,inputFile,net=0):
 	elif net==2:
 		solver_configured=solver.replace('INSERT_BASE_LR',str(40000))
 
-	with open(modelpath+"segnet_train.txt","w+") as f:
+	with open(modelpath+"segnet_solver.prototxt","w+") as f:
 		f.write(solver_configured)
 
 	#write net
@@ -69,3 +75,7 @@ def train(outputFolder,inputFile,net=0):
 		model=nets[1]
 	elif net==2:
 		model=nets[2]
+	solver_configured=solver.replace('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(indexpath+"train.txt")))
+	solver_configured=solver.replace('INSERT_IGNORE_LABEL','')
+	
+	solver_configured=solver.replace('INSERT_IGNORE_LABEL','')
