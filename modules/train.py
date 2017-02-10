@@ -5,7 +5,7 @@ from modules.getFeatures import find_between
 from modules.get_stats import get_stats
 from random import random
 
-def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None,createTest=True):
+def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -103,7 +103,7 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	elif net==2:
 		model=nets[1]
 		inference=inferences[1]
-	inference_configured=inference.replace('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"train.txt"))) # to change
+	inference_configured=inference.replace('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
 
 	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
 	net_configured=net_configured.replace('BATCHSIZE',str(2))
