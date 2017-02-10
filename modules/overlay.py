@@ -136,7 +136,7 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 			elements=elements)
 	#Create json-file for each layer
 	print "Create layer files..."
-	if os.path.getsize(inputFile)>50000000:
+	if os.path.getsize(inputFile)>500000000:
 		print "Very large input file of size ~",\
 			int(os.path.getsize(inputFile)/1000000),"MB"
 		print "Clearing memory...",
@@ -233,13 +233,20 @@ def overlay(outputFolder,inputFile,pixel=1280,zoomLevel=None,lonshift=0,latshift
 		
 		#rasterize
 		#rasterLayer(0,stats,subpath,size,te)
-		pool = Pool()
-		print 'Map to cores...'	
-		partial_rasterLayer=partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) #pool only takes 1-argument functions
-		pool.map(partial_rasterLayer, range(0,len(stats)))
-		pool.close()
-		pool.join()
+		if os.path.getsize(inputFile)>500000000:
+			print "Very large input file of size ~",\
+				int(os.path.getsize(inputFile)/1000000),"MB"
+			for i in range(0,len(stats)):
+				rasterLayer(i,stats,subpath,size,te)
+		else:
+			pool = Pool()
+			print 'Map to cores...'	
+			partial_rasterLayer=partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) #pool only takes 1-argument functions
+			pool.map(partial_rasterLayer, range(0,len(stats)))
+			pool.close()
+			pool.join()
 		print ''	
+
 		#create output file
 		try: #remove output file, if it already exists
 			os.remove(tifile)
