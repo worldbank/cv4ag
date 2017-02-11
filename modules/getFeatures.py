@@ -12,9 +12,19 @@ def latLon(element):
 			alat.append(coordinate[1])
 			alon.append(coordinate[0])
 	except TypeError: # in case coordinates are located not that deep
-		for coordinate in element['geometry']['coordinates'][0]:
-			alat.append(coordinate[1])
-			alon.append(coordinate[0])
+		try:
+			for coordinate in element['geometry']['coordinates'][0]:
+				alat.append(coordinate[1])
+				alon.append(coordinate[0])
+		except TypeError: # in case coordinates are located not that deep
+			try:
+				for coordinate in element['geometry']['coordinates']:
+					alat.append(coordinate[1])
+					alon.append(coordinate[0])
+			except TypeError:
+				coordinate = element['geometry']['coordinates']
+				alat.append(coordinate[1])
+				alon.append(coordinate[0])
 	#calculate center
 	av_lat= (max(alat)+min(alat))/2 
 	av_lon= (max(alon)+min(alon))/2
