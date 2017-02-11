@@ -22,6 +22,7 @@ class CoordConvert(object):
 					print "Identified coordinate system is EPSG:"+str(code)
 				else:
 					code=str(4326)  #if not found, assume standard format
+					print "Assuming format EPSG:"+str(code),"for",name
 			except KeyError:
 				code=raw_input("EPSG Code for projection not found. Enter EPSC code manually: ")
 		self.epsg=pyproj.Proj("+init=EPSG:"+str(code))

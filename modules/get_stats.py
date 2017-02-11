@@ -5,6 +5,7 @@ Print some stats on all the elements we've found
 
 import json
 import operator
+import os.path
 
 def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	'''
@@ -18,6 +19,8 @@ def get_stats(filename,top=15,key='Descriptio',verbose=True,elements=None):
 	elements = []
 	counter = 0
 	print '\tGet statistics...'
+	print "\tFile size ~",\
+		int(os.path.getsize(filename)/1000000),"MB"
 	if not elements:
 		print '\tLoading %s...' % filename
 		with open(filename, 'r') as f:

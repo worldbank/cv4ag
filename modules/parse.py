@@ -140,7 +140,7 @@ def parse(inputFile=None,outputFolder="data",\
 					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
 					print ''
 					print "Converted to",outputFile
-					stats,_=get_stats.get_stats(outputFile,top,key=key) #get statistics
+					stats,freq,_=get_stats.get_stats(outputFile,top,key=key) #get statistics
 					elements=None
 			else: #only convert one layer
 				print inputFile
@@ -151,7 +151,7 @@ def parse(inputFile=None,outputFolder="data",\
 				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
-				stats,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
+				stats,freq,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
 		else:
 			_,outputFile=os.path.split(inputFile+".json")
 			outputFile=outputFolder+"/"+outputFile
@@ -160,7 +160,7 @@ def parse(inputFile=None,outputFolder="data",\
 			ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile]) #convert layer
 			print ''
 			print "Converted to",outputFile
-			stats,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
+			stats,freq,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
 	#reference stats if not already done:
 	try:	
 		if stats:

@@ -5,7 +5,7 @@ from modules.getFeatures import find_between
 from modules.get_stats import get_stats
 from random import random
 
-def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
+def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -58,15 +58,24 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 					print "Move",f1,"and",f2
 					os.rename(satpath+f1,testpath+f1)
 					os.rename(trainpath+f2,verpath+f2)
-					if filewrittenTest==False: #create new file
-						with open(indexpath+"/test.txt",'w+') as f:
-							f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
-								str(os.path.abspath(verpath+"/"+f2)))
-						filewrittenTest=True
-					else: #append file
-						with open(indexpath+"/test.txt",'a+') as f:
-							f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
-								str(os.path.abspath(verpath+"/"+f2)))
+	print os.listdir(testpath+"/")
+	for f1 in os.listdir(testpath):
+		try:
+			id1= int(find_between(f1,"_",".png"))
+			for f2 in os.listdir(verpath):
+				id2= int(find_between(f2,"_","train.png"))
+				if id1==id2:
+						if filewrittenTest==False: #create new file
+							with open(indexpath+"/test.txt",'w+') as f:
+								f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
+									str(os.path.abspath(verpath+"/"+f2)))
+							filewrittenTest=True
+						else: #append file
+							with open(indexpath+"/test.txt",'a+') as f:
+								f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
+									str(os.path.abspath(verpath+"/"+f2)))
+		except ValueError: #ignore subfolders
+			pass
 
 	#write solver
 	print "Configure solver files and net..."
@@ -77,16 +86,20 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.3))
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
+		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.2))
 	elif net==2:
+		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
+	elif net==3:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.001))
 
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(500))
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(10000))
+		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(2000))
 	elif net==2:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(40000))
+		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(10000))
+	elif net==3:
+		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(40000))
 
 	with open(modelpath+"segnet_solver.prototxt","w+") as f:
 		f.write(solver_configured)
@@ -96,9 +109,12 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 		model=nets[0]
 		inference=inferences[0]
 	elif net==1:
+		model=nets[0]
+		inference=inferences[0]
+	elif net==2:
 		model=nets[1]
 		inference=inferences[1]
-	elif net==2:
+	elif net==3:
 		model=nets[1]
 		inference=inferences[1]
 	inference_configured=inference.replace\
@@ -119,12 +135,11 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	sumfreq=sum(freq)
 	initweight=1./len(stats)
 	classweights=''''''
-	cnt=0 #count number of labelled classes
 	with open(subpath+"/meta_classlabels.txt",'w+') as f:
 		f.write('')
 			
 	if not ignorebackground:
-		classweight=freq[0]*1./sumfreq #Background weight is set to same as first labelled class
+		classweight=freq[0]*1./(4*sumfreq) #Background weight is set to same as first labelled class/4
 		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
@@ -133,9 +148,10 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	for i in range(0,len(stats)):
 		#Create file with metadata
 		classweight=freq[i]*1./sumfreq #does not have to equal 1
-		numberoftabs=len(stats[cnt])/8	
+		classweights+='class_weighting: '+str(classweight)+"\n"
+		numberoftabs=len(stats[i])/8	
 		tabs="\t"*(6-numberoftabs)
-		print 'Weight for class '+stats[cnt]+":"+tabs+str(classweight)
+		print 'Weight for class '+stats[i]+":"+tabs+str(classweight)
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
 			f.write(str(1+additionalclass)+"\tBackground")
 

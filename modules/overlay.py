@@ -139,7 +139,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		freq=None
 	#Create json-file for each layer
 	print "Create layer files..."
-	if os.path.getsize(inputFile)>500000000:
+	if os.path.getsize(inputFile)>230000000:
 		print "Very large input file of size ~",\
 			int(os.path.getsize(inputFile)/1000000),"MB"
 		print "Clearing memory...",
@@ -192,7 +192,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			latitude= av_lat
 			longitude= av_lot
 		print "Coordinates WSG84: "+str(longitude)+','+str(latitude)
-		if (av_lan != longitude) and (av_lat != latitude):
+		if (av_lon != longitude) and (av_lat != latitude):
 			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Calculate image coordinates in WSG 84
 		image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
@@ -244,7 +244,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		#rasterize
 		#rasterLayer(0,stats,subpath,size,te)
 		if os.path.getsize(inputFile)>500000000:
-			print "Very large input file of size ~",\
+			print "Very large input file size ~",\
 				int(os.path.getsize(inputFile)/1000000),"MB"
 			for i in range(0,len(stats)):
 				rasterLayer(i,stats,subpath,size,te)

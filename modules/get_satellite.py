@@ -83,7 +83,7 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 
 		#get url
 		print "Coordinates WSG64: "+str(longitude)+','+str(latitude)
-		if (av_lan != longitude) and (av_lat != latitude):
+		if (av_lon != longitude) and (av_lat != latitude):
 			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		url = mapbox_static.get_url(
 			latitude=latitude,
