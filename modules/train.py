@@ -24,7 +24,7 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	modelpath=subpath+modelDataFolder
 	weightpath=subpath+weightDataFolder
 	indexpath=subpath+indexDataFolder
-	testpath=subpath+indexDataFolder
+	testpath=subpath+testDataFolder
 	verpath=subpath+verificationDataFolder
 	#create directories
 	for subsubpath in [modelDataFolder,weightDataFolder,indexDataFolder,\
@@ -35,8 +35,6 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	
 	filewritten=False
 	filewrittenTest=False
-	
-
 
 	#Find matching indices and write to file
 	for f1 in os.listdir(satpath):
@@ -46,11 +44,10 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 			if id1==id2:
 			#Put ~20% of images into test folder if createTest set
 				randomValue=random()
-				print randomValue
 				if randomValue>=0.2 or not createTest:
 					if filewritten==False: #create new file
 						with open(indexpath+"/train.txt",'w+') as f:
-							f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
+							f.write(str(os.path.abspath(satpath+"/"+f1))+" "+\
 								str(os.path.abspath(trainpath+"/"+f2)))
 						filewritten=True
 					else: #append file
@@ -63,7 +60,7 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 					os.rename(trainpath+f2,verpath+f2)
 					if filewrittenTest==False: #create new file
 						with open(indexpath+"/test.txt",'w+') as f:
-							f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
+							f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
 								str(os.path.abspath(verpath+"/"+f2)))
 						filewrittenTest=True
 					else: #append file
@@ -73,8 +70,9 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 
 	#write solver
 	print "Configure solver files and net..."
-	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)))
-	solver_configured=solver_configured.replace('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+"segnet_train.prototxt")))
+	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)+"/"))
+	solver_configured=solver_configured.replace\
+		('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+"segnet_train.prototxt")))
 	solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.3))
@@ -103,7 +101,8 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 	elif net==2:
 		model=nets[1]
 		inference=inferences[1]
-	inference_configured=inference.replace('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
+	inference_configured=inference.replace\
+		('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
 
 	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
 	net_configured=net_configured.replace('BATCHSIZE',str(2))
@@ -117,36 +116,39 @@ def train(outputFolder,inputFile,net=0,stats=None,key='Descriptio',elements=None
 		additionalclass = 1
 	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
 
-	filewritten=False
 	sumfreq=sum(freq)
 	initweight=1./len(stats)
 	classweights=''''''
 	cnt=0 #count number of labelled classes
-	for i in range(firstclass,len(stats)):
-		#Create file with metadata
-		if filewritten==False: #create new file
-			with open(subpath+"/meta_classlabels.txt",'w+') as f:
-				f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
-					str(os.path.abspath(trainpath+"/"+f2)))
-			filewritten=True
-		else: #append file
-			with open(subpath+"/meta_classlabels.txt",'a+') as f:
-				f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
-					str(os.path.abspath(trainpath+"/"+f2)))
-		classweight=freq[cnt]*1./sumfreq #does not have to equal 1
+	with open(subpath+"/meta_classlabels.txt",'w+') as f:
+		f.write('')
+			
+	if not ignorebackground:
+		classweight=freq[0]*1./sumfreq #Background weight is set to same as first labelled class
+		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
-		if i==0: #i=0 is background. Background weight is set to same as first labelled class
-			print 'Weight for background:\t\t\t\t\t\t',classweight
-		else:
-			numberoftabs=len(stats[cnt])/8	
-			tabs="\t"*(6-numberoftabs)
-			print 'Weight for class '+stats[cnt]+":"+tabs+str(classweight)
-			cnt+=1
-	net_configured=net_configured.replace('INSERT_NUM_CLASSES',str(len(stats)-firstclass)) #number of classes
-	inference_configured=inference_configured.replace('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
+		with open(subpath+"/meta_classlabels.txt",'a+') as f:
+			f.write("0\tBackground")
+				
+	for i in range(0,len(stats)):
+		#Create file with metadata
+		classweight=freq[i]*1./sumfreq #does not have to equal 1
+		numberoftabs=len(stats[cnt])/8	
+		tabs="\t"*(6-numberoftabs)
+		print 'Weight for class '+stats[cnt]+":"+tabs+str(classweight)
+		with open(subpath+"/meta_classlabels.txt",'a+') as f:
+			f.write(str(1+additionalclass)+"\tBackground")
+
+	net_configured=net_configured.replace\
+		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
+	inference_configured=inference_configured.replace\
+		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
 	net_configured=net_configured.replace('INSERT_CLASS_WEIGHTING',str(classweights))
 	with open(modelpath+"segnet_train.prototxt","w+") as f:
 		f.write(net_configured)
 	with open(modelpath+"segnet_inference.prototxt","w+") as f:
 		f.write(inference_configured)
 	print "Model files written to",modelpath
+
+
+

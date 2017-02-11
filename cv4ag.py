@@ -110,9 +110,12 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
 		help='Number of layer to be trained on.')
-	cmdParser.add_argument('-b',metavar='BOOL',
+	cmdParser.add_argument('--nobackground',metavar='BOOL',
 		type=int,default=0,
 		help='Ignore background for training. \'0\' (classify) or \'1\' (ignore backgournd)')
+	cmdParser.add_argument('--test',metavar='BOOL',
+		type=int,default=0,
+		help='Create test set. \'0\' (no test set) or \'1\' (create test set)')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -145,10 +148,11 @@ if __name__ == "__main__":
 	latshift= cmdArgs.get('latshift')
 	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
-	b = cmdArgs.get('b')
+	b = cmdArgs.get('nobackground')
 	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
+	test = cmdArgs.get('epsg')
 	
 	# Execute according to options
 	print "Option:",selectedModule
@@ -188,7 +192,8 @@ if __name__ == "__main__":
 			stats=stats,
 			freq=freq,
 			elements=elements,
-			ignorebackground=b
+			ignorebackground=b,
+			createTest=test\
 			)
 		ml()
 	elif selectedModule == 'parse':
@@ -224,7 +229,8 @@ if __name__ == "__main__":
 			inputFile=inputFile,
 			top=top,
 			key=key,
-			ignorebackground=b
+			ignorebackground=b,
+			createTest=test\
 			)
 	elif selectedModule == 'mltrain':
 		ml()

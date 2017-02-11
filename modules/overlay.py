@@ -113,8 +113,9 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			print 'Directory',subpath+subsubpath,'created'
 
 	#load data and check if images in folder
+	#has to be png image and start with input filename
 	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
-		and f.startswith(os.path.split(inputFile)[-1][:-5])] #has to be png image and start with input filename
+		and f.startswith(os.path.split(inputFile)[-1][:-5])] 
 	if len(image_files)==0:
 		print "Error: No images found in",subpath+satDataFolder[0:-1]
 		exit()
@@ -154,7 +155,9 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		pool = Pool()
 		print 'Map to cores...'	
 		#create subfile for each feature	
-		partial_createLayer=partial(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) #pool only takes 1-argument functions
+		#pool only takes 1-argument functions
+		partial_createLayer=partial\
+			(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) 
 		pool.map(partial_createLayer, range(0,len(stats)))
 		pool.close()
 		pool.join()
@@ -180,7 +183,6 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print str(cnt)+'/'+str(len(image_files))
 		index = int(find_between(image,"_",".png"))
 		av_lon,av_lat=latLon(elements['features'][index]) # get center points
-		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
 			lotlan= myCoordConvert.convert(av_lon,av_lat)
@@ -190,6 +192,8 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			latitude= av_lat
 			longitude= av_lot
 		print "Coordinates WSG84: "+str(longitude)+','+str(latitude)
+		if (av_lan != longitude) and (av_lat != latitude):
+			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Calculate image coordinates in WSG 84
 		image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
 		#print 'Coordinates:',latitude,longitude
@@ -201,11 +205,12 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			image_box=image_box_raw
 		image_lat = image_box[1]
 		image_lon = image_box[0]	
-		print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
-		print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
+		#print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
+		#print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
 
 		cnt+=1
-		tifile=subpath+trainingDataFolder+os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
+		tifile=subpath+trainingDataFolder+\
+			os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
 		print 'Converting',image,'to',os.path.split(tifile)[-1]
 		#shift factor
 		west=(image_lon[0]+image_lon[2])/2
@@ -227,11 +232,13 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
 		#print te
 		print "Image bounderies:"
-		print str(image_box_lon[0])[:-5],'\t',str(image_box_lat[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
+		print str(image_box_lon[0])[:-5],'\t',\
+			str(image_box_lat[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lon[1])[:-5],'\t',str(image_box_lat[1])[:-5]
 		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
 		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
-		print str(image_box_lon[2])[:-5],'\t',str(image_box_lat[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
+		print str(image_box_lon[2])[:-5],'\t',\
+			str(image_box_lat[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
 			str(image_box_lon[3])[:-5],'\t',str(image_box_lat[3])[:-5]
 		
 		#rasterize
@@ -244,7 +251,9 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		else:
 			pool = Pool()
 			print 'Map to cores...'	
-			partial_rasterLayer=partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) #pool only takes 1-argument functions
+			#pool only takes 1-argument functions, so create partial function
+			partial_rasterLayer=\
+				partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) 
 			pool.map(partial_rasterLayer, range(0,len(stats)))
 			pool.close()
 			pool.join()

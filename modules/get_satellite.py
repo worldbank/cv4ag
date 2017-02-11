@@ -82,8 +82,9 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 #			longitude=element.get('lon')
 
 		#get url
-		print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		print "Coordinates WSG64: "+str(longitude)+','+str(latitude)
+		if (av_lan != longitude) and (av_lat != latitude):
+			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		url = mapbox_static.get_url(
 			latitude=latitude,
 			longitude=longitude,
@@ -91,7 +92,6 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 			access_token=mapboxtoken,
 			width=xpixel,
 			height=ypixel)
-		print url
 #		element_id_sport = '%s_%s' % (sport, element_id_str)
 		#download data
 		success = mapbox_static.download_tile(
