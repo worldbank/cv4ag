@@ -5,7 +5,8 @@ from modules.getFeatures import find_between
 from modules.get_stats import get_stats
 from random import random
 
-def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
+def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
+	elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\

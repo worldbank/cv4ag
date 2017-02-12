@@ -139,7 +139,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		freq=None
 	#Create json-file for each layer
 	print "Create layer files..."
-	if os.path.getsize(inputFile)>230000000:
+	if os.path.getsize(inputFile)>220000000:
 		print "Very large input file of size ~",\
 			int(os.path.getsize(inputFile)/1000000),"MB"
 		print "Clearing memory...",

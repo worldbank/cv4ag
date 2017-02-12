@@ -53,9 +53,11 @@ def parse(inputFile=None,outputFolder="data",\
 			if scriptArg2:
 				if scriptArg3:
 					if scriptArg4:
-						scriptReturn= scriptModule.script(scriptArg1,scriptArg2,scriptArg3,scriptArg4)
+						scriptReturn= scriptModule.script\
+							(scriptArg1,scriptArg2,scriptArg3,scriptArg4)
 					else:
-						scriptReturn= scriptModule.script(scriptArg1,scriptArg2,scriptArg3)
+						scriptReturn= scriptModule.script\
+							(scriptArg1,scriptArg2,scriptArg3)
 				else:
 					scriptReturn= scriptModule.script(scriptArg1,scriptArg2)
 			else:
@@ -126,7 +128,8 @@ def parse(inputFile=None,outputFolder="data",\
 		if len(layers)>1:
 			# Select layers (one or all)
 			if not layernumber:
-				choseLayer = input("Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
+				choseLayer = input(\
+					"Multiple layers found. Chose layer (number) or \'0\' for all layers: ")
 			else:
 				choseLayer = layernumber
 			if choseLayer==0: # iterate over each layer
@@ -137,7 +140,8 @@ def parse(inputFile=None,outputFolder="data",\
 					outputFile=outputFolder+"/"+outputFile
 					# avoid GeoJSON error (GeoJSON cannot overwrite files)
 					outputFile=overwrite(outputFile)
-					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) #convert layer
+					#convert layer
+					ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[i]]) 
 					print ''
 					print "Converted to",outputFile
 					stats,freq,_=get_stats.get_stats(outputFile,top,key=key) #get statistics
@@ -148,7 +152,9 @@ def parse(inputFile=None,outputFolder="data",\
 				outputFile=outputFolder+"/"+outputFile
 				print "Converting layer",layers[choseLayer-1],"..."
 				outputFile=overwrite(outputFile)
-				ogr2ogr.main(["","-f","GeoJSON",outputFile,inputFile,layers[choseLayer-1],'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
+				ogr2ogr.main(["","-f","GeoJSON",outputFile,\
+					inputFile,layers[choseLayer-1],\
+					'--config','OSM_USE_CUSTOM_INDEXING','NO']) #convert layer
 				print ''
 				print "Converted to",outputFile
 				stats,freq,elements=get_stats.get_stats(outputFile,top,key=key) #get statistics
