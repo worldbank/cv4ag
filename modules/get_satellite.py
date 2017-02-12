@@ -9,7 +9,8 @@ from modules.getFeatures import latLon
 from libs.foldernames import satDataFolder,testDataFolder
 import os,json
 def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
-	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None):
+	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None,
+	randomImages=False):
 
 	if not inputFile:
 		print "Error: Provide input file."

@@ -72,15 +72,6 @@ if __name__ == "__main__":
 	cmdParser.add_argument('-y',metavar='N',
 		type=int,default=360,
 		help='Images have height N pixel.')
-#	cmdParser.add_argument('-o1',metavar='PATH',
-#		type=str,default="data/",
-#		help='Output file after parsing stage.')
-#	cmdParser.add_argument('-o2',metavar='PATH',
-#		type=str,default="data/",
-#		help='Output file after training stage.')
-#	cmdParser.add_argument('-o3',metavar='PATH',
-#		type=str,default="data/",
-#		help='Output file after ml stage.')
 	cmdParser.add_argument('-d',metavar='FILETYPE_CODE',
 		type=str,default=None,
 		help='Specify file type. Will find to detect filetype automatically. \
@@ -110,12 +101,6 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
 		help='Number of layer to be trained on.')
-	cmdParser.add_argument('--nobackground',metavar='BOOL',
-		type=int,default=0,
-		help='Ignore background for training. \'0\' (classify) or \'1\' (ignore backgournd)')
-	cmdParser.add_argument('--test',metavar='BOOL',
-		type=int,default=0,
-		help='Create test set. \'0\' (no test set) or \'1\' (create test set)')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -128,6 +113,20 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--arg4',
 		type=str,default=None,
 		help='Argument 4 for script.')
+
+	testParser = cmdParser.add_mutually_exclusive_group(required=False)
+	testParser.add_argument('--test', dest='test', action='store_true',help='Create test set.')
+	testParser.add_argument('--no-test', dest='test', action='store_false',help='Do not create test set (default)')
+	cmdParser.set_defaults(test=False)
+	backgroundParser = cmdParser.add_mutually_exclusive_group(required=False)
+	backgroundParser.add_argument('--background', dest='b', action='store_false',help='Classify background for training (deault)')
+	backgroundParser.add_argument('--no-background', dest='b', action='store_true',help='Ignore background for training.')
+	cmdParser.set_defaults(b=False)
+	randomParser = cmdParser.add_mutually_exclusive_group(required=False)
+	randomParser.add_argument('--random', dest='randomImages', action='store_true',help='Use random images within GIS boundary box.')
+	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (deault).')
+	cmdParser.set_defaults(randomImages=False)
+
 	cmdArgs = vars(cmdParser.parse_args())
 	selectedModule = cmdArgs.get('module')
 	mapboxtoken = cmdArgs.get('mapbox_token')
@@ -148,11 +147,9 @@ if __name__ == "__main__":
 	latshift= cmdArgs.get('latshift')
 	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
-	b = cmdArgs.get('nobackground')
 	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
-	test = cmdArgs.get('epsg')
 	
 	# Execute according to options
 	print "Option:",selectedModule
@@ -171,6 +168,7 @@ if __name__ == "__main__":
 			epsg=epsg,
 			xpixel=xpixel,
 			ypixel=ypixel,
+			randomImages=randomImages,
 			elements=elements)
 		overlay.overlay(outputFolder,inputFile,
 			xpixel=xpixel,
@@ -183,6 +181,7 @@ if __name__ == "__main__":
 			count=satelliteCount,
 			epsg=epsg,
 			key=key,
+			randomImages=randomImages,
 			elements=elements\
 			)
 		train.train(outputFolder=outputFolder,
@@ -209,6 +208,7 @@ if __name__ == "__main__":
 			zoomLevel=zoomLevel,
 			epsg=epsg,
 			outputFolder=outputFolder,
+			randomImages=randomImages,
 			xpixel=xpixel,
 			ypixel=ypixel)
 			
@@ -222,6 +222,7 @@ if __name__ == "__main__":
 			top=top,
 			epsg=epsg,
 			count=satelliteCount,
+			randomImages=randomImages,
 			key=key
 			)
 	elif selectedModule == 'train':

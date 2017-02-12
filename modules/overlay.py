@@ -87,7 +87,7 @@ def createLayer(i,stats,subpath,inputFile,key):
 
 def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
-	elements=None):
+	elements=None,randomImages=False):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
