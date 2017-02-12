@@ -1,10 +1,6 @@
 import json
-
-def latLon(element):
-        '''
-        get center of polygon of feature data
-	return lattitude,longitude
-        '''
+def getCoord(element):
+	'''search geojson element for coordinates and return array of coordinates'''
 	alat=[] #all lattitutes for nodes
 	alon=[] #all longitudes for nodes
 	try:
@@ -25,10 +21,25 @@ def latLon(element):
 				coordinate = element['geometry']['coordinates']
 				alat.append(coordinate[1])
 				alon.append(coordinate[0])
+	return alon,alat
+
+def latLon(element):
+        '''
+        get center of polygon of feature data
+	return lattitude,longitude
+        '''
+	alon,alat=getCoord(element)
 	#calculate center
 	av_lat= (max(alat)+min(alat))/2 
 	av_lon= (max(alon)+min(alon))/2
 	return av_lon,av_lat
+
+def getBBox(element):
+        '''
+	return minx,maxx,miny,maxy
+        '''
+	alon,alat=getCoord(element)
+	return min(alon),max(alon),min(alat),max(alat)
 
 def find_between(s, first, last=None, lastfirst=False ):
         '''find substrings. used to get index out of image filename'''

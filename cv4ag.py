@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	testParser.add_argument('--no-test', dest='test', action='store_false',help='Do not create test set (default)')
 	cmdParser.set_defaults(test=False)
 	backgroundParser = cmdParser.add_mutually_exclusive_group(required=False)
-	backgroundParser.add_argument('--background', dest='b', action='store_false',help='Classify background for training (deault)')
+	backgroundParser.add_argument('--background', dest='b', action='store_false',help='Classify background for training (default)')
 	backgroundParser.add_argument('--no-background', dest='b', action='store_true',help='Ignore background for training.')
 	cmdParser.set_defaults(b=False)
 	randomParser = cmdParser.add_mutually_exclusive_group(required=False)

@@ -2,8 +2,7 @@
 '''
 Overlay classes and satellite data
 '''
-import json
-import os
+import os,csv,json
 import utils.gdal_rasterize as gdal_rasterize
 from PIL import Image
 from functools import partial
@@ -182,7 +181,16 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		# The index is between the last underscore and the extension dot
 		print str(cnt)+'/'+str(len(image_files))
 		index = int(find_between(image,"_",".png"))
-		av_lon,av_lat=latLon(elements['features'][index]) # get center points
+		if randomImages: #get coordinates for random images
+			with open(subpath+satDataFolder+"meta.csv","rb") as csvfile:
+				 coordFile = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
+			for coord in CoordFile:
+				if coord[0]==str(index):
+					av_lon=coord[1]
+					av_lat=coord[2]
+					break
+		else:
+			av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		#Convert to standard format
 		if code != 4319: # if not already in wgs84 standard format
 			lotlan= myCoordConvert.convert(av_lon,av_lat)
