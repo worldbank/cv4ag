@@ -124,10 +124,10 @@ if __name__ == "__main__":
 	cmdParser.set_defaults(b=False)
 	randomParser = cmdParser.add_mutually_exclusive_group(required=False)
 	randomParser.add_argument('--random', dest='randomImages', action='store_true',help='Use random images within GIS boundary box.')
-	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (deault).')
+	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (default).')
 	cmdParser.set_defaults(randomImages=False)
-
 	cmdArgs = vars(cmdParser.parse_args())
+
 	selectedModule = cmdArgs.get('module')
 	mapboxtoken = cmdArgs.get('mapbox_token')
 	inputFile = cmdArgs.get('i')
@@ -150,7 +150,9 @@ if __name__ == "__main__":
 	key = cmdArgs.get('key')
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
-	
+	test = cmdArgs.get('test')
+	b = cmdArgs.get('b')
+	randomImages = cmdArgs.get('randomImages')
 	# Execute according to options
 	print "Option:",selectedModule
 	if selectedModule == 'all':

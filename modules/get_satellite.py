@@ -44,29 +44,28 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	
 	#Write metadata
 	with open(subpath+satDataFolder+"meta.csv","a+") as f:
-		f.write("ZoomLevel,,"+str(zoomLevel))
-
+		f.write("ZoomLevel,,"+str(zoomLevel)+"\n")
 	#get bbox if set to random
 	if randomImages:
 		xlist=[]
 		ylist=[]
-		for element in elements:
+		for element in elements['features']:
 			minxe,maxxe,minye,maxye=getBBox(element)
 			xlist.append(minxe)
 			xlist.append(maxxe)
 			ylist.append(minye)
-			ylist.append(maye)
+			ylist.append(maxye)
 		minx=min(xlist)
 		maxx=max(xlist)
 		miny=min(ylist)
 		maxy=max(ylist)
-	else:
-		element_list = []
-		index_list = range(len(elements['features'])) #featue map
-		# Randomize elements list to make sure we don't download all pics from the
-		shuffle(index_list)
-		for i in index_list:
-			element_list.append(elements['features'][i]) #feature map
+
+	element_list = [] 
+	index_list = range(len(elements['features'])) #featue map
+	# Randomize elements list to make sure we don't download all pics from the
+	shuffle(index_list)
+	for i in index_list:
+		element_list.append(elements['features'][i]) #feature map
 
 	# Now we're gonna download the satellite images for these locations
 	namespace= os.path.split(inputFile)[-1][:-5] #get input file name as namespace
@@ -84,8 +83,8 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 			av_lon=minx+((maxx-minx)*randomValue)
 			av_lat=miny+((maxy-miny)*randomValue)
 			element_id_str=1000000+c #1000000 indicates random value
-			with open(subpath+satDataFolder+"meta.csv","w+") as f:
-				f.write(element_id_str+","+av_lon+","+av_lat)
+			with open(subpath+satDataFolder+"meta.csv","a+") as f:
+				f.write(str(element_id_str)+","+str(av_lon)+","+str(av_lat)+"\n")
 		else:
 			element_id_str = index_list[c]
 			#figure out center of polygon

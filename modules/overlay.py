@@ -182,13 +182,16 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print str(cnt)+'/'+str(len(image_files))
 		index = int(find_between(image,"_",".png"))
 		if randomImages: #get coordinates for random images
+			av_lon=None
 			with open(subpath+satDataFolder+"meta.csv","rb") as csvfile:
 				 coordFile = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
-			for coord in CoordFile:
+			for coord in coordFile:
 				if coord[0]==str(index):
 					av_lon=coord[1]
 					av_lat=coord[2]
 					break
+			if not av_lon:
+				av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		else:
 			av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		#Convert to standard format

@@ -38,45 +38,47 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	filewrittenTest=False
 
 	#Find matching indices and write to file
-	for f1 in os.listdir(satpath):
-		id1= int(find_between(f1,"_",".png"))
-		for f2 in os.listdir(trainpath):
-			id2= int(find_between(f2,"_","train.png"))
-			if id1==id2:
-			#Put ~20% of images into test folder if createTest set
-				randomValue=random()
-				if randomValue>=0.2 or not createTest:
-					if filewritten==False: #create new file
-						with open(indexpath+"/train.txt",'w+') as f:
-							f.write(str(os.path.abspath(satpath+"/"+f1))+" "+\
-								str(os.path.abspath(trainpath+"/"+f2)))
-						filewritten=True
-					else: #append file
-						with open(indexpath+"/train.txt",'a+') as f:
-							f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
-								str(os.path.abspath(trainpath+"/"+f2)))
-				else:
-					print "Move",f1,"and",f2
-					os.rename(satpath+f1,testpath+f1)
-					os.rename(trainpath+f2,verpath+f2)
-	print os.listdir(testpath+"/")
-	for f1 in os.listdir(testpath):
-		try:
+	try:
+		for f1 in os.listdir(satpath):
 			id1= int(find_between(f1,"_",".png"))
-			for f2 in os.listdir(verpath):
+			for f2 in os.listdir(trainpath):
 				id2= int(find_between(f2,"_","train.png"))
 				if id1==id2:
-						if filewrittenTest==False: #create new file
-							with open(indexpath+"/test.txt",'w+') as f:
-								f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
-									str(os.path.abspath(verpath+"/"+f2)))
-							filewrittenTest=True
+				#Put ~20% of images into test folder if createTest set
+					randomValue=random()
+					if randomValue>=0.2 or not createTest:
+						if filewritten==False: #create new file
+							with open(indexpath+"/train.txt",'w+') as f:
+								f.write(str(os.path.abspath(satpath+"/"+f1))+" "+\
+									str(os.path.abspath(trainpath+"/"+f2)))
+							filewritten=True
 						else: #append file
-							with open(indexpath+"/test.txt",'a+') as f:
-								f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
-									str(os.path.abspath(verpath+"/"+f2)))
-		except ValueError: #ignore subfolders
-			pass
+							with open(indexpath+"/train.txt",'a+') as f:
+								f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
+									str(os.path.abspath(trainpath+"/"+f2)))
+					else:
+						print "Move",f1,"and",f2
+						os.rename(satpath+f1,testpath+f1)
+						os.rename(trainpath+f2,verpath+f2)
+		for f1 in os.listdir(testpath):
+			try:
+				id1= int(find_between(f1,"_",".png"))
+				for f2 in os.listdir(verpath):
+					id2= int(find_between(f2,"_","train.png"))
+					if id1==id2:
+							if filewrittenTest==False: #create new file
+								with open(indexpath+"/test.txt",'w+') as f:
+									f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
+										str(os.path.abspath(verpath+"/"+f2)))
+								filewrittenTest=True
+							else: #append file
+								with open(indexpath+"/test.txt",'a+') as f:
+									f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
+										str(os.path.abspath(verpath+"/"+f2)))
+			except ValueError: #ignore subfolders
+				pass
+	except ValueError: #ignore metafile
+		pass
 
 	#write solver
 	print "Configure solver files and net..."
