@@ -1,3 +1,5 @@
+import os.path
+
 satDataFolder="/sat/"
 trainingDataFolder="/train/"
 checkDataFolder="/check/"

@@ -179,15 +179,17 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	# Start training
 
 	if mode.lower()=='gpu':
+		print "GPU mode"
 		caffe.set_device(0)
 		caffe.set_mode_gpu()
 	elif mode.lower() =='cpu':
+		print "CPU mode"
 		caffe.set_mode_cpu()
 	else:
 		print "Error: indicate mode (cpu or gpu)"
 		exit()
-	solver = caffe.get_solver(modelpath+solverprototxt)
-	a=solver.solve()
+	caffesolver = caffe.get_solver(modelpath+solverprototxt)
+	a=caffesolver.solve()
 	print a
 	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel)
 	print "Training completed."

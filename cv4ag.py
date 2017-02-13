@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!usr/bin/env python 
 """
 Top Layer for the Computer Vision 4 Agriculture (cv4ag) framework
 Lukas Arnold
