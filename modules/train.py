@@ -15,7 +15,6 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
 			elements=elements)
 
-	#net=2 extended training net, net=1 basic training net, net=0 very basic net
 	#set outputFolder to directory above the /sat directory
 	if outputFolder[-1]=="/":
 		outputFolder=outputFolder[0:-1]
@@ -88,6 +87,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
 	elif mode.lower() =='cpu':
 		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','CPU')
+	#net=2,3 extended training net, net=1 basic training net, net=0 very basic net
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.3))
 	elif net==1:
