@@ -18,7 +18,7 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite,overlay,train,clean,apply-ml
+import parse,get_satellite,overlay,train,clean,applyml
 
 #----------------------------------------------------------------------
 #Main
@@ -101,6 +101,9 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
 		help='Number of layer to be trained on.')
+	cmdParser.add_argument('--mode',
+		type=str,default='gpu',
+		help='GPU (default) or CPU mode')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -149,6 +152,7 @@ if __name__ == "__main__":
 	layernumber = cmdArgs.get('layer')
 	shiftformat = cmdArgs.get('shiftformat')
 	key = cmdArgs.get('key')
+	mode = cmdArgs.get('mode')
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
 	test = cmdArgs.get('test')
@@ -192,13 +196,20 @@ if __name__ == "__main__":
 			net=net,
 			top=top,
 			key=key,
+			mode=mode,
+			xpixel=xpixel,
+			ypixel=ypixel,
 			stats=stats,
 			freq=freq,
 			elements=elements,
 			ignorebackground=b,
 			createTest=test\
 			)
-		ml()
+		applyml.apply(outputFolder,
+			inputFile,
+			mode=mode,
+			ignorebackground=b,
+			top=top)
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber, 
@@ -235,11 +246,18 @@ if __name__ == "__main__":
 			net=net,
 			top=top,
 			key=key,
+			mode=mode,
+			xpixel=xpixel,
+			ypixel=ypixel,
 			ignorebackground=b,
 			createTest=test\
 			)
 	elif selectedModule == 'ml':
-		apply-ml.apply()
+		applyml.apply(\
+			inputFile,
+			mode=mode,
+			ignorebackground=b,
+			top=top)
 	elif selectedModule == 'clear':
 		clean.clear(inputFile)
 	else:

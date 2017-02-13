@@ -1,5 +1,6 @@
 import os
 import caffe
+import utils.computeStatistics
 from libs.foldernames import *
 from libs.models import *
 from modules.getFeatures import find_between
@@ -7,7 +8,7 @@ from modules.get_stats import get_stats
 from random import random
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
-	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,
+	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
 	mode="gpu"):
 	#Get statistics if not in input
 	if not stats:
@@ -22,27 +23,18 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		outputFolder=outputFolder[0:-4]
 
 	##########################################
+	# Create Folders
+	subpath,satpath,trainpath,modelpath,weightpath,indexpath,testpath,verpath,_=\
+		getPaths(outputFolder,inputFile)	
 	# Get model files
-	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
-	satpath=subpath+satDataFolder
-	trainpath=subpath+trainingDataFolder
-	modelpath=subpath+modelDataFolder
-	weightpath=subpath+weightDataFolder
-	indexpath=subpath+indexDataFolder
-	testpath=subpath+testDataFolder
-	verpath=subpath+verificationDataFolder
-	#create directories
-	for subsubpath in [modelDataFolder,weightDataFolder,indexDataFolder,\
-		testDataFolder,verificationDataFolder]:
-		if not os.path.isdir(subpath+subsubpath):
-			os.mkdir(subpath+subsubpath)
-			print 'Directory',subpath+subsubpath,'created'
 	
 	filewritten=False
 	filewrittenTest=False
 
 	#Find matching indices and write to file
 	try:
+		cnt=0
+		cnt_test=0
 		for f1 in os.listdir(satpath):
 			id1= int(find_between(f1,"_",".png"))
 			for f2 in os.listdir(trainpath):
@@ -51,6 +43,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 				#Put ~20% of images into test folder if createTest set
 					randomValue=random()
 					if randomValue>=0.2 or not createTest:
+						cnt+=1
 						if filewritten==False: #create new file
 							with open(indexpath+"/train.txt",'w+') as f:
 								f.write(str(os.path.abspath(satpath+"/"+f1))+" "+\
@@ -70,25 +63,27 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 				for f2 in os.listdir(verpath):
 					id2= int(find_between(f2,"_","train.png"))
 					if id1==id2:
-							if filewrittenTest==False: #create new file
-								with open(indexpath+"/test.txt",'w+') as f:
-									f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
-										str(os.path.abspath(verpath+"/"+f2)))
-								filewrittenTest=True
-							else: #append file
-								with open(indexpath+"/test.txt",'a+') as f:
-									f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
-										str(os.path.abspath(verpath+"/"+f2)))
+						cnt_test+=1
+						if filewrittenTest==False: #create new file
+							with open(indexpath+"/test.txt",'w+') as f:
+								f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
+									str(os.path.abspath(verpath+"/"+f2)))
+							filewrittenTest=True
+						else: #append file
+							with open(indexpath+"/test.txt",'a+') as f:
+								f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
+									str(os.path.abspath(verpath+"/"+f2)))
 			except ValueError: #ignore subfolders
 				pass
 	except ValueError: #ignore metafile
 		pass
+	print cnt,"files found for training",cnt_test,"files found for testing."
 
 	#write solver
 	print "Configure solver files and net..."
 	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)+"/"))
 	solver_configured=solver_configured.replace\
-		('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+"segnet_train.prototxt")))
+		('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+trainprototxt)))
 	if mode.lower()=='gpu':
 		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
 	elif mode.lower() =='cpu':
@@ -111,7 +106,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elif net==3:
 		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(40000))
 
-	with open(modelpath+"segnet_solver.prototxt","w+") as f:
+	with open(modelpath+solverprototxt,"w+") as f:
 		f.write(solver_configured)
 
 	#write net
@@ -175,9 +170,9 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	inference_configured=inference_configured.replace\
 		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
 	net_configured=net_configured.replace('INSERT_CLASS_WEIGHTING',str(classweights))
-	with open(modelpath+"segnet_train.prototxt","w+") as f:
+	with open(modelpath+trainprototxt,"w+") as f:
 		f.write(net_configured)
-	with open(modelpath+"segnet_inference.prototxt","w+") as f:
+	with open(modelpath+inferenceprototxt,"w+") as f:
 		f.write(inference_configured)
 	print "Model files written to",modelpath
 	##########################################
@@ -191,3 +186,8 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	else:
 		print "Error: indicate mode (cpu or gpu)"
 		exit()
+	solver = caffe.get_solver(modelpath+solverprototxt)
+	a=solver.solve()
+	print a
+	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel)
+	print "Training completed."

@@ -1,19 +1,12 @@
 #!/usr/bin/env python
-import os
+import os,sys
 import numpy as np
-from skimage.io import ImageCollection
-from argparse import ArgumentParser
-
-
-
-
-caffe_root = '/home/worldbank-ml/ml/caffe-segnet/' 			# Change this to the absolute directoy to SegNet Caffe
-import sys
-sys.path.insert(0, caffe_root + 'python')
-
 import caffe
 from caffe.proto import caffe_pb2
 from google.protobuf import text_format
+from skimage.io import ImageCollection
+from argparse import ArgumentParser
+
 
 
 def extract_dataset(net_message):
@@ -159,18 +152,11 @@ def make_parser():
     return p
 
 
-if __name__ == '__main__':
-    caffe.set_mode_gpu()
-    p = make_parser()
-    args = p.parse_args()
-
-    # build and save testable net
-    if not os.path.exists(args.out_dir):
-        os.makedirs(args.out_dir)
+def compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel):
     print "Building BN calc net..."
-    testable_msg = make_testable(args.train_model)
+    testable_msg = make_testable(modelpath+trainprototxt)
     BN_calc_path = os.path.join(
-        args.out_dir, '__for_calculating_BN_stats_' + os.path.basename(args.train_model)
+        weightpath, '__for_calculating_BN_stats_' + os.path.basename(modelpath+trainprototxt)
     )
     with open(BN_calc_path, 'w') as f:
         f.write(text_format.MessageToString(testable_msg))
@@ -181,7 +167,7 @@ if __name__ == '__main__':
     train_size = len(train_ims)
     minibatch_size = testable_msg.layer[0].dense_image_data_param.batch_size
     num_iterations = train_size // minibatch_size + train_size % minibatch_size
-    in_h, in_w =(360, 480)
+    in_h, in_w =(ypixel, xpixel)
     test_net, test_msg = make_test_files(BN_calc_path, args.weights, num_iterations,
                                          in_h, in_w)
     
@@ -191,7 +177,7 @@ if __name__ == '__main__':
     #with open(test_path, 'w') as f:
     #    f.write(text_format.MessageToString(test_msg))
     
-    print "Saving test net weights..."
-    test_net.save(os.path.join(args.out_dir, "test_weights.caffemodel"))
+    print "Saving net weights..."
+    test_net.save(os.path.join(args.out_dir, weightsfile))
     print "done"
 
