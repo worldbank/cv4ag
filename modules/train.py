@@ -88,23 +88,25 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elif mode.lower() =='cpu':
 		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','CPU')
 	#net=2,3 extended training net, net=1 basic training net, net=0 very basic net
+	
 	if net==0:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.3))
+		stepsize=0.3
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
+		stepsize=0.1
 	elif net==2:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
+		stepsize=0.01
 	elif net==3:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.001))
-
+		stepsize=0.001
+	solver_configured=solver_configured.replace('INSERT_BASE_LR',str(stepsize))
 	if net==0:
-		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(500))
+		maxiter=500
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(10000))
+		maxiter=5000
 	elif net==2:
-		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(20000))
+		maxiter=20000
 	elif net==3:
-		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(40000))
+		maxiter=40000
+	solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(maxiter))
 
 	with open(modelpath+solverprototxt,"w+") as f:
 		f.write(solver_configured)
@@ -188,8 +190,16 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	else:
 		print "Error: indicate mode (cpu or gpu)"
 		exit()
-	caffesolver = caffe.get_solver(modelpath+solverprototxt)
-	a=caffesolver.solve()
-	print a
-	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel)
+	print weightpath+"_iter_"+str(maxiter)+".caffeemodel"
+	if os.path.isfile(weightpath+"_iter_"+str(maxiter)+".caffemodel"):
+		overwrite=raw_input("_iter_"+str(maxiter)+".caffemodel exists. Overwrite? (y/n)")
+		if overwrite=="n":
+			pass	
+		else:
+			caffesolver = caffe.get_solver(modelpath+solverprototxt)
+			caffesolver.solve()
+	else:	
+		caffesolver = caffe.get_solver(modelpath+solverprototxt)
+		caffesolver.solve()
+	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
 	print "Training completed."

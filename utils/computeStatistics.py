@@ -5,7 +5,6 @@ import caffe
 from caffe.proto import caffe_pb2
 from google.protobuf import text_format
 from skimage.io import ImageCollection
-from argparse import ArgumentParser
 
 
 
@@ -69,8 +68,8 @@ def make_test_files(testable_net_path, train_weights_path, num_iterations,
             bn_avg_mean[bn_mean] += np.squeeze(res[bn_mean])
         for bn_var in bn_vars:
             bn_avg_var[bn_var] += np.squeeze(res[bn_var])
-        print 'progress: {}/{}'.format(i, num_iterations)
-
+        print 'progress: {}/{} \r'.format(i, num_iterations),
+    print ''
     # compute average means and vars
     for bn_mean in bn_means:
         bn_avg_mean[bn_mean] /= num_iterations
@@ -144,15 +143,9 @@ def make_test_files(testable_net_path, train_weights_path, num_iterations,
     return net, test_msg
 
 
-def make_parser():
-    p = ArgumentParser()
-    p.add_argument('train_model')
-    p.add_argument('weights')
-    p.add_argument('out_dir')
-    return p
 
 
-def compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel):
+def compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter):
     print "Building BN calc net..."
     testable_msg = make_testable(modelpath+trainprototxt)
     BN_calc_path = os.path.join(
@@ -168,7 +161,7 @@ def compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel):
     minibatch_size = testable_msg.layer[0].dense_image_data_param.batch_size
     num_iterations = train_size // minibatch_size + train_size % minibatch_size
     in_h, in_w =(ypixel, xpixel)
-    test_net, test_msg = make_test_files(BN_calc_path, args.weights, num_iterations,
+    test_net, test_msg = make_test_files(BN_calc_path, weightpath+"_iter_"+str(maxiter)+".caffemodel", num_iterations,
                                          in_h, in_w)
     
     # save deploy prototxt
