@@ -1,4 +1,5 @@
 import os
+import caffe
 from libs.foldernames import *
 from libs.models import *
 from modules.getFeatures import find_between
@@ -6,7 +7,8 @@ from modules.get_stats import get_stats
 from random import random
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
-	elements=None,top=15,ignorebackground=1,freq=None,createTest=False):
+	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,
+	mode="gpu"):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -19,6 +21,8 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	if outputFolder[-3:]==satDataFolder[1:-1]:
 		outputFolder=outputFolder[0:-4]
 
+	##########################################
+	# Get model files
 	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
 	satpath=subpath+satDataFolder
 	trainpath=subpath+trainingDataFolder
@@ -85,11 +89,14 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)+"/"))
 	solver_configured=solver_configured.replace\
 		('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+"segnet_train.prototxt")))
-	solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
+	if mode.lower()=='gpu':
+		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
+	elif mode.lower() =='cpu':
+		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','CPU')
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.3))
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.2))
+		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
 	elif net==2:
 		solver_configured=solver_configured.replace('INSERT_BASE_LR',str(0.1))
 	elif net==3:
@@ -98,9 +105,9 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	if net==0:
 		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(500))
 	elif net==1:
-		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(2000))
-	elif net==2:
 		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(10000))
+	elif net==2:
+		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(20000))
 	elif net==3:
 		solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(40000))
 
@@ -124,7 +131,12 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
 
 	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
-	net_configured=net_configured.replace('BATCHSIZE',str(2))
+	if net<3:
+		net_configured=net_configured.replace('BATCHSIZE',str(2))
+		inference_configured=inference_configured.replace('BATCHSIZE',str(2))
+	else:
+		net_configured=net_configured.replace('BATCHSIZE',str(1))
+		inference_configured=inference_configured.replace('BATCHSIZE',str(1))
 	if ignorebackground:
 		ignorelabel='ignore_label: 0'
 		firstclass = 1
@@ -168,6 +180,14 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	with open(modelpath+"segnet_inference.prototxt","w+") as f:
 		f.write(inference_configured)
 	print "Model files written to",modelpath
+	##########################################
+	# Start training
 
-
-
+	if mode.lower()=='gpu':
+		caffe.set_device(0)
+		caffe.set_mode_gpu()
+	elif mode.lower() =='cpu':
+		caffe.set_mode_cpu()
+	else:
+		print "Error: indicate mode (cpu or gpu)"
+		exit()

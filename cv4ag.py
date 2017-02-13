@@ -18,10 +18,7 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite,overlay,train,clean
-#-------------------------------------------------------------------
-def ml():
-	pass
+import parse,get_satellite,overlay,train,clean,apply-ml
 
 #----------------------------------------------------------------------
 #Main
@@ -79,6 +76,9 @@ if __name__ == "__main__":
 			See www.gdal.org/formats_list.html or\
 			www.gdal.org/ogr_formats.html \
 			(or libs/*_formats.csv for FILETYPE_CODEs.')
+	cmdParser.add_argument('-n',metavar='N',
+		type=int,default=1,
+		help='Accuracy of neural net. 0: lowest. 3: highest.')
 	cmdParser.add_argument('--lonshift',metavar='N.N',
 		type=float,default=0,
 		help='Longitudanal shift of training data.')
@@ -138,6 +138,7 @@ if __name__ == "__main__":
 	xpixel = cmdArgs.get('x')
 	ypixel = cmdArgs.get('y')
 	scriptFile = cmdArgs.get('s')
+	net = cmdArgs.get('n')
 	scriptArg1 = cmdArgs.get('arg1')
 	scriptArg2 = cmdArgs.get('arg2')
 	scriptArg3 = cmdArgs.get('arg3')
@@ -188,6 +189,7 @@ if __name__ == "__main__":
 			)
 		train.train(outputFolder=outputFolder,
 			inputFile=inputFile,
+			net=net,
 			top=top,
 			key=key,
 			stats=stats,
@@ -230,13 +232,14 @@ if __name__ == "__main__":
 	elif selectedModule == 'train':
 		train.train(outputFolder=outputFolder,
 			inputFile=inputFile,
+			net=net,
 			top=top,
 			key=key,
 			ignorebackground=b,
 			createTest=test\
 			)
-	elif selectedModule == 'mltrain':
-		ml()
+	elif selectedModule == 'ml':
+		apply-ml.apply()
 	elif selectedModule == 'clear':
 		clean.clear(inputFile)
 	else:

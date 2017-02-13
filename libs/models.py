@@ -534,7 +534,7 @@ layer {
   top: "label"
   dense_image_data_param {
     source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
-    batch_size: BATCH_SIZE   			# Change this number to a batch size that will fit on your GPU
+    batch_size: BATCHSIZE   			# Change this number to a batch size that will fit on your GPU
     shuffle: true
   }
 }
@@ -2084,7 +2084,7 @@ layer {
   top: "label"
   dense_image_data_param {
     source: "PATH_TO_TESTTXT"	# Change this to the absolute path to your data file
-    batch_size: 1
+    batch_size: BATCHSIZE
   }
 }
 layer {
@@ -2586,7 +2586,7 @@ layer {
   top: "label"
   dense_image_data_param {
     source: "PATH_TO_TESTTXT"	# Change this to the absolute path to your data file
-    batch_size: 1
+    batch_size: BATCHSIZE
   }
 }
 layer {
