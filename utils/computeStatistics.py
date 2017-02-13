@@ -171,6 +171,6 @@ def compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter
     #    f.write(text_format.MessageToString(test_msg))
     
     print "Saving net weights..."
-    test_net.save(os.path.join(args.out_dir, weightsfile))
+    test_net.save(os.path.join(weightpath, weightsfile))
     print "done"
 
