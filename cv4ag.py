@@ -209,7 +209,9 @@ if __name__ == "__main__":
 			inputFile,
 			mode=mode,
 			ignorebackground=b,
-			top=top)
+			#stats=stats,
+			top=top,
+			key=key)
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
 			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber, 
@@ -254,10 +256,12 @@ if __name__ == "__main__":
 			)
 	elif selectedModule == 'ml':
 		applyml.apply(\
+			outputFolder,
 			inputFile,
 			mode=mode,
 			ignorebackground=b,
 			top=top)
+			#key=key)
 	elif selectedModule == 'clear':
 		clean.clear(inputFile)
 	else:

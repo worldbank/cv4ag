@@ -31,10 +31,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	filewrittenTest=False
 
 	#Find matching indices and write to file
-	try:
-		cnt=0
-		cnt_test=0
-		for f1 in os.listdir(satpath):
+	cnt=0
+	cnt_test=0
+	for f1 in os.listdir(satpath):
+		try:
 			id1= int(find_between(f1,"_",".png"))
 			for f2 in os.listdir(trainpath):
 				id2= int(find_between(f2,"_","train.png"))
@@ -56,26 +56,27 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 						print "Move",f1,"and",f2
 						os.rename(satpath+f1,testpath+f1)
 						os.rename(trainpath+f2,verpath+f2)
-		for f1 in os.listdir(testpath):
-			try:
-				id1= int(find_between(f1,"_",".png"))
-				for f2 in os.listdir(verpath):
-					id2= int(find_between(f2,"_","train.png"))
-					if id1==id2:
-						cnt_test+=1
-						if filewrittenTest==False: #create new file
-							with open(indexpath+"/test.txt",'w+') as f:
-								f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
-									str(os.path.abspath(verpath+"/"+f2)))
-							filewrittenTest=True
-						else: #append file
-							with open(indexpath+"/test.txt",'a+') as f:
-								f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
-									str(os.path.abspath(verpath+"/"+f2)))
-			except ValueError: #ignore subfolders
-				pass
-	except ValueError: #ignore metafile
-		pass
+		except ValueError: #ignore metadata
+			pass
+	for f1 in os.listdir(testpath):
+		try:
+			id1= int(find_between(f1,"_",".png"))
+			for f2 in os.listdir(verpath):
+				id2= int(find_between(f2,"_","train.png"))
+				if id1==id2:
+					cnt_test+=1
+					if filewrittenTest==False: #create new file
+						with open(indexpath+"/test.txt",'w+') as f:
+							f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
+								str(os.path.abspath(verpath+"/"+f2)))
+						filewrittenTest=True
+					else: #append file
+						with open(indexpath+"/test.txt",'a+') as f:
+							f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
+								str(os.path.abspath(verpath+"/"+f2)))
+		except ValueError: #ignore subfolder 
+			pass
+
 	print cnt,"files found for training",cnt_test,"files found for testing."
 
 	#write solver
@@ -130,7 +131,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
 	if net<3:
 		net_configured=net_configured.replace('BATCHSIZE',str(2))
-		inference_configured=inference_configured.replace('BATCHSIZE',str(2))
+		inference_configured=inference_configured.replace('BATCHSIZE',str(1))
 	else:
 		net_configured=net_configured.replace('BATCHSIZE',str(1))
 		inference_configured=inference_configured.replace('BATCHSIZE',str(1))

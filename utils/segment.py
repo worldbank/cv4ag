@@ -14,13 +14,13 @@ from libs.colorlist import colorlist
 #sys.path.insert(0, caffe_root + 'python')
 
 
-def segment(model,weights,iterations,top):
-	net = caffe.Net(model,
-			weights,
+def segment(model,weights,iterations,top,outpath):
+	net = caffe.Net(os.path.abspath(model),
+			os.path.abspath(weights),
 			caffe.TEST)
 
 
-	for i in range(0, args.iter):
+	for i in range(0, iterations):
 
 		net.forward()
 
@@ -38,17 +38,17 @@ def segment(model,weights,iterations,top):
 		g_gt = label.copy()
 		b_gt = label.copy()
 
-		label_colours=[]
+		label_colors=[]
 		for rgb in colorlist:
-			label_colours.append([rgb[0],rgb[1],rgb[2]])
-
+			label_colors.append([rgb[0],rgb[1],rgb[2]])
+		label_colors=np.array(label_colors)
 		for l in range(0,top):
-			r[ind==l] = label_colours[l,0]
-			g[ind==l] = label_colours[l,1]
-			b[ind==l] = label_colours[l,2]
-			r_gt[label==l] = label_colours[l,0]
-			g_gt[label==l] = label_colours[l,1]
-			b_gt[label==l] = label_colours[l,2]
+			r[ind==l] = label_colors[l,0]
+			g[ind==l] = label_colors[l,1]
+			b[ind==l] = label_colors[l,2]
+			r_gt[label==l] = label_colors[l,0]
+			g_gt[label==l] = label_colors[l,1]
+			b_gt[label==l] = label_colors[l,2]
 
 		rgb = np.zeros((ind.shape[0], ind.shape[1], 3))
 		rgb[:,:,0] = r/255.0
@@ -67,7 +67,7 @@ def segment(model,weights,iterations,top):
 
 
 		scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
-			save(os.path.abspath(outpath+IMAGE_FILE+'_segnet.png'))
+			save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)
 
 		plt.figure()
 		plt.imshow(image,vmin=0, vmax=1)

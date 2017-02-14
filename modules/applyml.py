@@ -2,8 +2,20 @@ import os
 import caffe
 from libs.foldernames import *
 from utils.segment import segment
+from modules.get_stats import get_stats
 
-def apply(outputFolder,inputFile,mode='gpu',top=15,ignorebackground=True):
+def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15):#,stats=None,key='Descriptio'):
+	#set outputFolder to directory above the /sat directory
+	if outputFolder[-1]=="/":
+		outputFolder=outputFolder[0:-1]
+	if outputFolder[-3:]==satDataFolder[1:-1]:
+		outputFolder=outputFolder[0:-4]
+	#Get statistics if not in input
+	#if not stats:
+	#	elements=None
+	#	stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
+	#		elements=elements)
+
 	subpath,satpath,trainpath,modelpath,weightpath,\
 		indexpath,testpath,verpath,outpath=\
 		getPaths(outputFolder,inputFile)	
@@ -18,7 +30,7 @@ def apply(outputFolder,inputFile,mode='gpu',top=15,ignorebackground=True):
 		print "Error: indicate mode (cpu or gpu)"
 		exit()
 	if ignorebackground:
-		nbClasses=top
+		nbClasses=len(stats)
 	else:
 		nbClasses=top+1
-	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses)
+	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses,outpath)
