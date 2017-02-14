@@ -152,7 +152,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		f.write('')
 			
 	if not ignorebackground:
-		classweight=freq[0]*1./(4*sumfreq) #Background weight is set to same as first labelled class/4
+		classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
 		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
