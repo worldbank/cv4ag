@@ -1,0 +1,12 @@
+git
+python
+cask
+gdal --with-python
+opencv
+openblas
+protobuf
+glogs
+gflags
+hdf5
+expat
+Caskroom/cask/cuda

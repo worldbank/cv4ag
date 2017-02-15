@@ -9,5 +9,8 @@ libprotobufdev
 libgoogle-glog-dev
 libgflags-dev
 libhdf5-dev
+libopencv-dev
+python-opencv
+lib64expat1-dev
 nvidia-cuda-toolkit
 nvidia-cuda-dev

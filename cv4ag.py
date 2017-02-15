@@ -18,7 +18,7 @@ import argparse,sys,os
 sys.path.append('scripts')
 sys.path.append('modules')
 sys.path.append('lib')
-import parse,get_satellite,overlay,train,clean,applyml
+import parse,get_satellite,overlay,clean
 
 #----------------------------------------------------------------------
 #Main
@@ -160,6 +160,9 @@ if __name__ == "__main__":
 	randomImages = cmdArgs.get('randomImages')
 	# Execute according to options
 	print "Option:",selectedModule
+	#only import caffe if needed
+	if selectedModule == 'all' or selectedModule=='train' or selectedModule=='ml':
+		import train,applyml
 	if selectedModule == 'all':
 		inputFile,stats,freq,elements=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
