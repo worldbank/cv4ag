@@ -3,15 +3,32 @@
 Get satellite data according to input file.
 '''
 from random import shuffle,random
+import os,json
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon,getBBox
 from libs.foldernames import satDataFolder,testDataFolder
-import os,json
+
 def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None,
 	randomImages=False):
-	if not inputFile:
+	'''
+	Get satellite data in order to input GIS information.
+
+	Parameters:
+	'inputFile': Input file (GeoJSON format or parsed into GeoJSON)
+	'mapboxtoken': Access token for Mapbox (go to mapbox.com to create one)
+	'count': Number of satellite images to be downloaded
+	'zoomLevel': Zoom level (see libs/zoomLevel.csv for resolutions)
+	'outputFolder': Folder to store output data in
+	'xpixel': Number of pixels of satellite images (width)
+	'ypixel': Number of pixels of satellite images (height)
+	'epsg': EPSG code for coordinate system in GIS data (will try to find automatically 
+		if not provided)
+	'elements': GIS data can also be input directly
+	'randomImages': Get center of random polygons (False) or within Boundary Box of data (True)
+	'''
+	if (not inputFile) and (not elements):
 		print "Error: Provide input file."
 		exit()
 	if not mapboxtoken:

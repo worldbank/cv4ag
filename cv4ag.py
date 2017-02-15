@@ -5,13 +5,13 @@ Lukas Arnold
 WB-DIME
 Jan 30 2017
 
-The framewoArk consists of four parts
+The framework consists of four parts
 
-1. Parsing input data
-2. Downloading satellite images
-3. Overlaying data with sattelite images
-4. Training
-5. Application
+1. Parsing input data (parse)
+2. Downloading satellite images (get_satellite)
+3. Overlaying data with satellite images (overlay)
+4. Training (train)
+5. Application (ml)
 """
 import argparse,sys,os
 #import subdirectories to python path

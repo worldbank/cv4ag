@@ -1,42 +1,35 @@
 #!usr/bin/python
 from osgeo import gdal
+import os,csv
+import json
+
 import utils.ogr2ogr as ogr2ogr
 import utils.ogrinfo as ogrinfo
 import utils.gdal_polygonize_edited as gdal_polygonize
 import get_stats
-import os,csv
-import json
-def overwrite(outputFile,promptoverwrite=False):
-	'''remove file if already exists. necessary as GeoJSON engine cannot
-	overwrite files'''
-	try:
-		if os.path.exists(outputFile):
-			if promptoverwrite:
-				overwrite_answer=raw_input(outputFile+" already exists. Overwrite? (y/n) ")
-			else:
-				overwrite_answer=''
-			if overwrite_answer=="y" or (not promptoverwrite):
-				os.remove(outputFile)
-			else:
-				outputFile=raw_input("Provide alternative filename: ")
-	except OSError:
-		pass	
-	return outputFile
 
 def parse(inputFile=None,outputFolder="data",\
 	outputFile="datatiles.json",datatype=None,top=15,layernumber=None,key='Descriptio',\
 	scriptFile=None, scriptArg1=None,scriptArg2=None,\
 	scriptArg3=None,scriptArg4=None):
 	"""
-	Acquire and parse data
-	
-	'datatype': Data type (json or geoTiff)
-	'outputFolder': Filename for output data
-	'inputFile': Filename for input data
-	'script': Script that returns input data. Has to contain script(.) function that returns the filename of the output file (of course, scripts can be run outside of this framework)
-	'scriptArg': Arguments for script, if any
+	Acquire and parse data into GeoJSON
 
-	return file name and labels for most frequent features
+	Parameters:	
+	'inputFile': Filename for input data
+	'outputFolder': Filename for output data
+	'datatype': Data type (will find automatically if not given)
+	'top': The N most frequent classes in the GIS file to be processed.
+	'layernumber': The layer ID of the layer to be processed, when input file contains multiple layers
+	'key': Keyword in 'properties' of GIS file to classify for.
+	'script': Script that returns input data. Has to contain script(.) function that returns the filename of the output file (of course, scripts can be run outside of this framework)
+	'scriptArgN': Arguments for script, if any
+
+	Return:
+	'outputFile': Output file name of the converted file, if input file not GeoJSON
+	'stats': Labels for most frequent classes
+	'freq': Frequency of most frequent classes
+	'elements': GeoJSON data
 	"""
 	#Execute script, if given. This should allow to users to load data from 
 	#custom scripts.
@@ -174,3 +167,20 @@ def parse(inputFile=None,outputFolder="data",\
 	except UnboundLocalError:
 		stats=None
 	return outputFile,stats,freq,elements
+
+def overwrite(outputFile,promptoverwrite=False):
+	'''remove file if already exists. necessary as GeoJSON engine cannot
+	overwrite files'''
+	try:
+		if os.path.exists(outputFile):
+			if promptoverwrite:
+				overwrite_answer=raw_input(outputFile+" already exists. Overwrite? (y/n) ")
+			else:
+				overwrite_answer=''
+			if overwrite_answer=="y" or (not promptoverwrite):
+				os.remove(outputFile)
+			else:
+				outputFile=raw_input("Provide alternative filename: ")
+	except OSError:
+		pass	
+	return outputFile
