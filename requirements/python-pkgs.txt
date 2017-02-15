@@ -1,0 +1,10 @@
+six
+packaging
+appdirs
+pyproj
+Pillow
+scikit-image
+protobuf
+scikit-learn
+country-bounding-boxes
+requests
