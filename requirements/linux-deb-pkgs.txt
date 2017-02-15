@@ -1,6 +1,7 @@
 git
 python2.7
 python-pip
+libgdal-dev
 python-gdal
 python-numpy
 libatlas-base-dev
