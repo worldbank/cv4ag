@@ -1,7 +1,7 @@
 # cv4ag
 Computer vision application over satellite RGB tiles for agricultural land detection
 
-# Install Linux
+# Install on Linux
 1. Make sure package manager is allowed to get all packages
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. Install packages outlined in ```requirements/linux-deb-pkgs.txt``` via  ```sudo apt-get install```
@@ -13,7 +13,7 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 9. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
 10. ```make all;make test;make runtest; make pycaffe```
 
-# Install Mac
+# Install on Mac
 Remark: No CUDNN and GPU support
 
 1. Make sure you have installed homebrew. (If not ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
