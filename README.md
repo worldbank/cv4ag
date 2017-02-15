@@ -1,6 +1,6 @@
 # cv4ag
 Computer vision application over satellite RGB tiles for agricultural land detection
-
+24
 # Install on Linux
 1. Make sure package manager is allowed to get all packages
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
@@ -20,12 +20,13 @@ Remark: No CUDNN and GPU support
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```cd``` to repo
 4. ```source requirements/install_mac.sh```
-5. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
-8. ```cd``` to ```caffe-segnet```
-6. Export paths and change source, if necessary
-7. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config```
-8. ```make all;make test;make runtest; make pycaffe```
-9. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
+5. ```brew update;brew cask update;brew install Caskroom/cask/cuda```
+6. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
+7. ```cd``` to ```caffe-segnet```
+8. Export paths and change source, if necessary
+9. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config```
+10. ```make all;make test;make runtest; make pycaffe```
+11. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
  
 
 #Usage
