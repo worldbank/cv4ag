@@ -25,8 +25,7 @@ Remark: No CUDNN and GPU support
 6. Export paths and change source, if necessary
 7. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config```
 8. ```make all;make test;make runtest; make pycaffe```
-9. ```export PYTHONPATH=~/PATH/TO/caffe-segnet/python:$PYTHONPATH>>~/.bash_profile;
- export PYTHONPATH=~/PATH/TO/caffe-segnet/python:$PYTHONPATH```
+9. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
  
 
 #Usage
