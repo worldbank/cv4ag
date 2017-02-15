@@ -1,7 +1,7 @@
 git
 python
 cask
-gdal --with-python
+gdal
 opencv
 openblas
 protobuf
@@ -9,3 +9,4 @@ glogs
 gflags
 hdf5
 expat
+pillow

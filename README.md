@@ -23,11 +23,17 @@ Remark: No CUDNN and GPU support
 5. ```brew update;brew cask update;brew install Caskroom/cask/cuda```
 6. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 7. ```cd``` to ```caffe-segnet```
-8. Export paths and change source, if necessary
-9. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config```
+8. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
+9. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config``` and change parameters in Makefile.config, if necessary
 10. ```make all;make test;make runtest; make pycaffe```
-11. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
- 
+
+## Remarks for Anaconda Python Installation
+
+```echo "export ANACONDA_HOME=$HOME/anaconda">>~/.bash_profile```
+
+```echo "export DYLD_FALLBACK_LIBRARY_PATH=$ANACONDA_HOME/lib:/usr/local/lib:/usr/lib">>~/.bash_profile```
+
+```source ~/.bash_profile```
 
 #Usage
 ```
