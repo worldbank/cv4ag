@@ -18,8 +18,8 @@ Remark: No CUDNN and GPU support
 
 1. Make sure you have installed homebrew. (If not ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
-3. Install packages outlined in ```requirements/mac-homebre-pkgs.txt``` via  ```brew install```
-4. Install python packages outlined in ```requirements/python-pkgs.txt``` via ```pip install```
+3. ```cd``` to repo
+4. ```source requirements/install_mac.sh```
 5. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 8. ```cd``` to ```caffe-segnet```
 6. Export paths and change source, if necessary
