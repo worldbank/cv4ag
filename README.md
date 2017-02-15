@@ -23,8 +23,8 @@ Remark: No CUDNN and GPU support
 5. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 8. ```cd``` to ```caffe-segnet```
 6. Export paths and change source, if necessary
-7. ```make all;make test;make runtest; make pycaffe```
-8. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
+7. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config```
+8. ```make all;make test;make runtest; make pycaffe```
 9. ```export PYTHONPATH=~/PATH/TO/caffe-segnet/python:$PYTHONPATH>>~/.bash_profile;
  export PYTHONPATH=~/PATH/TO/caffe-segnet/python:$PYTHONPATH```
  
