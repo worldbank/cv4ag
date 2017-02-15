@@ -1,0 +1,12 @@
+git
+python2.7
+python-pip
+python-gdal
+python-numpy
+libatlas-base-dev
+libprotobufdev
+libgoogle-glog-dev
+libgflags-dev
+libhdf5-dev
+nvidia-cuda-toolkit
+nvidia-cuda-dev
