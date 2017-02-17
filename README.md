@@ -5,13 +5,14 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```sudo bash requirements/install_linux.sh```
-4. [Download tar-archive cudnn7.0](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
-5. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
-6. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
-7. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
-8. ```cd``` to ```caffe-segnet```
-9. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
-10. ```make all;make test;make runtest; make pycaffe```
+4. Install CUDA. If necessary, uninstall previous installations sudo ```/usr/bin/nvidia-uninstall```, then do ```wget https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64-deb;mv cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64-deb cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64.deb;sudo dpkg -i cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64.deb;sudo apt-get update;sudo apt-get install cuda;rm cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64.deb``` and reboot device.
+5. [Download tar-archive cudnn7.0](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
+6. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
+7. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
+8. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
+9. ```cd``` to ```caffe-segnet```
+10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
+11. ```make all;make test;make runtest; make pycaffe```
 
 # Install on Mac
 Remark: No CUDNN and GPU support
