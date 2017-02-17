@@ -7,10 +7,11 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 3. ```sudo bash requirements/install_linux.sh```
 4. [Download tar-archive cudnn7.0](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
 5. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
-6. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
-7. ```cd``` to ```caffe-segnet```
-8. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
-9. ```make all;make test;make runtest; make pycaffe```
+6. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
+7. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
+8. ```cd``` to ```caffe-segnet```
+9. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
+10. ```make all;make test;make runtest; make pycaffe```
 
 # Install on Mac
 Remark: No CUDNN and GPU support
