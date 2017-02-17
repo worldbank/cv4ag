@@ -15,7 +15,7 @@ libopencv-dev
 libboost-all-dev
 libboost-dev
 bc
-clang
+g++
 libopencv-dev
 python-opencv
 lib64expat1-dev
