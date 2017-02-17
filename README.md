@@ -2,7 +2,7 @@
 Computer vision application over satellite RGB tiles for agricultural land detection
 24
 # Install on Linux (Ubuntu)
-1. Make sure package manager is allowed to get all packages
+1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```sudo bash requirements/install_linux.sh```
 4. [Download tar-archive cudnn7.0](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
