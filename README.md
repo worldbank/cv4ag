@@ -2,15 +2,18 @@
 Computer vision application over satellite RGB tiles for agricultural land detection
 24
 # Install on Linux (Ubuntu)
-1. Make sure package manager is allowed to get all packages
+1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```sudo bash requirements/install_linux.sh```
-4. [Download tar-archive cudnn7.0](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
-5. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
-6. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
-7. ```cd``` to ```caffe-segnet```
-8. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
-9. ```make all;make test;make runtest; make pycaffe```
+4. Install CUDA v.7.0 (!). If necessary, uninstall previous installations  ```sudo /usr/bin/nvidia-uninstall;sudo apt-get purge cuda```, then do ```wget http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/rpmdeb/cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb; sudo dpkg -i cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb; sudo apt-get update; sudo apt-get install cuda-7.0; rm cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb``` and reboot device.
+
+5. [Download tar-archive CUDNNv.4](https://developer.nvidia.com/cudnn) (!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
+6. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
+7. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
+8. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
+9. ```cd``` to ```caffe-segnet```
+10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
+11. ```make all;make test;make runtest; make pycaffe```
 
 # Install on Mac
 Remark: No CUDNN and GPU support
