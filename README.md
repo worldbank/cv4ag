@@ -8,7 +8,7 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 4. Install CUDA v.7.0 (!). If necessary, uninstall previous installations  ```sudo /usr/bin/nvidia-uninstall;sudo apt-get purge cuda```, then do ```wget http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/rpmdeb/cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb; sudo dpkg -i cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb; sudo apt-get update; sudo apt-get install cuda-7.0; rm cuda-repo-ubuntu1404-7-0-local_7.0-28_amd64.deb``` and reboot device.
 5. [Download tar-archive CUDNNv.3](https://developer.nvidia.com/cudnn) (only v3 works!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
 6. Make sure all export paths are correct (see requirements/paths-to-export.txt) and ```export``` paths
-7. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
+7. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so;cd``` (change libhdf version if necessary)
 8. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 9. ```cd``` to ```caffe-segnet```
 10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config``` and change ```/home/ubuntu/cudnn``` to CUDNN path
