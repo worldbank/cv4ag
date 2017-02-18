@@ -5,3 +5,5 @@ export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH
 export PATH=/PATH/TO/caffe-segnet/build/tools:$PATH
 export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH #or whereever gdal is installed to
 export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH #or whereever gdal is installed to
+export PATH=/usr/local/cuda-7.0/bin${PATH:+:${PATH}}:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:$LD_LIBRARY_PATH
