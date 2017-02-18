@@ -12,7 +12,7 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 7. Create symbolic links:  ```cd /usr/lib/x86_64-linux-gnu; sudo ln -s libhdf5_serial_hl.so.10.0.2 libhdf5_hl.so;sudo ln -s libhdf5_serial.so.10.1.0 libhdf5.so``` (change libhdf version if necessary)
 8. Clone caffe-segnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 9. ```cd``` to ```caffe-segnet```
-10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config```
+10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config``` and change ```/home/ubuntu/cudnn``` to CUDNN path
 11. ```make all;make test;make runtest; make pycaffe```
 
 # Install on Mac
