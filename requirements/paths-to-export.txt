@@ -1,9 +1,11 @@
-
+export PATH="/usr/local/cuda-7.5/bin:$PATH"
 export LD_LIBRARY_PATH=.:/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial/:$LD_LIBRARY_PATH #or whereever hdf5 is install to
-export LD_LIBRARY_PATH=.:/PATH/TO/NVIDIACUTNN/cuda:/PATH/TO/NVIDIACUTNN/cuda/include:/PATH/TO/NVIDIACUTNN/cuda/lib64:$LD_LIBRARY_PATH
-export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH
-export PATH=/PATH/TO/caffe-segnet/build/tools:$PATH
+export LD_LIBRARY_PATH=.:/home/ubuntu/cudnn/cuda:/home/ubuntu/cudnn/cuda/include:/home/ubuntu/cudnn/cuda/lib64:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/ubuntu/caffe-segnet/python:$PYTHONPATH
+export PATH=/home/ubuntu/caffe-segnet/build/tools:$PATH
+export CPLUS_INCLUDE_PATH=/usr/local/cuda-7.5:/usr/local/cuda-7.5/include:/usr/local/cuda-7.5/lib64:$CPLUS_INCLUDE_PATH #or whereever gdal is installed to
 export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH #or whereever gdal is installed to
 export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH #or whereever gdal is installed to
-export PATH=/usr/local/cuda-7.0/bin${PATH:+:${PATH}}:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64"
+export CUDA_HOME=/usr/local/cuda-7.5
