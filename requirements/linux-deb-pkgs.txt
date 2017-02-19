@@ -5,7 +5,7 @@ libgdal-dev
 python-gdal
 python-numpy
 python-pil
-python-opencv
+python-tk
 libatlas-base-dev
 libprotobufdev
 libgoogle-glog-dev
