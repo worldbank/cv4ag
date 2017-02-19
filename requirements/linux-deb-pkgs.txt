@@ -15,6 +15,9 @@ libopencv-dev
 libboost-all-dev
 libboost-dev
 bc
+gcc
+g++ 
+gcc-4.9
 g++-4.9
 libopencv-dev
 python-opencv
@@ -24,3 +27,12 @@ libsnappy-dev
 liblmdb-dev
 libprotoc-dev
 protobuf-compiler
+linux-headers-$(uname -r)
+libxi 
+libxi6 
+libxi-dev 
+libglu1-mesa 
+libglu1-mesa-dev 
+libxmu6 
+libxmu6-dev
+linux-source
