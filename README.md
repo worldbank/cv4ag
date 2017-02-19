@@ -2,7 +2,6 @@
 Computer vision application over satellite RGB tiles for agricultural land detection
 24
 # Install on Linux (Ubuntu)
-(non-anaconda, might need to uninstall anaconda first)
 1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```sudo bash requirements/install_linux.sh```
@@ -14,6 +13,8 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 9. ```cd``` to ```caffe-segnet```
 10. Copy ```cv4ag/requirements/Linux_Makefile.config``` to ```caffe-segnet/Makefile.config``` and change ```/home/ubuntu/cudnn``` to CUDNN path
 11. ```make all;make test;make runtest; make pycaffe```
+
+(non-anaconda, might need to uninstall anaconda first)
 
 # Install on Mac
 Remark: No CUDNN and GPU support
