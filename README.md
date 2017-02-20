@@ -26,7 +26,7 @@ Remark: No CUDNN and GPU support
 5. ```brew update;brew cask update;brew install Caskroom/cask/cuda```
 6. Clone caffe-sefnet: ```git clone https://github.com/alexgkendall/caffe-segnet.git```
 7. ```cd``` to ```caffe-segnet```
-8. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:$PYTHONPATH">>~/.bash_profile; tail -1 ~/.bash_profile | xargs source``` (change ```/PATH/TO```)
+8. ```echo "export PYTHONPATH=/PATH/TO/caffe-segnet/python:\$PYTHONPATH">>~/.bash_profile; source ~/.bash_profile``` (change ```/PATH/TO```)
 9. Copy ```cv4ag/requirements/Mac_Makefile.config``` to ```caffe-segnet/Makefile.config``` and change parameters in Makefile.config, if necessary
 10. ```make all;make test;make runtest; make pycaffe```
 
