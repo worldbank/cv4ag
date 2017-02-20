@@ -5,8 +5,12 @@ gdal
 opencv
 openblas
 protobuf
-glogs
+glog
 gflags
 hdf5
 expat
 pillow
+snappy 
+leveldb 
+szip 
+lmdb

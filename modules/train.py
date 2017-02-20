@@ -9,7 +9,7 @@ from random import random
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
-	mode="gpu"):
+	mode="gpu",batchsize=None,maxiter=None,stepsize=None):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -89,24 +89,25 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elif mode.lower() =='cpu':
 		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','CPU')
 	#net=2,3 extended training net, net=1 basic training net, net=0 very basic net
-	
-	if net==0:
-		stepsize=0.3
-	elif net==1:
-		stepsize=0.1
-	elif net==2:
-		stepsize=0.01
-	elif net==3:
-		stepsize=0.001
+	if not stepsize:
+		if net==0:
+			stepsize=0.3
+		elif net==1:
+			stepsize=0.1
+		elif net==2:
+			stepsize=0.01
+		elif net==3:
+			stepsize=0.001
 	solver_configured=solver_configured.replace('INSERT_BASE_LR',str(stepsize))
-	if net==0:
-		maxiter=500
-	elif net==1:
-		maxiter=5000
-	elif net==2:
-		maxiter=20000
-	elif net==3:
-		maxiter=40000
+	if not maxiter:
+		if net==0:
+			maxiter=500
+		elif net==1:
+			maxiter=5000
+		elif net==2:
+			maxiter=20000
+		elif net==3:
+			maxiter=40000
 	solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(maxiter))
 
 	with open(modelpath+solverprototxt,"w+") as f:
@@ -129,12 +130,13 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
 
 	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
-	if net<3:
-		net_configured=net_configured.replace('BATCHSIZE',str(2))
-		inference_configured=inference_configured.replace('BATCHSIZE',str(1))
-	else:
-		net_configured=net_configured.replace('BATCHSIZE',str(1))
-		inference_configured=inference_configured.replace('BATCHSIZE',str(1))
+	if not batchsize:
+		if net<3:
+			batchsize=2
+		else:
+			batchsize=1
+	net_configured=net_configured.replace('BATCHSIZE',str(batchsize))
+	inference_configured=inference_configured.replace('BATCHSIZE',str(1))
 	if ignorebackground:
 		ignorelabel='ignore_label: 0'
 		firstclass = 1

@@ -104,6 +104,15 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--mode',
 		type=str,default='gpu',
 		help='GPU (default) or CPU mode')
+	cmdParser.add_argument('--batchsize',metavar='N',
+		type=int,default=None,
+		help='Size of training batch (1-4)')
+	cmdParser.add_argument('--stepsize',metavar='N.N',
+		type=float,default=None,
+		help='Size of training step')
+	cmdParser.add_argument('--maxiter',metavar='N',
+		type=int,default=None,
+		help='Maximum iterations at training stage')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -156,6 +165,9 @@ if __name__ == "__main__":
 	top = cmdArgs.get('top')
 	epsg = cmdArgs.get('epsg')
 	test = cmdArgs.get('test')
+	batchsize = cmdArgs.get('batchsize')
+	maxiter = cmdArgs.get('maxister')
+	stepsize = cmdArgs.get('stepsize')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	# Execute according to options
@@ -206,6 +218,9 @@ if __name__ == "__main__":
 			freq=freq,
 			elements=elements,
 			ignorebackground=b,
+			batchsize=batchsize,
+			maxiter=maxiter,
+			stepsize=stepsize,
 			createTest=test\
 			)
 		applyml.apply(outputFolder,
@@ -255,6 +270,9 @@ if __name__ == "__main__":
 			xpixel=xpixel,
 			ypixel=ypixel,
 			ignorebackground=b,
+			batchsize=batchsize,
+			maxiter=maxiter,
+			stepsize=stepsize,
 			createTest=test\
 			)
 	elif selectedModule == 'ml':
