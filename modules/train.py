@@ -146,6 +146,23 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		firstclass = 0
 		additionalclass = 1
 	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
+	if net>1 or (xpixel == 480 and ypixel == 360):
+		upsample_w_large= str(int(round(0.125*xpixel)))
+		upsample_h_large= str(int(round(0.125*ypixel)))
+		upsample_w_small=str(int(round(0.0625*xpixel)))
+		upsample_h_small=str(int(round(0.0625*ypixel)))
+	else:
+		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
+		exit()
+	print upsample_w_large,upsample_h_large,upsample_w_small,upsample_h_small
+	net_configured=net_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
+	net_configured=net_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)
+	inference_configured=inference_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
+	inference_configured=inference_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)
+	net_configured=net_configured.replace('UPSAMPLE_W_SMALL',upsample_w_small)
+	net_configured=net_configured.replace('UPSAMPLE_H_SMALL',upsample_h_small)
+	inference_configured=inference_configured.replace('UPSAMPLE_W_SMALL',upsample_w_small)
+	inference_configured=inference_configured.replace('UPSAMPLE_H_SMALL',upsample_h_small)
 
 	sumfreq=sum(freq)
 	initweight=1./len(stats)
