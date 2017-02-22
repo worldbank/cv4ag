@@ -19,7 +19,7 @@ Computer vision application over satellite RGB tiles for agricultural land detec
 # Install on Mac
 Remark: No CUDNN and GPU support
 
-1. Make sure you have installed homebrew and XCode. (If not ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"``` for homebrew and install via AppStore for XCode).
+1. Make sure you have installed homebrew and XCode. (If not ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"``` for homebrew and install XCode via AppStore).
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
 3. ```cd``` to repo
 4. ```source requirements/install_mac.sh```
