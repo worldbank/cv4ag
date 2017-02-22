@@ -14,3 +14,4 @@ snappy
 leveldb 
 szip 
 lmdb
+boost
