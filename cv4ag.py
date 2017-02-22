@@ -115,7 +115,7 @@ if __name__ == "__main__":
 		help='Maximum iterations at training stage')
 	cmdParser.add_argument('--datatype',
 		type=str,default='PNG',
-		help='Datatype of training input date (PNG or HDF5)')
+		help='Datatype of training input date (PNG, LMDB, LMDB2 or HDF5)')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')

@@ -126,10 +126,48 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elif net==3:
 		model=nets[1]
 		inference=inferences[1]
-	inference_configured=inference.replace\
+	net_configured=model
+	inference_configured=inference
+
+	if datatype.lower="png":	
+		dtype='DenseImageData'
+		netshuffle='shuffle: true'
+		dataparam='dense_image_data_param'
+		net_configured=net_configured.replace('DATALAYER',datalayer)
+		inference_configured=inference_configured.replace('DATALAYER',datalayer)
+	elif datatype.lower[0:2]="hdf":
+		dtype='HDF5'
+		netshuffle='shuffle: true'
+		dataparam='hdf5_data_param'
+		net_configured=net_configured.replace('DATALAYER',datalayer)
+		inference_configured=inference_configured.replace('DATALAYER',datalayer)
+	elif datatype.lower[0:2]="lmdb":
+		dtype='Data'
+		netshuffle='backend: LMDB'
+		dataparam='data_param'
+		net_configured=net_configured.replace('DATALAYER',datalayer)
+		inference_configured=inference_configured.replace('DATALAYER',datalayer)
+	elif datatype.lower[0:2]="lmdb2": #not completed. need different types and sources
+		dtype='Data'
+		netshuffle='backend: LMDB'
+		dataparam='data_param'
+		net_configured=net_configured.replace('DATALAYER',datalayer+datalayer)
+		inference_configured=inference_configured.replace('DATALAYER',datalayer+datalayer)
+	else:
+		print "Error: Provide valid datatype (PNG, LMDB, LMDB2 or HDF5)."
+		exit()
+		
+	net_configured=net_configured.replace('DATATYPE',dtype)
+	inference_configured=inference_configured.replace('DATATYPE',dtype)
+	net_configured=net_configured.replace('SHUFFLE',netshuffle)
+	inference_configured=inference_configured.replace('SHUFFLE','')
+	net_configured=net_configured.replace('DATAPARAM',dataparam)
+	inference_configured=inference_configured.replace('DATAPARAM',dataparam)
+
+	inference_configured=inference_configured.replace\
 		('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
 
-	net_configured=model.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
+	net_configured=net_configured.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
 	if not batchsize:
 		if net<3:
 			batchsize=2
@@ -154,16 +192,6 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	else:
 		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
 		exit()
-	if datatype.lower="png":	
-		dtype='DenseImageData'
-	elif datatype.lower[0:2]="hdf":
-		dtype='HDF5'
-	else:
-		print "Error: Provide valid datatype (PNG or HDF5)."
-		exit()
-		
-	net_configured=net_configured.replace('DATATYPE',dtype)
-	inference_configured=inference_configured.replace('DATATYPE',dtype)
 
 	net_configured=net_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
 	net_configured=net_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)

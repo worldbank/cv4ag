@@ -14,20 +14,20 @@ weight_decay: 0.0005
 snapshot: 1000
 snapshot_prefix: "PATH_TO_OUTPUT"  	# Change this to the absolute path to where you wish to output solver snapshots
 solver_mode: OPTION_GPU_OR_CPU'''
-
-nets=[\
-'''name: "segnet"
-layer {
+datalayer=''' layer {
   name: "data"
   type: "DATATYPE"
   top: "data"
   top: "label"
-  dense_image_data_param {
+  DATAPARAM {
     source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
     batch_size: BATCHSIZE   			# Change this number to a batch size that will fit on your GPU
-    shuffle: true
+    SHUFFLE
   }
-}
+}'''
+nets=[\
+'''name: "segnet"
+DATALAYER
 layer {
   name: "norm"
   type: "LRN"
@@ -527,17 +527,7 @@ layer {
 }''',\
 '''
 name: "VGG_ILSVRC_16_layer"
-layer {
-  name: "data"
-  type: "DATATYPE"
-  top: "data"
-  top: "label"
-  dense_image_data_param {
-    source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
-    batch_size: BATCHSIZE   			# Change this number to a batch size that will fit on your GPU
-    shuffle: true
-  }
-}
+DATALAYER
 layer {
   bottom: "data"
   top: "conv1_1"
@@ -2077,16 +2067,7 @@ layer {
 
 inferences=[\
 '''name: "segnet"
-layer {
-  name: "data"
-  type: "DATATYPE"
-  top: "data"
-  top: "label"
-  dense_image_data_param {
-    source: "PATH_TO_TESTTXT"	# Change this to the absolute path to your data file
-    batch_size: BATCHSIZE
-  }
-}
+DATALAYER
 layer {
   name: "norm"
   type: "LRN"
@@ -2579,16 +2560,7 @@ layer {
   softmax_param {engine: CAFFE}
 }''',\
 '''name: "VGG_ILSVRC_16_layer"
-layer {
-  name: "data"
-  type: "DATATYPE"
-  top: "data"
-  top: "label"
-  dense_image_data_param {
-    source: "PATH_TO_TESTTXT"	# Change this to the absolute path to your data file
-    batch_size: BATCHSIZE
-  }
-}
+DATALAYER
 layer {
   bottom: "data"
   top: "conv1_1"
