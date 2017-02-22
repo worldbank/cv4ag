@@ -9,7 +9,7 @@ from random import random
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
-	mode="gpu",batchsize=None,maxiter=None,stepsize=None):
+	mode="gpu",batchsize=None,maxiter=None,stepsize=None,datatype="PNG"):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -154,7 +154,17 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	else:
 		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
 		exit()
-	print upsample_w_large,upsample_h_large,upsample_w_small,upsample_h_small
+	if datatype.lower="png":	
+		dtype='DenseImageData'
+	elif datatype.lower[0:3]="hdf":
+		dtype='HDF5'
+	else:
+		print "Error: Provide valid datatype (PNG or HDF5)."
+		exit()
+		
+	net_configured=net_configured.replace('DATATYPE',dtype)
+	inference_configured=inference_configured.replace('DATATYPE',dtype)
+
 	net_configured=net_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
 	net_configured=net_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)
 	inference_configured=inference_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)

@@ -19,7 +19,7 @@ nets=[\
 '''name: "segnet"
 layer {
   name: "data"
-  type: "DenseImageData"
+  type: "DATATYPE"
   top: "data"
   top: "label"
   dense_image_data_param {
@@ -529,7 +529,7 @@ layer {
 name: "VGG_ILSVRC_16_layer"
 layer {
   name: "data"
-  type: "DenseImageData"
+  type: "DATATYPE"
   top: "data"
   top: "label"
   dense_image_data_param {
@@ -2079,7 +2079,7 @@ inferences=[\
 '''name: "segnet"
 layer {
   name: "data"
-  type: "DenseImageData"
+  type: "DATATYPE"
   top: "data"
   top: "label"
   dense_image_data_param {
@@ -2581,7 +2581,7 @@ layer {
 '''name: "VGG_ILSVRC_16_layer"
 layer {
   name: "data"
-  type: "DenseImageData"
+  type: "DATATYPE"
   top: "data"
   top: "label"
   dense_image_data_param {

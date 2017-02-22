@@ -104,7 +104,7 @@ def parse(inputFile=None,outputFolder="data",\
 	# Remove slash if it is at the end of input file
 	if inputFile[-1]=="/":
 		inputFile=inputFile[0:-1]
-	if datatype=="GeoJSON" or inputFileCopy[-5:]==".json":
+	if datatype=="GeoJSON" or inputFileCopy[-4:]=="json":
 			outputFile=inputFile#ignore, if already in GeoJSON format
 			print "No parsing needed"
 			stats,freq,elements=get_stats.get_stats(outputFile,top,key=key)
