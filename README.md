@@ -43,9 +43,10 @@ Remark: No CUDNN and GPU support
 usage: cv4ag.py [-h] [-i FILE] [-s FILE] [-o PATH] [-c N] [-z N] [-x N] [-y N]
                 [-d FILETYPE_CODE] [-n N] [--lonshift N.N] [--latshift N.N]
                 [--shiftformat N] [--top N] [--key KEY] [--epsg N] [--layer N]
-                [--mode MODE] [--arg1 ARG1] [--arg2 ARG2] [--arg3 ARG3]
-                [--arg4 ARG4] [--test | --no-test]
-                [--background | --no-background] [--random | --no-random]
+                [--mode MODE] [--batchsize N] [--stepsize N.N] [--maxiter N]
+                [--arg1 ARG1] [--arg2 ARG2] [--arg3 ARG3] [--arg4 ARG4]
+                [--test | --no-test] [--background | --no-background]
+                [--random | --no-random]
                 OPTION [MAPBOX_TOKEN]
 
 Machine Learning Framework for Agricultural Data.
@@ -86,6 +87,9 @@ optional arguments:
   --epsg N          EPSG format for GIS data. Is read from data if not set.
   --layer N         Number of layer to be trained on.
   --mode MODE       GPU (default) or CPU mode
+  --batchsize N     Size of training batch (1-4)
+  --stepsize N.N    Size of training step
+  --maxiter N       Maximum iterations at training stage
   --arg1 ARG1       Argument 1 for script.
   --arg2 ARG2       Argument 2 for script.
   --arg3 ARG3       Argument 3 for script.
