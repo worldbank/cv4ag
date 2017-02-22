@@ -156,7 +156,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		exit()
 	if datatype.lower="png":	
 		dtype='DenseImageData'
-	elif datatype.lower[0:3]="hdf":
+	elif datatype.lower[0:2]="hdf":
 		dtype='HDF5'
 	else:
 		print "Error: Provide valid datatype (PNG or HDF5)."

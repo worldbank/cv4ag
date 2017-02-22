@@ -113,6 +113,9 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--maxiter',metavar='N',
 		type=int,default=None,
 		help='Maximum iterations at training stage')
+	cmdParser.add_argument('--datatype',
+		type=str,default='PNG',
+		help='Datatype of training input date (PNG or HDF5)')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -168,6 +171,7 @@ if __name__ == "__main__":
 	batchsize = cmdArgs.get('batchsize')
 	maxiter = cmdArgs.get('maxister')
 	stepsize = cmdArgs.get('stepsize')
+	datatype = cmdArgs.get('datatype')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	# Execute according to options
@@ -221,6 +225,7 @@ if __name__ == "__main__":
 			batchsize=batchsize,
 			maxiter=maxiter,
 			stepsize=stepsize,
+			datatype=datatype,
 			createTest=test\
 			)
 		applyml.apply(outputFolder,
@@ -272,6 +277,7 @@ if __name__ == "__main__":
 			ignorebackground=b,
 			batchsize=batchsize,
 			maxiter=maxiter,
+			datatype=datatype,
 			stepsize=stepsize,
 			createTest=test\
 			)
