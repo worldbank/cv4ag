@@ -165,9 +165,8 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	inference_configured=inference_configured.replace('DATAPARAM',dataparam)
 
 	inference_configured=inference_configured.replace\
-		('PATH_TO_TESTTXT',str(os.path.abspath(indexpath+"test.txt"))) # to change
-
-	net_configured=net_configured.replace('PATH_TO_TRAINTXT',str(os.path.abspath(indexpath+"train.txt")))
+		('PATH_TO_SOURCE',str(os.path.abspath(indexpath+"test.txt"))) # to change
+	net_configured=net_configured.replace('PATH_TO_SOURCE',str(os.path.abspath(indexpath+"train.txt")))
 	if not batchsize:
 		if net<3:
 			batchsize=2

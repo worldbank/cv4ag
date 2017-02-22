@@ -14,17 +14,19 @@ weight_decay: 0.0005
 snapshot: 1000
 snapshot_prefix: "PATH_TO_OUTPUT"  	# Change this to the absolute path to where you wish to output solver snapshots
 solver_mode: OPTION_GPU_OR_CPU'''
+
 datalayer=''' layer {
   name: "data"
   type: "DATATYPE"
   top: "data"
   top: "label"
   DATAPARAM {
-    source: "PATH_TO_TRAINTXT"	# Change this to the absolute path to your data file
+    source: "PATH_TO_SOURCE"	# Change this to the absolute path to your data file
     batch_size: BATCHSIZE   			# Change this number to a batch size that will fit on your GPU
     SHUFFLE
   }
 }'''
+
 nets=[\
 '''name: "segnet"
 DATALAYER
