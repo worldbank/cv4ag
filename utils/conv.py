@@ -44,3 +44,17 @@ def tif2png(inputFile,outputFile):
 			x+=1
 	img.putdata(newData)
 	img.save(outputFile)
+
+def crop(inputFile,inputSize):
+	x=0
+	y=0
+	img = Image.open(inputFile)
+	width, height = img.size
+	while not ((x+inputSize>=width) or (y+inputSize>=height)):
+		img_small = img.crop((x,y,x+inputSize-1,y+inputSize-1))
+		img_small.save(inputFile[:-4]+"___"+str(x)+'_'+str(y)+".png")
+		if x+2*inputSize>=width:
+			x=0
+			y=y+inputSize
+		else:
+			x = x + inputSize
