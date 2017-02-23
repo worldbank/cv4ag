@@ -19,7 +19,6 @@ gcc
 g++ 
 gcc-4.9
 g++-4.9
-libopencv-dev
 python-opencv
 lib64expat1-dev
 libleveldb-dev
@@ -36,3 +35,4 @@ libglu1-mesa-dev
 libxmu6 
 libxmu6-dev
 linux-source
+python-scipy
