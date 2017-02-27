@@ -9,7 +9,8 @@ from functools import partial
 from multiprocessing import Pool
 from utils.coordinate_converter import CoordConvert
 from utils.getImageCoordinates import imageCoordinates
-from modules.getFeatures import latLon,find_between
+from utils.project import project,projectRev 
+from modules.getFeatures import latLon,find_between,find_before
 from modules.get_stats import get_stats
 from libs.colorlist import colorlist
 from libs.foldernames import *
@@ -32,7 +33,7 @@ def rasterLayer(i,stats,subpath,size,te):
 		out_format='PNG',
 		init=0,
 		te=te,
-		burn_values=[i])				# set image limits in te
+		burn_values=[200*i])				# set image limits in te
 
 	#make 0s transparent to prepare for merge	
 	img = Image.open(outFile)
@@ -113,8 +114,12 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 
 	#load data and check if images in folder
 	#has to be png image and start with input filename
-	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
-		and f.startswith(os.path.split(inputFile)[-1][:-5])] 
+	if epsg!=9999:
+		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
+			and f.startswith(os.path.split(inputFile)[-1][:-5])] 
+	else:
+		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')] 
+	print image_files
 	if len(image_files)==0:
 		print "Error: No images found in",subpath+satDataFolder[0:-1]
 		exit()
@@ -193,12 +198,27 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			if not av_lon:
 				av_lon,av_lat=latLon(elements['features'][index]) # get center points
 		else:
-			av_lon,av_lat=latLon(elements['features'][index]) # get center points
+			if code != 9999:
+				av_lon,av_lat=latLon(elements['features'][index]) # get center points
+			else:
+				image_index=find_before(image,'___')
+				av_lon=int(find_between(image,'___','_',True))
+				av_lat=int(find_between(image,'_','.png',False))
+				
 		#Convert to standard format
+		print code
 		if code != 4319: # if not already in wgs84 standard format
-			lotlan= myCoordConvert.convert(av_lon,av_lat)
-			longitude=lotlan[0]
-			latitude=lotlan[1]
+			if code != 9999:
+				lotlan= myCoordConvert.convert(av_lon,av_lat)
+				longitude=lotlan[0]
+				latitude=lotlan[1]
+			else:
+				lotlan_init= projectRev(av_lon,av_lat,image_index,subpath,3349,3391)
+				longitude=lotlan_init[0]
+				latitude=lotlan_init[1]
+				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,subpath,3349,3391)
+				longitude_b=lotlan_b[0]
+				latitude_b=lotlan_b[1]
 		else: #if already in wgs84 format
 			latitude= av_lat
 			longitude= av_lot
@@ -206,14 +226,21 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		if (av_lon != longitude) and (av_lat != latitude):
 			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
 		#Calculate image coordinates in WSG 84
-		image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
+		if code!=9999:
+			image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
+		else:
+			image_box_lat=[latitude,latitude,latitude_b,latitude_b]
+			image_box_lon=[longitude,longitude_b,longitude,longitude_b]
 		#print 'Coordinates:',latitude,longitude
 		#Convert back to original format
 		if code != 4319: # if not already in wgs84 standard format
-			image_box=\
-				myCoordConvert.convertBack(image_box_lon,image_box_lat)
+			if code != 9999:
+				image_box=\
+					myCoordConvert.convertBack(image_box_lon,image_box_lat)
+			else:
+				image_box=[image_box_lon,image_box_lat]
 		else:
-			image_box=image_box_raw
+			image_box=[image_box_lon,image_box_lat]
 		image_lat = image_box[1]
 		image_lon = image_box[0]	
 		#print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
@@ -241,6 +268,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		size=[xpixel,ypixel]
 		te=[west-lonshift_calc,south-latshift_calc,\
 			east-lonshift_calc,north-latshift_calc] #image bounderies 
+		print te
 		#print te
 		print "Image bounderies:"
 		print str(image_box_lon[0])[:-5],'\t',\

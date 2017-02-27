@@ -1,6 +1,7 @@
 from osgeo import gdal
 from PIL import Image
-def transform(value)
+import os
+def transform(value):
 	'''Transform coordinates (for values above 256)'''
 	return int(round((value-100.)/4.))
 #Open existing dataset 
@@ -45,7 +46,7 @@ def tif2png(inputFile,outputFile):
 	img.putdata(newData)
 	img.save(outputFile)
 
-def crop(inputFile,inputSize):
+def crop(inputFile,inputSize,outputFolder='.'):
 	'''Crops images into subimages of size 'inputSize'x'inputSize'''
 	x=0
 	y=0
@@ -53,9 +54,24 @@ def crop(inputFile,inputSize):
 	width, height = img.size
 	while not ((x+inputSize>=width) or (y+inputSize>=height)):
 		img_small = img.crop((x,y,x+inputSize-1,y+inputSize-1))
-		img_small.save(inputFile[:-4]+"___"+str(x)+'_'+str(y)+".png")
+		saveFile=outputFolder+'/'+os.path.split(inputFile)[-1][:-4]+"___"+str(x)+'_'+str(y)+".png"
+		img_small.save(saveFile)
 		if x+2*inputSize>=width:
 			x=0
 			y=y+inputSize
 		else:
 			x = x + inputSize
+
+if __name__ == "__main__":
+	for trainingData in os.listdir('../geojson/'):	
+		for fileName in os.listdir('.'):
+			if trainingData==fileName[:-4]:
+				if fileName[-4:]==".tif":
+					print 'convert', fileName
+					fullsize='../geojson/'+fileName[:-4]+'/'+fileName[:-4]+'.png'
+					print 'full size image:',fullsize
+					tif2png(fileName,fullsize)
+					satPath=os.path.abspath('../geojson/'+os.path.split(fileName)[-1][:-4]+'/sat/')
+					print satPath
+					crop(fullsize,418,satPath)
+		#		os.mkdir(fileName[-4:]

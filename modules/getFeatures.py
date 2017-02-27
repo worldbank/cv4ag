@@ -56,3 +56,7 @@ def find_between(s, first, last=None, lastfirst=False ):
         except ValueError:
             return "" 
 
+def find_before(s, first):
+        '''find substrings. used to get index out of image filename'''
+	end = s.index(first)
+	return s[:end]
