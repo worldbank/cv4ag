@@ -46,6 +46,7 @@ def tif2png(inputFile,outputFile):
 	img.save(outputFile)
 
 def crop(inputFile,inputSize):
+	'''Crops images into subimages of size 'inputSize'x'inputSize'''
 	x=0
 	y=0
 	img = Image.open(inputFile)
