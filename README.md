@@ -2,8 +2,8 @@
 Computer vision application over satellite RGB tiles for agricultural land detection
 24
 # Install on Linux (Ubuntu/Debian)
-1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```
-2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git```
+1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```. Make sure you have installe git (```sudo apt install git```).
+2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git; cd cv4ag```
 3. ```sudo bash requirements/install_linux.sh```
 4. Install CUDA v.7.5 (!). If necessary, uninstall previous installations  ```sudo /usr/bin/nvidia-uninstall;sudo apt-get purge cuda```, then do ```wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda-repo-ubuntu1504-7-5-local_7.5-18_amd64.deb; sudo dpkg -i cuda-repo-ubuntu1504-7-5-local_7.5-18_amd64.deb; sudo apt-get update; sudo apt-get install cuda-7.5; rm cuda-repo-ubuntu1504-7-5-local_7.5-18_amd64.deb``` and reboot device.
 5. [Download tar-archive CUDNNv.3](https://developer.nvidia.com/cudnn) (only v3 works!) from NVidia and uncompress (```tar -xvf $/PATH/TO/TARARCHIVE```)
