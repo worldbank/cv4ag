@@ -33,7 +33,7 @@ def rasterLayer(i,stats,subpath,size,te):
 		out_format='PNG',
 		init=0,
 		te=te,
-		burn_values=[200*i])				# set image limits in te
+		burn_values=[i])				# set image limits in te
 
 	#make 0s transparent to prepare for merge	
 	img = Image.open(outFile)
