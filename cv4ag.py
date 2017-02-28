@@ -104,6 +104,9 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--mode',
 		type=str,default='gpu',
 		help='GPU (default) or CPU mode')
+	cmdParser.add_argument('--sat',
+		type=str,default=None,
+		help='Folder with training satellite images, if not in standard location.')
 	cmdParser.add_argument('--batchsize',metavar='N',
 		type=int,default=None,
 		help='Size of training batch (1-4)')
@@ -172,6 +175,7 @@ if __name__ == "__main__":
 	maxiter = cmdArgs.get('maxister')
 	stepsize = cmdArgs.get('stepsize')
 	datatype = cmdArgs.get('datatype')
+	sat = cmdArgs.get('sat')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	# Execute according to options
@@ -207,6 +211,7 @@ if __name__ == "__main__":
 			count=satelliteCount,
 			epsg=epsg,
 			key=key,
+			sat=sat,
 			randomImages=randomImages,
 			elements=elements\
 			)
@@ -261,6 +266,7 @@ if __name__ == "__main__":
 			shiftformat=shiftformat,
 			top=top,
 			epsg=epsg,
+			sat=sat,
 			count=satelliteCount,
 			randomImages=randomImages,
 			key=key

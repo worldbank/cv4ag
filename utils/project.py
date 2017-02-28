@@ -1,6 +1,7 @@
 import csv
 
 def project(x=0,y=0,idstr='0',inputFolder='.',W=512,H=512):
+	'''Transform from GIS coordinate to pixel'''
 	gridsizefile=inputFolder+"/"+'grid_sizes.csv'
 	with open(gridsizefile,"rb") as csvfile:
 		 gridsizes = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
@@ -16,6 +17,7 @@ def project(x=0,y=0,idstr='0',inputFolder='.',W=512,H=512):
 	return xa,ya
 
 def projectRev(x=0,y=0,idstr='0',inputFolder='.',W=512,H=512):
+	'''Transform from pixel to GIS coordinate'''
 	gridsizefile=inputFolder+"/"+'grid_sizes.csv'
 	with open(gridsizefile,"rb") as csvfile:
 		 gridsizes = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
@@ -28,6 +30,4 @@ def projectRev(x=0,y=0,idstr='0',inputFolder='.',W=512,H=512):
 
 	Ha=H*H/(H+1.)
 	ya=(y*ymin)/Ha
-	print xmax,ymin
-	print xa,ya
 	return xa,ya

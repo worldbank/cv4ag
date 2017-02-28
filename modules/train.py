@@ -129,25 +129,25 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	net_configured=model
 	inference_configured=inference
 
-	if datatype.lower="png":	
+	if datatype.lower()=="png":	
 		dtype='DenseImageData'
 		netshuffle='shuffle: true'
 		dataparam='dense_image_data_param'
 		net_configured=net_configured.replace('DATALAYER',datalayer)
 		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower[0:2]="hdf":
+	elif datatype.lower()[0:2]=="hdf":
 		dtype='HDF5'
 		netshuffle='shuffle: true'
 		dataparam='hdf5_data_param'
 		net_configured=net_configured.replace('DATALAYER',datalayer)
 		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower[0:2]="lmdb":
+	elif datatype.lower()=="lmdb":
 		dtype='Data'
 		netshuffle='backend: LMDB'
 		dataparam='data_param'
 		net_configured=net_configured.replace('DATALAYER',datalayer)
 		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower[0:2]="lmdb2": #not completed. need different types and sources
+	elif datatype.lower()=="lmdb2": #not completed. need different types and sources
 		dtype='Data'
 		netshuffle='backend: LMDB'
 		dataparam='data_param'

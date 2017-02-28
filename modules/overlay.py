@@ -17,7 +17,7 @@ from libs.foldernames import *
 
 def rasterLayer(i,stats,subpath,size,te):
 	'''converts feature geojson to png image'''
-	feature=stats[i]
+	feature=str(stats[i])
 	i+=1
 	print "Layer "+str(i)+"/"+str(len(stats))+'\t Processing feature: '+feature
 	outFile=subpath+"/f_"+str(i)+".png"
@@ -87,7 +87,7 @@ def createLayer(i,stats,subpath,inputFile,key):
 
 def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
-	elements=None,randomImages=False):
+	elements=None,randomImages=False,sat=None):
 	'''
 	Overlays images in satiImageFolder
 	with data in inputFile
@@ -114,14 +114,18 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 
 	#load data and check if images in folder
 	#has to be png image and start with input filename
+	if sat: #if sat folder externally provided
+		sat = sat+'/'
+	else:
+		sat = subpath+satDataFolder
+	listImages=os.listdir(sat)
 	if epsg!=9999:
-		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
+		image_files = [f for f in listImages if f.endswith('.png') \
 			and f.startswith(os.path.split(inputFile)[-1][:-5])] 
 	else:
-		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')] 
-	print image_files
+		image_files = [f for f in listImages if f.endswith('.png')] 
 	if len(image_files)==0:
-		print "Error: No images found in",subpath+satDataFolder[0:-1]
+		print "Error: No images found in",sat[0:-1]
 		exit()
 	else:
 		print "Number of images found:",len(image_files)
@@ -143,28 +147,39 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		freq=None
 	#Create json-file for each layer
 	print "Create layer files..."
-	if os.path.getsize(inputFile)>220000000:
-		print "Very large input file of size ~",\
-			int(os.path.getsize(inputFile)/1000000),"MB"
-		print "Clearing memory...",
-		elements=True
-		print elements
-		for i in range(0,len(stats)):
-			createLayer(i,stats,subpath,inputFile,key)
-		print 'Reopening %s...' % inputFile
-		with open(inputFile, 'r') as f:
-			elements = json.load(f)
-	#initialize multi-core processing if file size not too large
-	else:
-		pool = Pool()
-		print 'Map to cores...'	
-		#create subfile for each feature	
-		#pool only takes 1-argument functions
-		partial_createLayer=partial\
-			(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) 
-		pool.map(partial_createLayer, range(0,len(stats)))
-		pool.close()
-		pool.join()
+	if len(stats)>0:
+		if os.path.getsize(inputFile)>220000000:
+			print "Very large input file of size ~",\
+				int(os.path.getsize(inputFile)/1000000),"MB"
+			print "Clearing memory...",
+			elements=True
+			for i in range(0,len(stats)):
+				createLayer(i,stats,subpath,inputFile,key)
+			print 'Reopening %s...' % inputFile
+			with open(inputFile, 'r') as f:
+				elements = json.load(f)
+		#initialize multi-core processing if file size not too large
+		else:
+			pool = Pool()
+			print 'Map to cores...'	
+			#create subfile for each feature	
+			#pool only takes 1-argument functions
+			partial_createLayer=partial\
+				(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) 
+			pool.map(partial_createLayer, range(0,len(stats)))
+			pool.close()
+			pool.join()
+	else: #empty feature map
+		print "No features found. Create empty test files..."
+		stats = [0] #set feature length to 1
+		featureFile = subpath+"/"+featureDataFolder+"/f_1.json"
+		emptyjson=\
+		'''{
+		  "type": "FeatureCollection",
+		  "features": []
+		}'''
+		with  open(featureFile,"w+") as f:
+			f.write(emptyjson)
 
 	print "Layer files created..."
 
@@ -188,7 +203,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		index = int(find_between(image,"_",".png"))
 		if randomImages: #get coordinates for random images
 			av_lon=None
-			with open(subpath+satDataFolder+"meta.csv","rb") as csvfile:
+			with open(sat+"meta.csv","rb") as csvfile:
 				 coordFile = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
 			for coord in coordFile:
 				if coord[0]==str(index):
@@ -213,10 +228,10 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 				longitude=lotlan[0]
 				latitude=lotlan[1]
 			else:
-				lotlan_init= projectRev(av_lon,av_lat,image_index,subpath,3349,3391)
+				lotlan_init= projectRev(av_lon,av_lat,image_index,'.',3349,3391)
 				longitude=lotlan_init[0]
 				latitude=lotlan_init[1]
-				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,subpath,3349,3391)
+				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',3349,3391)
 				longitude_b=lotlan_b[0]
 				latitude_b=lotlan_b[1]
 		else: #if already in wgs84 format
@@ -325,7 +340,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			os.remove(checkfile)
 		except OSError:
 			pass
-		background = Image.open(subpath+satDataFolder+image)
+		background = Image.open(sat+image)
 		brightened = Image.open(tifile)
 		#brighten up visual images for check file
 		#make 0s transparent to prepare for merge	
