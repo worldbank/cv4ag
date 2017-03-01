@@ -3,13 +3,13 @@ import caffe
 import utils.computeStatistics
 from libs.foldernames import *
 from libs.models import *
-from modules.getFeatures import find_between
+from modules.getFeatures import find_before
 from modules.get_stats import get_stats
 from random import random
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
-	mode="gpu",batchsize=None,maxiter=None,stepsize=None,datatype="PNG"):
+	mode="gpu",batchsize=None,maxiter=None,stepsize=None,datatype="PNG",initweights=True):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
@@ -35,9 +35,9 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	cnt_test=0
 	for f1 in os.listdir(satpath):
 		try:
-			id1= int(find_between(f1,"_",".png"))
+			id1= (find_before(f1,".png"))
 			for f2 in os.listdir(trainpath):
-				id2= int(find_between(f2,"_","train.png"))
+				id2= (find_before(f2,"train.png"))
 				if id1==id2:
 				#Put ~20% of images into test folder if createTest set
 					randomValue=random()
@@ -60,9 +60,9 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 			pass
 	for f1 in os.listdir(testpath):
 		try:
-			id1= int(find_between(f1,"_",".png"))
+			id1= (find_before(f1,".png"))
 			for f2 in os.listdir(verpath):
-				id2= int(find_between(f2,"_","train.png"))
+				id2= (find_before(f2,"train.png"))
 				if id1==id2:
 					cnt_test+=1
 					if filewrittenTest==False: #create new file
@@ -208,7 +208,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		f.write('')
 			
 	if not ignorebackground:
-		classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
+		if initweights:
+			classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
+		else:
+			classweight=0.2
 		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
@@ -216,7 +219,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 				
 	for i in range(0,len(stats)):
 		#Create file with metadata
-		classweight=freq[i]*1./sumfreq #does not have to equal 1
+		if initweights:
+			classweight=freq[i]*1./sumfreq #does not have to equal 1
+		else:
+			classweight=0.8
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		numberoftabs=len(stats[i])/8	
 		tabs="\t"*(6-numberoftabs)

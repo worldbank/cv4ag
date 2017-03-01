@@ -100,7 +100,7 @@ if __name__ == "__main__":
 		help='EPSG format for GIS data. Is read from data if not set.')
 	cmdParser.add_argument('--layer',metavar='N',
 		type=int,default=None,
-		help='Number of layer to be trained on.')
+		help='Number of layers to be trained on.')
 	cmdParser.add_argument('--mode',
 		type=str,default='gpu',
 		help='GPU (default) or CPU mode')
@@ -144,6 +144,10 @@ if __name__ == "__main__":
 	randomParser.add_argument('--random', dest='randomImages', action='store_true',help='Use random images within GIS boundary box.')
 	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (default).')
 	cmdParser.set_defaults(randomImages=False)
+	backgroundParser = cmdParser.add_mutually_exclusive_group(required=False)
+	backgroundParser.add_argument('--weights', dest='initweights', action='store_false',help='Initialize weights according to frequency statistics (default).')
+	backgroundParser.add_argument('--no-weights', dest='initweights', action='store_true',help='Do not initialize weights.')
+	cmdParser.set_defaults(initweights=True)
 	cmdArgs = vars(cmdParser.parse_args())
 
 	selectedModule = cmdArgs.get('module')
@@ -178,6 +182,7 @@ if __name__ == "__main__":
 	sat = cmdArgs.get('sat')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
+	initweights = cmdArgs.get('initweights')
 	# Execute according to options
 	print "Option:",selectedModule
 	#only import caffe if needed
@@ -227,6 +232,7 @@ if __name__ == "__main__":
 			freq=freq,
 			elements=elements,
 			ignorebackground=b,
+			initweights=initweights,
 			batchsize=batchsize,
 			maxiter=maxiter,
 			stepsize=stepsize,
@@ -285,6 +291,7 @@ if __name__ == "__main__":
 			maxiter=maxiter,
 			datatype=datatype,
 			stepsize=stepsize,
+			initweights=initweights,
 			createTest=test\
 			)
 	elif selectedModule == 'ml':

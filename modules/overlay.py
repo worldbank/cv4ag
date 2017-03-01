@@ -171,7 +171,6 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			pool.join()
 	else: #empty feature map
 		print "No features found. Create empty test files..."
-		exit()
 		stats = [0] #set feature length to 1
 		featureFile = subpath+"/"+featureDataFolder+"/f_1.json"
 		emptyjson=\
