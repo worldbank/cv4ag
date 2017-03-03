@@ -37,7 +37,7 @@ from osgeo import ogr
 from osgeo import osr
 
 
-def Usage():
+def ErrorMsg():
     print("""Error in Polygonizing
 """)
     sys.exit(1)
@@ -86,10 +86,10 @@ gdal_polygonize [eight 8] [-nomask] [-mask filename] raster_file [-b band|mask]
 	    dst_fieldname = fieldname
 
 	#else:
-	 #   Usage()
+	 #   ErrorMsg()
 
 	if src_filename is None or dst_filename is None:
-	    Usage()
+	    ErrorMsg()
 
 	print "ui"
 	if dst_layername is None:

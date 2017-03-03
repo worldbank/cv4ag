@@ -228,7 +228,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		tabs="\t"*(6-numberoftabs)
 		print 'Weight for class '+stats[i]+":"+tabs+str(classweight)
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
-			f.write(str(1+additionalclass)+"\tBackground")
+			f.write(str(1+additionalclass)+"\t"+str(stats[i]))
 
 	net_configured=net_configured.replace\
 		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
