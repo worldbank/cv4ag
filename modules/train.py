@@ -1,6 +1,7 @@
 import os
 import caffe
 import utils.computeStatistics
+import numpy as np
 from libs.foldernames import *
 from libs.models import *
 from modules.getFeatures import find_before
@@ -184,10 +185,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		additionalclass = 1
 	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
 	if net>1 or (xpixel == 480 and ypixel == 360):
-		upsample_w_large= str(int(round(0.125*xpixel)))
-		upsample_h_large= str(int(round(0.125*ypixel)))
-		upsample_w_small=str(int(round(0.0625*xpixel)))
-		upsample_h_small=str(int(round(0.0625*ypixel)))
+		upsample_w_large= str(int(np.round(0.125*xpixel)))
+		upsample_h_large= str(int(np.round(0.125*ypixel)))
+		upsample_w_small=str(int(np.round(0.0625*xpixel)))
+		upsample_h_small=str(int(np.round(0.0625*ypixel)))
 	else:
 		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
 		exit()
