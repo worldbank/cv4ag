@@ -76,5 +76,5 @@ if __name__ == "__main__":
 					tif2png(fileName,fullsize)
 					satPath=os.path.abspath(maindir+os.path.split(fileName)[-1][:-4]+'/sat/')
 					print satPath
-					crop(fullsize,303,223,satPath)
+					crop(fullsize,304,224,satPath)
 		#		os.mkdir(fileName[-4:]

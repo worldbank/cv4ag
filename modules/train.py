@@ -1,7 +1,6 @@
 import os
 import caffe
 import utils.computeStatistics
-import numpy as np
 from libs.foldernames import *
 from libs.models import *
 from modules.getFeatures import find_before
@@ -185,10 +184,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		additionalclass = 1
 	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
 	if net>1 or (xpixel == 480 and ypixel == 360):
-		upsample_w_large= str(int(np.round(0.125*xpixel)))
-		upsample_h_large= str(int(np.round(0.125*ypixel)))
-		upsample_w_small=str(int(np.round(0.0625*xpixel)))
-		upsample_h_small=str(int(np.round(0.0625*ypixel)))
+		upsample_w_large= str(int(round(0.125*xpixel)))
+		upsample_h_large= str(int(round(0.125*ypixel)))
+		upsample_w_small=str(int(round(0.0625*xpixel)))
+		upsample_h_small=str(int(round(0.0625*ypixel)))
 	else:
 		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
 		exit()
@@ -212,7 +211,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		if initweights:
 			classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
 		else:
-			classweight=0.2
+			classweight=0.02
 		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
@@ -223,7 +222,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		if initweights:
 			classweight=freq[i]*1./sumfreq #does not have to equal 1
 		else:
-			classweight=0.8
+			classweight=0.98
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		numberoftabs=len(stats[i])/8	
 		tabs="\t"*(6-numberoftabs)
@@ -265,5 +264,6 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	else:	
 		caffesolver = caffe.get_solver(modelpath+solverprototxt)
 		caffesolver.solve()
+	del caffesolver
 	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
 	print "Training completed."

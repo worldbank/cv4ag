@@ -145,8 +145,8 @@ if __name__ == "__main__":
 	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (default).')
 	cmdParser.set_defaults(randomImages=False)
 	backgroundParser = cmdParser.add_mutually_exclusive_group(required=False)
-	backgroundParser.add_argument('--weights', dest='initweights', action='store_false',help='Initialize weights according to frequency statistics (default).')
-	backgroundParser.add_argument('--no-weights', dest='initweights', action='store_true',help='Do not initialize weights.')
+	backgroundParser.add_argument('--weights', dest='initweights', action='store_true',help='Initialize weights according to frequency statistics (default).')
+	backgroundParser.add_argument('--no-weights', dest='initweights', action='store_false',help='Do not initialize weights.')
 	cmdParser.set_defaults(initweights=True)
 	cmdArgs = vars(cmdParser.parse_args())
 
