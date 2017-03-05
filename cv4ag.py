@@ -176,7 +176,7 @@ if __name__ == "__main__":
 	epsg = cmdArgs.get('epsg')
 	test = cmdArgs.get('test')
 	batchsize = cmdArgs.get('batchsize')
-	maxiter = cmdArgs.get('maxister')
+	maxiter = cmdArgs.get('maxiter')
 	stepsize = cmdArgs.get('stepsize')
 	datatype = cmdArgs.get('datatype')
 	sat = cmdArgs.get('sat')
