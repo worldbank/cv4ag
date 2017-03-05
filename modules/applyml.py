@@ -4,7 +4,7 @@ from libs.foldernames import *
 from utils.segment import segment
 from modules.get_stats import get_stats
 
-def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15):#,stats=None,key='Descriptio'):
+def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=None):#,stats=None,key='Descriptio'):
 	#set outputFolder to directory above the /sat directory
 	if outputFolder[-1]=="/":
 		outputFolder=outputFolder[0:-1]
@@ -19,8 +19,11 @@ def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15):#,stat
 	subpath,satpath,trainpath,modelpath,weightpath,\
 		indexpath,testpath,verpath,outpath=\
 		getPaths(outputFolder,inputFile)	
-	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
-		and f.startswith(os.path.split(inputFile)[-1][:-5])] 
+	if epsg!=9999:
+		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
+			and f.startswith(os.path.split(inputFile)[-1][:-5])]
+	else:
+		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')]
 	if mode.lower()=='gpu':
 		caffe.set_device(0)
 		caffe.set_mode_gpu()

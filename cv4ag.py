@@ -244,6 +244,7 @@ if __name__ == "__main__":
 			mode=mode,
 			ignorebackground=b,
 			#stats=stats,
+			epsg=epsg,
 			top=top,
 			key=key)
 	elif selectedModule == 'parse':
@@ -300,6 +301,7 @@ if __name__ == "__main__":
 			inputFile,
 			mode=mode,
 			ignorebackground=b,
+			epsg=epsg,
 			top=top)
 			#key=key)
 	elif selectedModule == 'clear':
