@@ -3542,7 +3542,7 @@ layer {
   upsample_param {
     scale: 2
     upsample_w: UPSAMPLE_W_LARGE
-    upsample_h: UPSAMPLE_W_SMALL
+    upsample_h: UPSAMPLE_H_LARGE
   }
 }
 layer {
