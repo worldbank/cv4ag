@@ -6,6 +6,7 @@ from libs.models import *
 from modules.getFeatures import find_before
 from modules.get_stats import get_stats
 from random import random
+from shutil import copyfile
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
@@ -54,8 +55,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 									str(os.path.abspath(trainpath+"/"+f2)))
 					else:
 						print "Move",f1,"and",f2
-						os.rename(satpath+f1,testpath+f1)
-						os.rename(trainpath+f2,verpath+f2)
+						#os.rename(satpath+f1,testpath+f1)
+						copyfile(satpath+f1,testpath+f1)
+						copyfile(trainpath+f2,verpath+f2)
+						#os.rename(trainpath+f2,verpath+f2)
 		except ValueError: #ignore metadata
 			pass
 	for f1 in os.listdir(testpath):
