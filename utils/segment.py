@@ -8,6 +8,7 @@ import math
 import pylab
 import sys
 import caffe
+from random import random
 from sklearn.preprocessing import normalize
 from libs.colorlist import colorlist
 #caffe_root = '/home/worldbank-ml/ml/caffe-segnet/' 			# Change this to the absolute directoy to SegNet Caffe
@@ -19,9 +20,9 @@ def segment(model,weights,iterations,top,outpath):
 			os.path.abspath(weights),
 			caffe.TEST)
 
-
+	print "Iterations:",iterations
 	for i in range(0, iterations):
-
+		print "Image:",i+1	
 		net.forward()
 
 		image = net.blobs['data'].data
@@ -66,15 +67,17 @@ def segment(model,weights,iterations,top,outpath):
 		image = image[:,:,(2,1,0)]
 
 
-		scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
-			save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)
-
-		plt.figure()
-		plt.imshow(image,vmin=0, vmax=1)
-		plt.figure()
-		plt.imshow(rgb_gt,vmin=0, vmax=1)
-		plt.figure()
-		plt.imshow(rgb,vmin=0, vmax=1)
-		plt.show()
+		if random()>0.95:
+			print "Show"
+			scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
+				save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)
+			plt.figure(i)
+			plt.subplot(221)
+			plt.imshow(image,vmin=0, vmax=1)
+			plt.subplot(222)
+			plt.imshow(rgb_gt,vmin=0, vmax=1)
+			plt.subplot(223)
+			plt.imshow(rgb,vmin=0, vmax=1)
+			plt.show()
 	print 'Success!'
 
