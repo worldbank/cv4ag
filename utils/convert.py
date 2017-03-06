@@ -4,6 +4,7 @@ import os
 maindir='../geojson/'
 classifydir='../classify/'
 mode=2
+imagesizes='image_sizes.csv'
 
 def transform(value):
 	'''Transform coordinates (for values above 256)'''
@@ -50,6 +51,11 @@ def tif2png(inputFile,outputFile):
 	img.putdata(newData)
 	img.save(outputFile)
 
+def find_before_convert(s, first):
+        '''find substrings. used to get index out of image filename'''
+	end = s.index(first)
+	return s[:end]
+
 def crop(inputFile,inputSizeX,inputSizeY,outputFolder='.'):
 	'''Crops images into subimages of size 'inputSize'x'inputSize'''
 	x=0
@@ -66,6 +72,10 @@ def crop(inputFile,inputSizeX,inputSizeY,outputFolder='.'):
 			y=y+inputSizeY
 		else:
 			x = x + inputSizeX
+	image_index=find_before_convert(os.path.split(inputFile)[-1],'.png')
+	with open(imagesizes,'a+') as f:
+		f.write(image_index+','+str(width)+','+str(height)+'''
+''')
 
 if __name__ == "__main__":
 	if mode==1:
@@ -86,13 +96,13 @@ if __name__ == "__main__":
 			for trainingData in os.listdir(classifydir):	
 				if trainingData==fileName[:-4]:
 					convert=False
-			if convert=True
+			if convert==True:
 				if fileName[-4:]==".tif":
 					print 'convert', fileName
-					fullsize=classifydir+fileName[:-4]+'/'+fileName[:-4]+'.png'
+					fullsize=classifydir+fileName[:-4]+'.png'
 					print 'full size image:',fullsize
 					tif2png(fileName,fullsize)
-					satPath=os.path.abspath(classifydir+os.path.split(fileName)[-1][:-4]+'/sat/')
+					satPath=os.path.abspath(classifydir+'sat/')
 					print satPath
 					crop(fullsize,304,224,satPath)
 
