@@ -63,17 +63,19 @@ def segment(model,weights,iterations,top,outpath,train_imgs):
 
 		image = image/255.0
 
+		img = Image.open(train_imgs[i])
+		img.putdata(rgb)
+		img.save(outpath+os.path.split(train_imgs[i])[-1])
+		print 'Saved to',(outpath+os.path.split(train_imgs[i])[-1])
+
 		image = np.transpose(image, (1,2,0))
 		output = np.transpose(output, (1,2,0))
 		image = image[:,:,(2,1,0)]
-		plt.figure(1)
-		plt.imshow(rgb,vmin=0, vmax=1)
-		plt.savefig('savefig.png')
 
-		if random()>0.99:
+		if random()>0.99 and 1==2:
 			print "Show"
-			scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
-				save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)
+			#scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
+			#	save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)
 			plt.figure(i)
 			plt.subplot(221)
 			plt.imshow(image,vmin=0, vmax=1)
