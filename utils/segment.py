@@ -16,7 +16,7 @@ from PIL import Image
 #sys.path.insert(0, caffe_root + 'python')
 
 
-def segment(model,weights,iterations,top,outpath,train_imgs):
+def segment(model,weights,iterations,top,outpath,train_imgs,compare=False):
 	net = caffe.Net(os.path.abspath(model),
 			os.path.abspath(weights),
 			caffe.TEST)
@@ -27,7 +27,8 @@ def segment(model,weights,iterations,top,outpath,train_imgs):
 		net.forward()
 
 		image = net.blobs['data'].data
-		label = net.blobs['label'].data
+		if compare:
+			label = net.blobs['label'].data
 		predicted = net.blobs['prob'].data
 		image = np.squeeze(image[0,:,:,:])
 		output = np.squeeze(predicted[0,:,:,:])
@@ -36,9 +37,10 @@ def segment(model,weights,iterations,top,outpath,train_imgs):
 		r = ind.copy()
 		g = ind.copy()
 		b = ind.copy()
-		r_gt = label.copy()
-		g_gt = label.copy()
-		b_gt = label.copy()
+		if compare:
+			r_gt = label.copy()
+			g_gt = label.copy()
+			b_gt = label.copy()
 
 		label_colors=[]
 		for rgb in colorlist:
@@ -48,18 +50,20 @@ def segment(model,weights,iterations,top,outpath,train_imgs):
 			r[ind==l] = label_colors[l,0]
 			g[ind==l] = label_colors[l,1]
 			b[ind==l] = label_colors[l,2]
-			r_gt[label==l] = label_colors[l,0]
-			g_gt[label==l] = label_colors[l,1]
-			b_gt[label==l] = label_colors[l,2]
+			if compare:
+				r_gt[label==l] = label_colors[l,0]
+				g_gt[label==l] = label_colors[l,1]
+				b_gt[label==l] = label_colors[l,2]
 
 		rgb = np.zeros((ind.shape[0], ind.shape[1], 3))
 		rgb[:,:,0] = r/255.0
 		rgb[:,:,1] = g/255.0
 		rgb[:,:,2] = b/255.0
-		rgb_gt = np.zeros((ind.shape[0], ind.shape[1], 3))
-		rgb_gt[:,:,0] = r_gt/255.0
-		rgb_gt[:,:,1] = g_gt/255.0
-		rgb_gt[:,:,2] = b_gt/255.0
+		if compare:
+			rgb_gt = np.zeros((ind.shape[0], ind.shape[1], 3))
+			rgb_gt[:,:,0] = r_gt/255.0
+			rgb_gt[:,:,1] = g_gt/255.0
+			rgb_gt[:,:,2] = b_gt/255.0
 
 		image = image/255.0
 
@@ -79,8 +83,9 @@ def segment(model,weights,iterations,top,outpath,train_imgs):
 			plt.figure(i)
 			plt.subplot(221)
 			plt.imshow(image,vmin=0, vmax=1)
-			plt.subplot(222)
-			plt.imshow(rgb_gt,vmin=0, vmax=1)
+			if compare:
+				plt.subplot(222)
+				plt.imshow(rgb_gt,vmin=0, vmax=1)
 			plt.subplot(223)
 			plt.imshow(rgb,vmin=0, vmax=1)
 			plt.show()

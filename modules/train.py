@@ -258,13 +258,13 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		exit()
 	print weightpath+"_iter_"+str(maxiter)+".caffeemodel"
 	if os.path.isfile(weightpath+"_iter_"+str(maxiter)+".caffemodel"):
-		overwrite=raw_input("_iter_"+str(maxiter)+".caffemodel exists. Overwrite? (y/n)")
-		if overwrite=="n":
+		#overwrite=raw_input("_iter_"+str(maxiter)+".caffemodel exists. Overwrite? (y/n)")
+		#if overwrite=="n":
 			pass	
-		else:
-			caffesolver = caffe.get_solver(modelpath+solverprototxt)
-			caffesolver.solve()
-			del caffesolver
+		#else:
+		#	caffesolver = caffe.get_solver(modelpath+solverprototxt)
+		#	caffesolver.solve()
+		#	del caffesolver
 	else:	
 		caffesolver = caffe.get_solver(modelpath+solverprototxt)
 		caffesolver.solve()

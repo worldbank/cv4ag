@@ -144,10 +144,14 @@ if __name__ == "__main__":
 	randomParser.add_argument('--random', dest='randomImages', action='store_true',help='Use random images within GIS boundary box.')
 	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (default).')
 	cmdParser.set_defaults(randomImages=False)
-	backgroundParser = cmdParser.add_mutually_exclusive_group(required=False)
-	backgroundParser.add_argument('--weights', dest='initweights', action='store_true',help='Initialize weights according to frequency statistics (default).')
-	backgroundParser.add_argument('--no-weights', dest='initweights', action='store_false',help='Do not initialize weights.')
+	weightParser = cmdParser.add_mutually_exclusive_group(required=False)
+	weightParser.add_argument('--weights', dest='initweights', action='store_true',help='Initialize weights according to frequency statistics (default).')
+	weightParser.add_argument('--no-weights', dest='initweights', action='store_false',help='Do not initialize weights.')
 	cmdParser.set_defaults(initweights=True)
+	compareParser = cmdParser.add_mutually_exclusive_group(required=False)
+	compareParser.add_argument('--compares', dest='compare', action='store_true',help='Compare classified results with labels')
+	compareParser.add_argument('--no-compares', dest='compare', action='store_false',help='Do not compare classified results with labels')
+	cmdParser.set_defaults(compare=True)
 	cmdArgs = vars(cmdParser.parse_args())
 
 	selectedModule = cmdArgs.get('module')
@@ -183,6 +187,7 @@ if __name__ == "__main__":
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	initweights = cmdArgs.get('initweights')
+	compare = cmdArgs.get('compare')
 	# Execute according to options
 	print "Option:",selectedModule
 	#only import caffe if needed
@@ -246,6 +251,7 @@ if __name__ == "__main__":
 			#stats=stats,
 			epsg=epsg,
 			top=top,
+			compare=compare,
 			key=key)
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
@@ -302,6 +308,7 @@ if __name__ == "__main__":
 			mode=mode,
 			ignorebackground=b,
 			epsg=epsg,
+			compare=compare,
 			top=top)
 			#key=key)
 	elif selectedModule == 'clear':

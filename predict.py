@@ -4,9 +4,10 @@ from modules.getFeatures import latLon,find_between,find_before
 from libs.foldernames import getPaths
 import json,os,csv
 submissionrows=[[],[],[],[],[],[],[],[],[],[]]
-
+poly={}
 header='ImageId,ClassType,MultipolygonWKT'
-for cl in range(0,1):
+classlist=range(0,10)
+for cl in classlist:
 	print 'Class',cl+1
 	outputFolder='kaggle/'
 	inputFile='kaggle/class'+str(cl+1)+".json"
@@ -41,13 +42,15 @@ for cl in range(0,1):
 		image_index=find_before(image,'___')
 		av_lon=int(find_between(image,'___','_',True))
 		av_lat=int(find_between(image,'_','train.png',False))
-		l=0
-		submissionrows[l]='''
-'''+str(image_index)+","+str(cl+1)+","
 
-		submissionrows[l]+="\"POLYGON ("
+		if image_index in poly.keys():
+			pass
+		else:
+			poly[image_index]=[[],[],[],[],[],[],[],[],[],[]]
+		l=0
+
 		for polygon in polygons:
-			submissionrows[l]+="("
+			polygonstr="("
 			init=False
 			for coordinates in polygon:
 				if init==True:
@@ -58,13 +61,30 @@ for cl in range(0,1):
 				lotlan= projectRev(av_lon+lon_init,av_lat+lat_init,image_index,'.',3349,3391)
 				longitude=lotlan[0]
 				latitude=lotlan[1]
-				submissionrows[l]+=str(longitude)+" "+str(latitude)
+				polygonstr+=str(longitude)+" "+str(latitude)
 				init=True
-			submissionrows[l]+=")"
-		submissionrows[l]+=")\""
-
-submission=header+submissionrows[l]
+			polygonstr+=")"
+			poly[image_index][cl].append(polygonstr)
+submission=''+header
+for key in poly.keys():
+	for cl in classlist:
+		submission+='''
+'''+str(key)+","+str(cl+1)+","
+		if not poly[key][cl]:
+			submission+='MULTIPOLYGON EMPTY'
+		else:
+			submission+="\"MULTIPOLYGON (("
+			init=False
+			for pol in poly[key][cl]:
+				if init==True:
+					submission+=','
+				submission+=pol
+				init=True
+			submission+="))\""
 print submission
+
+with open('submission.csv', 'w+') as f:
+	f.write(submission)
 	#polygonize file
 
 	#parse content into result file

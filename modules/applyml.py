@@ -5,7 +5,7 @@ from libs.foldernames import *
 from utils.segment import segment
 from modules.get_stats import get_stats
 
-def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=None):#,stats=None,key='Descriptio'):
+def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=None,compare=False):#,stats=None,key='Descriptio'):
 	#set outputFolder to directory above the /sat directory
 	if outputFolder[-1]=="/":
 		outputFolder=outputFolder[0:-1]
@@ -25,8 +25,26 @@ def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=No
 	#		and f.startswith(os.path.split(inputFile)[-1][:-5])]
 	#else:
 	#	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')]
-	with open(indexpath+"test.txt","rb") as csvfile:
-		 image_files = list(csv.reader(csvfile,delimiter=" ",quotechar='"'))
+	if compare:
+		with open(indexpath+"test.txt","rb") as csvfile:
+			 image_files = list(csv.reader(csvfile,delimiter=" ",quotechar='"'))
+	else:
+		imgindx=indexpath+"test.txt"
+		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')]
+		init=False
+		for image in image_files:
+			if init==False:
+				with open(imgindx,"w+") as f:
+					f.write(os.path.abspath(image))
+				init=True
+			else:
+				with open(imgindx,"a+") as f:
+					f.write('''
+'''+os.path.abspath(image))
+
+
+			
+		
 	sat_imgs=[]
 	train_imgs=[]
 	for row in image_files:
@@ -44,4 +62,4 @@ def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=No
 		nbClasses=len(stats)
 	else:
 		nbClasses=top+1
-	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses,outpath,train_imgs)
+	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses,outpath,train_imgs,compare)
