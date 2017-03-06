@@ -1,5 +1,6 @@
 from osgeo import gdal
 from PIL import Image
+from multiprocessing import Pool
 import os
 maindir='../geojson/'
 classifydir='../classify/'
@@ -10,7 +11,7 @@ def transform(value):
 	'''Transform coordinates (for values above 256)'''
 	return int(round((value-100.)/4.))
 #Open existing dataset 
-def tif2png(inputFile,outputFile):
+def tif2png(inputFile,outputFile,verbose=True):
 	'''Convert GeoTIFF to 8-bit RGB PNG'''
 	src_ds = gdal.Open( inputFile ) 
 
@@ -45,7 +46,8 @@ def tif2png(inputFile,outputFile):
 		if y<len(r[0])-1:
 			y+=1
 		else:
-			print str(x)+"\r",
+			if verbose==True:
+				print str(x)+"\r",
 			y=0
 			x+=1
 	img.putdata(newData)
@@ -77,6 +79,21 @@ def crop(inputFile,inputSizeX,inputSizeY,outputFolder='.'):
 		f.write(image_index+','+str(width)+','+str(height)+'''
 ''')
 
+def convertmode2(fileName):
+	convert=True
+	for trainingData in os.listdir(classifydir):	
+		if trainingData==fileName[:-4]:
+			convert=False
+	if convert==True:
+		if fileName[-4:]==".tif":
+			print 'convert', fileName
+			fullsize=classifydir+fileName[:-4]+'.png'
+			print 'full size image:',fullsize
+			tif2png(fileName,fullsize,verbose=False)
+			satPath=os.path.abspath(classifydir+'sat/')
+			print satPath
+			crop(fullsize,304,224,satPath)
+
 if __name__ == "__main__":
 	if mode==1:
 		for trainingData in os.listdir(maindir):	
@@ -91,18 +108,10 @@ if __name__ == "__main__":
 						print satPath
 						crop(fullsize,304,224,satPath)
 	else:
-		for fileName in os.listdir('.'):
-			convert=True
-			for trainingData in os.listdir(classifydir):	
-				if trainingData==fileName[:-4]:
-					convert=False
-			if convert==True:
-				if fileName[-4:]==".tif":
-					print 'convert', fileName
-					fullsize=classifydir+fileName[:-4]+'.png'
-					print 'full size image:',fullsize
-					tif2png(fileName,fullsize)
-					satPath=os.path.abspath(classifydir+'sat/')
-					print satPath
-					crop(fullsize,304,224,satPath)
+		pool = Pool()
+		list_of_files=os.listdir('.')
+		pool.map(convertmode2, list_of_files)
+		pool.close()
+		pool.join()
+
 
