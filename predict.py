@@ -53,8 +53,8 @@ for cl in classlist:
 			 imgSizes= list(csv.reader(csvfile,delimiter=",",quotechar='"'))
 		for imgSize in imgSizes:
 			if imgSize[0]==image_index:
-				W=imgSize[1]
-				H=imgSize[2]
+				W=int(imgSize[1])
+				H=int(imgSize[2])
 				break
 
 		for polygon in polygons:

@@ -16,14 +16,14 @@ from PIL import Image
 #sys.path.insert(0, caffe_root + 'python')
 
 
-def segment(model,weights,iterations,top,outpath,train_imgs,compare=False):
+def segment(model,weights,iterations,top,outpath,sat_imgs,compare=False):
 	net = caffe.Net(os.path.abspath(model),
 			os.path.abspath(weights),
 			caffe.TEST)
 
 	print "Iterations:",iterations
 	for i in range(0, iterations):
-		print "Image:",train_imgs[i]
+		print "Image:",sat_imgs[i]
 		net.forward()
 
 		image = net.blobs['data'].data
@@ -67,10 +67,11 @@ def segment(model,weights,iterations,top,outpath,train_imgs,compare=False):
 
 		image = image/255.0
 
-		img = Image.open(train_imgs[i])
+		img = Image.open(sat_imgs[i])
+		img = img.convert('L')
 		img.putdata(rgb)
-		img.save(outpath+os.path.split(train_imgs[i])[-1])
-		print 'Saved to',(outpath+os.path.split(train_imgs[i])[-1])
+		img.save(outpath+os.path.split(sat_imgs[i])[-1])
+		print 'Saved to',(outpath+os.path.split(sat_imgs[i])[-1])
 
 		image = np.transpose(image, (1,2,0))
 		output = np.transpose(output, (1,2,0))

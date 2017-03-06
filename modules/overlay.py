@@ -233,8 +233,8 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 					 imgSizes= list(csv.reader(csvfile,delimiter=",",quotechar='"'))
 				for imgSize in imgSizes:
 					if imgSize[0]==image_index:
-						W=imgSize[1]
-						H=imgSize[2]
+						W=int(imgSize[1])
+						H=int(imgSize[2])
 						break
 				lotlan_init= projectRev(av_lon,av_lat,image_index,'.',W,H)
 				longitude=lotlan_init[0]
