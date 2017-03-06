@@ -214,7 +214,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		if initweights:
 			classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
 		else:
-			classweight=0.02
+			classweight=0.2
 		print 'Weight for background:\t\t\t\t\t\t\t',classweight
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		with open(subpath+"/meta_classlabels.txt",'a+') as f:
@@ -225,7 +225,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		if initweights:
 			classweight=freq[i]*1./sumfreq #does not have to equal 1
 		else:
-			classweight=0.98
+			classweight=0.8
 		classweights+='class_weighting: '+str(classweight)+"\n"
 		numberoftabs=len(stats[i])/8	
 		tabs="\t"*(6-numberoftabs)
@@ -264,9 +264,10 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		else:
 			caffesolver = caffe.get_solver(modelpath+solverprototxt)
 			caffesolver.solve()
+			del caffesolver
 	else:	
 		caffesolver = caffe.get_solver(modelpath+solverprototxt)
 		caffesolver.solve()
-	del caffesolver
+		del caffesolver
 	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
 	print "Training completed."

@@ -11,18 +11,19 @@ import caffe
 from random import random
 from sklearn.preprocessing import normalize
 from libs.colorlist import colorlist
+from PIL import Image
 #caffe_root = '/home/worldbank-ml/ml/caffe-segnet/' 			# Change this to the absolute directoy to SegNet Caffe
 #sys.path.insert(0, caffe_root + 'python')
 
 
-def segment(model,weights,iterations,top,outpath):
+def segment(model,weights,iterations,top,outpath,train_imgs):
 	net = caffe.Net(os.path.abspath(model),
 			os.path.abspath(weights),
 			caffe.TEST)
 
 	print "Iterations:",iterations
 	for i in range(0, iterations):
-		print "Image:",i+1	
+		print "Image:",train_imgs[i]
 		net.forward()
 
 		image = net.blobs['data'].data
@@ -65,9 +66,11 @@ def segment(model,weights,iterations,top,outpath):
 		image = np.transpose(image, (1,2,0))
 		output = np.transpose(output, (1,2,0))
 		image = image[:,:,(2,1,0)]
+		plt.figure(1)
+		plt.imshow(rgb,vmin=0, vmax=1)
+		plt.savefig('savefig.png')
 
-
-		if random()>0.95:
+		if random()>0.99:
 			print "Show"
 			scipy.misc.toimage(rgb, cmin=0.0, cmax=255).\
 				save(os.path.abspath(outpath+"testoutput"+'_i'+'_segnet.png')) #(name differently)

@@ -1,5 +1,6 @@
 import os
 import caffe
+import csv
 from libs.foldernames import *
 from utils.segment import segment
 from modules.get_stats import get_stats
@@ -19,11 +20,18 @@ def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=No
 	subpath,satpath,trainpath,modelpath,weightpath,\
 		indexpath,testpath,verpath,outpath=\
 		getPaths(outputFolder,inputFile)	
-	if epsg!=9999:
-		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
-			and f.startswith(os.path.split(inputFile)[-1][:-5])]
-	else:
-		image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')]
+	#if epsg!=9999:
+	#	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png') \
+	#		and f.startswith(os.path.split(inputFile)[-1][:-5])]
+	#else:
+	#	image_files = [f for f in os.listdir(subpath+satDataFolder) if f.endswith('.png')]
+	with open(indexpath+"test.txt","rb") as csvfile:
+		 image_files = list(csv.reader(csvfile,delimiter=" ",quotechar='"'))
+	sat_imgs=[]
+	train_imgs=[]
+	for row in image_files:
+		sat_imgs.append(row[0])
+		train_imgs.append(row[1])
 	if mode.lower()=='gpu':
 		caffe.set_device(0)
 		caffe.set_mode_gpu()
@@ -36,4 +44,4 @@ def apply(outputFolder,inputFile,mode='gpu',ignorebackground=True,top=15,epsg=No
 		nbClasses=len(stats)
 	else:
 		nbClasses=top+1
-	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses,outpath)
+	segment(modelpath+inferenceprototxt,weightpath+weightsfile,len(image_files),nbClasses,outpath,train_imgs)
