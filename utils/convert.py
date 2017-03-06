@@ -2,6 +2,8 @@ from osgeo import gdal
 from PIL import Image
 import os
 maindir='../geojson/'
+classifydir='../classify/'
+mode=2
 
 def transform(value):
 	'''Transform coordinates (for values above 256)'''
@@ -66,15 +68,31 @@ def crop(inputFile,inputSizeX,inputSizeY,outputFolder='.'):
 			x = x + inputSizeX
 
 if __name__ == "__main__":
-	for trainingData in os.listdir(maindir):	
+	if mode==1:
+		for trainingData in os.listdir(maindir):	
+			for fileName in os.listdir('.'):
+				if trainingData==fileName[:-4]:
+					if fileName[-4:]==".tif":
+						print 'convert', fileName
+						fullsize=maindir+fileName[:-4]+'/'+fileName[:-4]+'.png'
+						print 'full size image:',fullsize
+						tif2png(fileName,fullsize)
+						satPath=os.path.abspath(maindir+os.path.split(fileName)[-1][:-4]+'/sat/')
+						print satPath
+						crop(fullsize,304,224,satPath)
+	else:
 		for fileName in os.listdir('.'):
-			if trainingData==fileName[:-4]:
+			convert=True
+			for trainingData in os.listdir(classifydir):	
+				if trainingData==fileName[:-4]:
+					convert=False
+			if convert=True
 				if fileName[-4:]==".tif":
 					print 'convert', fileName
-					fullsize=maindir+fileName[:-4]+'/'+fileName[:-4]+'.png'
+					fullsize=classifydir+fileName[:-4]+'/'+fileName[:-4]+'.png'
 					print 'full size image:',fullsize
 					tif2png(fileName,fullsize)
-					satPath=os.path.abspath(maindir+os.path.split(fileName)[-1][:-4]+'/sat/')
+					satPath=os.path.abspath(classifydir+os.path.split(fileName)[-1][:-4]+'/sat/')
 					print satPath
 					crop(fullsize,304,224,satPath)
-		#		os.mkdir(fileName[-4:]
+
