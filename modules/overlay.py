@@ -229,10 +229,17 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 				longitude=lotlan[0]
 				latitude=lotlan[1]
 			else:
-				lotlan_init= projectRev(av_lon,av_lat,image_index,'.',3349,3391)
+				with open(imgsizefile,"rb") as csvfile:
+					 imgSizes= list(csv.reader(csvfile,delimiter=",",quotechar='"'))
+				for imgSize in imgSizes:
+					if imgSize[0]==image_index:
+						W=imgSize[1]
+						H=imgSize[2]
+						break
+				lotlan_init= projectRev(av_lon,av_lat,image_index,'.',W,H)
 				longitude=lotlan_init[0]
 				latitude=lotlan_init[1]
-				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',3349,3391)
+				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',W,H)
 				longitude_b=lotlan_b[0]
 				latitude_b=lotlan_b[1]
 		else: #if already in wgs84 format

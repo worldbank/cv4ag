@@ -1,7 +1,7 @@
 from utils.gdal_polygonize_edited import polygonize
 from utils.project import projectRev
 from modules.getFeatures import latLon,find_between,find_before
-from libs.foldernames import getPaths
+from libs.foldernames import getPaths,imgsizefile
 import json,os,csv
 submissionrows=[[],[],[],[],[],[],[],[],[],[]]
 poly={}
@@ -49,6 +49,14 @@ for cl in classlist:
 			poly[image_index]=[[],[],[],[],[],[],[],[],[],[]]
 		l=0
 
+		with open(imgsizefile,"rb") as csvfile:
+			 imgSizes= list(csv.reader(csvfile,delimiter=",",quotechar='"'))
+		for imgSize in imgSizes:
+			if imgSize[0]==image_index:
+				W=imgSize[1]
+				H=imgSize[2]
+				break
+
 		for polygon in polygons:
 			polygonstr="("
 			init=False
@@ -58,7 +66,7 @@ for cl in classlist:
 				lon_init=coordinates[0]
 				lat_init=coordinates[1]
 
-				lotlan= projectRev(av_lon+lon_init,av_lat+lat_init,image_index,'.',3349,3391)
+				lotlan= projectRev(av_lon+lon_init,av_lat+lat_init,image_index,'.',W,H)
 				longitude=lotlan[0]
 				latitude=lotlan[1]
 				polygonstr+=str(longitude)+" "+str(latitude)

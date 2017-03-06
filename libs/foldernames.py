@@ -14,6 +14,7 @@ trainprototxt="segnet_train.prototxt"
 inferenceprototxt="segnet_inference.prototxt"
 solverprototxt="solver.prototxt"
 weightsfile="weights.caffemodel"
+imgsizefile="imgsizes.csv"
 
 def getPaths(outputFolder,inputFile):
 	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
