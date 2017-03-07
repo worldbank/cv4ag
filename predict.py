@@ -41,12 +41,9 @@ for cl in classlist:
 					cnt+=1
 
 		image=os.path.split(inputFile)[-1]
-		#image_index=find_before(image,'___')
-		#av_lon=int(find_between(image,'___','_',True))
-		#av_lat=int(find_between(image,'_','.png',False))
-		image_index=find_before(image,'.png')
-		av_lon=0
-		av_lat=0
+		image_index=find_before(image,'___')
+		av_lon=int(find_between(image,'___','_',True))
+		av_lat=int(find_between(image,'_','.png',False))
 
 		if image_index in poly.keys():
 			pass

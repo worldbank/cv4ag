@@ -34,7 +34,7 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	"""
 	Main function executed by top
 
-	'countryISO': Country for which BBox data should be downloaded
+	'countryISO': Country for which BBox data should be downloaded. Can also contain custom boundary box
 	'query': Tag for OSM query to search for
 	'partOfData': Part of total data of a country to be processed
 	Returns list with [filename,datatype], where datatype is the
@@ -42,24 +42,33 @@ def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	"""
 	partOfData=float(partOfData)
 	subunits=[]
-	#Load country data
-	for c in country_subunits_by_iso_code(countryISO):
-		subunits.append(c)
-	#Chose subunits, if more than 1
-	subunit=1
-	if len(subunits)>1: #if there are subunits
-		cnt = 1
-		print 	"Subunits:"
-		for c in subunits:
-			print cnt,"- ",c.name			
-			cnt += 1
-		subunit=input('Chose subunit: ')
-	elif len(subunits)==0: #if nothing found
-		print "Error: No country or entry with ISO code",countryISO
-		exit()
-	#Get BBox data for country
-	print "Acquiring data for",subunits[subunit-1].name
-	bbox = subunits[subunit-1].bbox #0-w, 1-s, 2-e, 3-n
+	countryISOlist=countryISO.split()
+	if countrISOlist[1]: #if there is more than one entry
+		bbox=[]
+		bbox.append(float(contryISOlist[0]))
+		bbox.append(float(contryISOlist[1]))
+		bbox.append(float(contryISOlist[2]))
+		bbox.append(float(contryISOlist[3]))
+
+	else:
+		#Load country data
+		for c in country_subunits_by_iso_code(countryISO):
+			subunits.append(c)
+		#Chose subunits, if more than 1
+		subunit=1
+		if len(subunits)>1: #if there are subunits
+			cnt = 1
+			print 	"Subunits:"
+			for c in subunits:
+				print cnt,"- ",c.name			
+				cnt += 1
+			subunit=input('Chose subunit: ')
+		elif len(subunits)==0: #if nothing found
+			print "Error: No country or entry with ISO code",countryISO
+			exit()
+		#Get BBox data for country
+		print "Acquiring data for",subunits[subunit-1].name
+		bbox = subunits[subunit-1].bbox #0-w, 1-s, 2-e, 3-n
 	w = bbox[0]
 	s = bbox[1]
 	e = bbox[2]
