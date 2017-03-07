@@ -68,8 +68,8 @@ def segment(model,weights,iterations,top,outpath,sat_imgs,compare=False):
 
 		image = image/255.0
 
-		img = Image.open(sat_imgs[i])
-		img = img.convert('L')
+		img = Image.open('label.png')
+#		img = img.convert('RGB')
 		img.putdata(rgb)
 		img.save(outpath+os.path.split(sat_imgs[i])[-1])
 		print 'Saved to',(outpath+os.path.split(sat_imgs[i])[-1])
