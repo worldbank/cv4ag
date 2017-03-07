@@ -7,7 +7,7 @@ submissionrows=[[],[],[],[],[],[],[],[],[],[]]
 poly={}
 outputFolder='kaggle/'
 header='ImageId,ClassType,MultipolygonWKT'
-classlist=range(0,1)
+classlist=range(0,10)
 for cl in classlist:
 	print 'Class',cl+1
 	inputFile=outputFolder+'class'+str(cl+1)+".json"
@@ -22,8 +22,6 @@ for cl in classlist:
 	for imageInput in image_files:
 		icnt+=1
 		print icnt
-		if icnt>25:
-			break
 		print imageInput
 		inputFile=outpath+os.path.split(imageInput)[-1]
 		outputFile='polygonized.json'
@@ -34,20 +32,21 @@ for cl in classlist:
 
 		polygons=[]
 		cnt=0
-		print elements
 		for element in elements['features']:
 			if element['properties']['DN']==1:
 				for polygon1 in element['geometry']['coordinates']:
 					polygons.append([])
-					print polygon1
 					for coordinates in polygon1:
 						polygons[cnt].append(coordinates)
 					cnt+=1
 
 		image=os.path.split(inputFile)[-1]
-		image_index=find_before(image,'___')
-		av_lon=int(find_between(image,'___','_',True))
-		av_lat=int(find_between(image,'_','.png',False))
+		#image_index=find_before(image,'___')
+		#av_lon=int(find_between(image,'___','_',True))
+		#av_lat=int(find_between(image,'_','.png',False))
+		image_index=find_before(image,'.png')
+		av_lon=0
+		av_lat=0
 
 		if image_index in poly.keys():
 			pass
@@ -64,7 +63,7 @@ for cl in classlist:
 				break
 
 		for polygon in polygons:
-			polygonstr="("
+			polygonstr="(("
 			init=False
 			for coordinates in polygon:
 				if init==True:
@@ -77,7 +76,7 @@ for cl in classlist:
 				latitude=lotlan[1]
 				polygonstr+=str(longitude)+" "+str(latitude)
 				init=True
-			polygonstr+=")"
+			polygonstr+="))"
 			poly[image_index][cl].append(polygonstr)
 
 submission=''+header
@@ -88,14 +87,14 @@ for key in poly.keys():
 		if not poly[key][cl]:
 			submission+='MULTIPOLYGON EMPTY'
 		else:
-			submission+="\"MULTIPOLYGON (("
+			submission+="\"MULTIPOLYGON ("
 			init=False
 			for pol in poly[key][cl]:
 				if init==True:
 					submission+=','
 				submission+=pol
 				init=True
-			submission+="))\""
+			submission+=")\""
 print submission
 
 with open('submission.csv', 'w+') as f:
