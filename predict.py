@@ -5,12 +5,12 @@ from libs.foldernames import getPaths,imgsizefile
 import json,os,csv
 submissionrows=[[],[],[],[],[],[],[],[],[],[]]
 poly={}
+outputFolder='kaggle/'
 header='ImageId,ClassType,MultipolygonWKT'
-classlist=range(0,10)
+classlist=range(0,1)
 for cl in classlist:
 	print 'Class',cl+1
-	outputFolder='kaggle/'
-	inputFile='kaggle/class'+str(cl+1)+".json"
+	inputFile=outputFolder+'class'+str(cl+1)+".json"
 	subpath,satpath,trainpath,modelpath,weightpath,\
 		indexpath,testpath,verpath,outpath=\
 		getPaths(outputFolder,inputFile)	
@@ -18,8 +18,12 @@ for cl in classlist:
 	listImages=os.listdir(outpath)
 	image_files = [f for f in listImages if f.endswith('.png')] 
 
-
+	icnt=0
 	for imageInput in image_files:
+		icnt+=1
+		print icnt
+		if icnt>25:
+			break
 		print imageInput
 		inputFile=outpath+os.path.split(imageInput)[-1]
 		outputFile='polygonized.json'
@@ -30,10 +34,12 @@ for cl in classlist:
 
 		polygons=[]
 		cnt=0
+		print elements
 		for element in elements['features']:
 			if element['properties']['DN']==1:
 				for polygon1 in element['geometry']['coordinates']:
 					polygons.append([])
+					print polygon1
 					for coordinates in polygon1:
 						polygons[cnt].append(coordinates)
 					cnt+=1
@@ -41,7 +47,7 @@ for cl in classlist:
 		image=os.path.split(inputFile)[-1]
 		image_index=find_before(image,'___')
 		av_lon=int(find_between(image,'___','_',True))
-		av_lat=int(find_between(image,'_','train.png',False))
+		av_lat=int(find_between(image,'_','.png',False))
 
 		if image_index in poly.keys():
 			pass
@@ -62,7 +68,7 @@ for cl in classlist:
 			init=False
 			for coordinates in polygon:
 				if init==True:
-					submissionrows[l]+=','
+					polygonstr+=','
 				lon_init=coordinates[0]
 				lat_init=coordinates[1]
 
@@ -73,6 +79,7 @@ for cl in classlist:
 				init=True
 			polygonstr+=")"
 			poly[image_index][cl].append(polygonstr)
+
 submission=''+header
 for key in poly.keys():
 	for cl in classlist:

@@ -25,7 +25,8 @@ def segment(model,weights,iterations,top,outpath,sat_imgs,compare=False):
 	for i in range(0, iterations):
 		print "Image:",sat_imgs[i]
 		net.forward()
-
+		if random()>0.99:
+			break
 		image = net.blobs['data'].data
 		if compare:
 			label = net.blobs['label'].data

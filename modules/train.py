@@ -80,7 +80,7 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 		except ValueError: #ignore subfolder 
 			pass
 
-	print cnt,"files found for training",cnt_test,"files found for testing."
+	print cnt,"files found for training. ",cnt_test,"files found for testing."
 
 	#write solver
 	print "Configure solver files and net..."
@@ -260,14 +260,18 @@ def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
 	if os.path.isfile(weightpath+"_iter_"+str(maxiter)+".caffemodel"):
 		#overwrite=raw_input("_iter_"+str(maxiter)+".caffemodel exists. Overwrite? (y/n)")
 		#if overwrite=="n":
-			pass	
 		#else:
 		#	caffesolver = caffe.get_solver(modelpath+solverprototxt)
 		#	caffesolver.solve()
 		#	del caffesolver
+		if os.path.isfile(weightpath+weightsfile):
+			print weightsfile,"already exists."
+			pass
+		else:
+			utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
 	else:	
 		caffesolver = caffe.get_solver(modelpath+solverprototxt)
 		caffesolver.solve()
 		del caffesolver
-	utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
+		utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
 	print "Training completed."
