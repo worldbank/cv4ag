@@ -1,7 +1,7 @@
 # cv4ag
 Computer vision application over satellite RGB tiles for agricultural land detection
 24
-# Install on Linux (Ubuntu/Debian)
+# Install on Linux (Ubuntu 15.04/Debian)
 1. Make sure package manager is allowed to get all packages and is updated ```sudo apt update```. Make sure you have installe git (```sudo apt install git```).
 2. Clone repo: ```git clone https://github.com/worldbank/cv4ag.git; cd cv4ag```
 3. ```sudo bash requirements/install_linux.sh```
