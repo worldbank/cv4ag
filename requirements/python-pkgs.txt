@@ -9,3 +9,4 @@ scikit-learn
 country-bounding-boxes
 requests
 lmdb
+Pillow
