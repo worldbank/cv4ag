@@ -21,6 +21,8 @@ from modules import parse,get_satellite,overlay,clean
 #----------------------------------------------------------------------
 #Main
 if __name__ == "__main__":
+	# show progress also when output is written to a log file
+	sys.stdout.reconfigure(line_buffering=True)
 	# get options from command line
 	class myParse(argparse.ArgumentParser): # override error message to show usage
 		def error(self, message):
@@ -44,7 +46,7 @@ if __name__ == "__main__":
 	cmdParser.add_argument('mapbox_token',
 		metavar='MAPBOX_TOKEN',
 		type=str,default=False,nargs='?',
-		help='Mapbox token to download satellite images .')
+		help='Mapbox token to download satellite images (only for --source mapbox).')
 	cmdParser.add_argument('-i',
 		type=str,default=None,metavar='FILE',
 		help='Input file. Do not give if data obtained by script.')
@@ -55,6 +57,13 @@ if __name__ == "__main__":
 		type=str,default="data/",
 		help='Output folder. Satellite data are put in and read from\
 			PATH/sat/.')
+	cmdParser.add_argument('--source',
+		type=str,default='naip',choices=['naip','mapbox'],
+		help='Satellite images: naip (USDA aerial imagery, US only, no account needed; default)\
+			or mapbox (needs MAPBOX_TOKEN; its terms do not allow training models).')
+	cmdParser.add_argument('--year',metavar='N',
+		type=int,default=2021,
+		help='Year of NAIP imagery (default 2021). Use the year of the labels.')
 	cmdParser.add_argument('-c',metavar='N',
 		type=int,default=1000,
 		help='Number of satellite images to download.')
@@ -190,6 +199,8 @@ if __name__ == "__main__":
 	pretrained = cmdArgs.get('pretrained')
 	seed = cmdArgs.get('seed')
 	sat = cmdArgs.get('sat')
+	source = cmdArgs.get('source')
+	year = cmdArgs.get('year')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	initweights = cmdArgs.get('initweights')
@@ -215,6 +226,8 @@ if __name__ == "__main__":
 			xpixel=xpixel,
 			ypixel=ypixel,
 			randomImages=randomImages,
+			source=source,
+			year=year,
 			elements=elements)
 		overlay.overlay(outputFolder,inputFile,
 			xpixel=xpixel,
@@ -273,6 +286,8 @@ if __name__ == "__main__":
 			epsg=epsg,
 			outputFolder=outputFolder,
 			randomImages=randomImages,
+			source=source,
+			year=year,
 			xpixel=xpixel,
 			ypixel=ypixel)
 			

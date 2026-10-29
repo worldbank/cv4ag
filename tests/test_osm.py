@@ -1,6 +1,7 @@
 from shapely.geometry import shape
 
-from scripts.OSM_Query import getBBox, toGeoJSON
+from scripts.OSM_Query import toGeoJSON
+from utils.places import getBBox
 
 
 def geometry(coords):

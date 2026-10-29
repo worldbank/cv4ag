@@ -18,11 +18,11 @@ import os
 import sys
 from math import floor
 
-import requests
 from shapely.geometry import LineString, Polygon, mapping
 from shapely.ops import polygonize, unary_union
 
-from utils.overpass_client import OverpassClient, USER_AGENT
+from utils.overpass_client import OverpassClient
+from utils.places import getBBox
 
 # Query string to OSM to provide land use data with geometries, with the
 # query key later placed in the middle
@@ -33,33 +33,9 @@ query_template = '''
 );
 out geom;
 '''
-NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search'
 MAX_QUERIES_WITHOUT_PROMPT = 100
 
 datatype="GeoJSON"
-
-def getBBox(area):
-	'''area name and boundary box (west,south,east,north) of a place or "w s e n" string'''
-	try:
-		w,s,e,n=[float(v) for v in area.replace(","," ").split()]
-		return "bbox_%g_%g_%g_%g" % (w,s,e,n),(w,s,e,n)
-	except ValueError:
-		pass
-	if len(area)==2 and area.isalpha(): # ISO country code
-		params={'country':area}
-	else:
-		params={'q':area}
-	params.update({'format':'jsonv2','limit':1})
-	response=requests.get(NOMINATIM_ENDPOINT,params=params,
-		headers={'User-Agent':USER_AGENT},timeout=60)
-	response.raise_for_status()
-	results=response.json()
-	if not results:
-		print("Error: No place found for",area)
-		sys.exit(1)
-	print("Acquiring data for",results[0]['display_name'])
-	s,n,w,e=[float(v) for v in results[0]['boundingbox']]
-	return area,(w,s,e,n)
 
 def wayGeometry(geometry):
 	return [(p['lon'],p['lat']) for p in geometry]
