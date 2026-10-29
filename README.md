@@ -34,6 +34,21 @@ uv run python cv4ag.py ml        -i data/fields.shp.json
 - **train** trains the U-Net. With `--test`, about 20% of the tiles are moved to the test set by spatial blocks; training tiles that overlap a test tile are left out so the test score is not inflated by overlapping imagery. Without `--test`, tiles already in `test/` are used for testing and never for training. Classes are weighted by median frequency balancing of their pixel counts (`--no-weights` to disable). The model with the best test mean IoU is saved to `weights/model.pt`, the log to `weights/train_log.csv`.
 - **ml** classifies the images in `test/`: class ids to `out/<image>.png`, image | prediction | label to `out/<image>_vis.png`, and per-class IoU/precision/recall to `out/metrics.json`.
 
+## Labels from OpenStreetMap
+Without own GIS data, land use polygons can be downloaded from OpenStreetMap
+with the Overpass API (closed ways and multipolygon relations, cached in `_cache_overpass/`):
+
+```
+uv run python cv4ag.py parse -s OSM_Query --arg1 "Le Sueur County, Minnesota" --arg2 landuse --arg3 data
+```
+
+`--arg1` is a place name or ISO country code (looked up with Nominatim) or a
+boundary box `"west south east north"`, `--arg2` the OSM tag (e.g. `landuse` or
+`landuse=farmland`). The tag value is stored in `Descriptio` (the default `--key`);
+all other OSM tags are kept as properties, e.g. `--key crop` where crops are mapped.
+OSM coverage is incomplete, so unmapped fields end up as background; consider
+`--no-background` for training.
+
 # Usage
 ```
 usage: cv4ag.py [-h] [-i FILE] [-s FILE] [-o PATH] [-c N] [-z N] [-x N] [-y N]

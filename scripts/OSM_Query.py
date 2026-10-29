@@ -1,197 +1,148 @@
-#!usr/bin/python
 """
 Script to download Open Street Map data of land use. Converts to GeoJSON
 Lukas Arnold
 WB-DIME
 Jan 31 2017
-"""
-from country_bounding_boxes import (
-      country_subunits_containing_point,
-      country_subunits_by_iso_code
-    )
-from utils.overpass_client import OverpassClient
-from numpy import floor
-from modules.getFeatures import find_between
-import json
-import urllib2
 
-# Query string to OSM to provide landuse data, with the query key later
-# placed in the middle
-query_begin = '''\
-way
-  ['''
-query_end=''']
-  ({query_bb_s},{query_bb_w},{query_bb_n},{query_bb_e});
-(._;>;);
-out;
+Usage:
+	python cv4ag.py parse -s OSM_Query --arg1 Minnesota --arg2 landuse=farmland --key crop
+
+'arg1': Area: place name or ISO country code (looked up with Nominatim), or
+	boundary box "west south east north" in degrees
+'arg2': OSM tag to search for, e.g. landuse or landuse=farmland
+'arg3': Output folder
+'arg4': Part of the data to keep (0-1)
+"""
+import json
+import os
+import sys
+from math import floor
+
+import requests
+from shapely.geometry import LineString, Polygon, mapping
+from shapely.ops import polygonize, unary_union
+
+from utils.overpass_client import OverpassClient, USER_AGENT
+
+# Query string to OSM to provide land use data with geometries, with the
+# query key later placed in the middle
+query_template = '''
+(
+  way[{query}]({{query_bb_s}},{{query_bb_w}},{{query_bb_n}},{{query_bb_e}});
+  relation[{query}][type=multipolygon]({{query_bb_s}},{{query_bb_w}},{{query_bb_n}},{{query_bb_e}});
+);
+out geom;
 '''
-# Output is OSM format
+NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search'
+MAX_QUERIES_WITHOUT_PROMPT = 100
 
 datatype="GeoJSON"
+
+def getBBox(area):
+	'''area name and boundary box (west,south,east,north) of a place or "w s e n" string'''
+	try:
+		w,s,e,n=[float(v) for v in area.replace(","," ").split()]
+		return "bbox_%g_%g_%g_%g" % (w,s,e,n),(w,s,e,n)
+	except ValueError:
+		pass
+	if len(area)==2 and area.isalpha(): # ISO country code
+		params={'country':area}
+	else:
+		params={'q':area}
+	params.update({'format':'jsonv2','limit':1})
+	response=requests.get(NOMINATIM_ENDPOINT,params=params,
+		headers={'User-Agent':USER_AGENT},timeout=60)
+	response.raise_for_status()
+	results=response.json()
+	if not results:
+		print("Error: No place found for",area)
+		sys.exit(1)
+	print("Acquiring data for",results[0]['display_name'])
+	s,n,w,e=[float(v) for v in results[0]['boundingbox']]
+	return area,(w,s,e,n)
+
+def wayGeometry(geometry):
+	return [(p['lon'],p['lat']) for p in geometry]
+
+def elementPolygon(element):
+	'''(Multi)Polygon of a closed way or multipolygon relation, None for anything else'''
+	if element['type']=='way':
+		coords=wayGeometry(element.get('geometry',[]))
+		if len(coords)<4 or coords[0]!=coords[-1]: # not an area
+			return None
+		polygon=Polygon(coords)
+	elif element['type']=='relation':
+		rings={'outer':[],'inner':[]}
+		for member in element.get('members',[]):
+			if member['type']=='way' and member.get('role') in rings and member.get('geometry'):
+				rings[member['role']].append(LineString(wayGeometry(member['geometry'])))
+		outer=unary_union(list(polygonize(rings['outer'])))
+		inner=unary_union(list(polygonize(rings['inner'])))
+		polygon=outer.difference(inner)
+	else:
+		return None
+	if not polygon.is_valid:
+		polygon=polygon.buffer(0)
+	if polygon.is_empty or polygon.geom_type not in ('Polygon','MultiPolygon'):
+		return None
+	return polygon
+
+def toGeoJSON(elements,key):
+	'''GeoJSON FeatureCollection; the value of tag key is stored in "Descriptio"'''
+	features=[]
+	for element in elements:
+		tags=element.get('tags',{})
+		if key not in tags:
+			continue
+		polygon=elementPolygon(element)
+		if polygon is None:
+			continue
+		properties=dict(tags)
+		properties['Descriptio']=tags[key]
+		properties['osm_id']=element['type']+'/'+str(element['id'])
+		features.append({'type':'Feature','properties':properties,'geometry':mapping(polygon)})
+	return {'type':'FeatureCollection',
+		'crs':{'type':'name','properties':{'name':'urn:ogc:def:crs:EPSG::4326'}},
+		'features':features}
 
 def script(countryISO='US',query='landuse',outputFolder='data/',partOfData=1,
 	outputFile='OSMdata_'):
 	"""
 	Main function executed by top
 
-	'countryISO': Country for which BBox data should be downloaded. Can also contain custom boundary box
+	'countryISO': Country, place or boundary box ("w s e n") for which data should be downloaded
 	'query': Tag for OSM query to search for
 	'partOfData': Part of total data of a country to be processed
 	Returns list with [filename,datatype], where datatype is the
 		GDAL_CODE
 	"""
 	partOfData=float(partOfData)
-	subunits=[]
-	countryISOlist=countryISO.split()
-	if countrISOlist[1]: #if there is more than one entry
-		bbox=[]
-		bbox.append(float(contryISOlist[0]))
-		bbox.append(float(contryISOlist[1]))
-		bbox.append(float(contryISOlist[2]))
-		bbox.append(float(contryISOlist[3]))
-
-	else:
-		#Load country data
-		for c in country_subunits_by_iso_code(countryISO):
-			subunits.append(c)
-		#Chose subunits, if more than 1
-		subunit=1
-		if len(subunits)>1: #if there are subunits
-			cnt = 1
-			print 	"Subunits:"
-			for c in subunits:
-				print cnt,"- ",c.name			
-				cnt += 1
-			subunit=input('Chose subunit: ')
-		elif len(subunits)==0: #if nothing found
-			print "Error: No country or entry with ISO code",countryISO
-			exit()
-		#Get BBox data for country
-		print "Acquiring data for",subunits[subunit-1].name
-		bbox = subunits[subunit-1].bbox #0-w, 1-s, 2-e, 3-n
-	w = bbox[0]
-	s = bbox[1]
-	e = bbox[2]
-	n = bbox[3]
-	print "Coordinates:",w,s,e,n
-	print "Key:",query
-	# Country is split into 100 boxes, as (for the us) sample is too big
-	# (timeout)
+	name,(w,s,e,n)=getBBox(countryISO)
+	print("Coordinates:",w,s,e,n)
+	print("Key:",query)
+	# Area is split into boxes of about 1/8 degree, as (for large countries)
+	# the sample is too big (timeout)
 	# Number of Boxes = (samples-1)^2 boxes.
-	#calculate number of boxes
 	mindiff=min([abs(w-e),abs(n-s)])
 	samples=int(floor((mindiff*8)+2))
-	print "Number of queries:",(samples-1)**2
-	#samples = 11  # 100 boxes
-	fullquery = query_begin+query+query_end
+	print("Number of queries:",(samples-1)**2)
+	if (samples-1)**2>MAX_QUERIES_WITHOUT_PROMPT:
+		if input("This is a large area. Continue? (y/n) ").lower()!="y":
+			sys.exit(0)
 	#Get Elements from OSM
-	overpass_client = OverpassClient(endpoint='fr')
+	overpass_client = OverpassClient(endpoint='de')
 	d = overpass_client.get_bbox_elements(
-	    ql_template=fullquery,
+	    ql_template=query_template.format(query=query),
 	    bb_s=s, bb_w=w, bb_n=n, bb_e=e,
 	    samples=samples)
-	lene=len(d)
-	print 'Total elements found: %d' % lene
-	boundery_index=int(floor(partOfData*lene))
-	d=d[0:boundery_index]	
-	dr=list(reversed(d))
-	lene=boundery_index
-	
-	fileName=outputFolder+'/'+outputFile+str(subunits[subunit-1].name).replace(" ","_")+".json"
+	print('Total elements found: %d' % len(d))
+	d=d[0:int(floor(partOfData*len(d)))]
 
-	#Create GeoJSON string
-	geojson=[]
-	geojson.append('''
-		{
-	    "type": "FeatureCollection",
-		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4326" } },
-	    "features": [''')
-	#create faster node searchs
-	print "Create library for faster node searches"
-	#get max id
-	cnt = 0.
-	ids={}
-	for e in d:
-		print "\t Library creation:",int(cnt*100./lene),"% done.\r", 
-		cnt+=1
-		if e['type']=='node':
-			ids[e['id']]=[e['lon'],e['lat']]
-
-	#creade list of nodes with ids.
-	#coordlist=[]
-	#cnt = 0.
-	#for i in range(0,maxid+1):
-	#	print "\t Step 2/3:",cnt*100./maxid+1,"% done.\r", 
-	#	cnt+=1
-	#	coordlist.append([0,0])
-	#cnt = 0.
-	#rint ""
-	#for e in d:
-	#	print "\t Step 3/3:",cnt*100./lene,"% done.\r", 
-	#	cnt+=1
-	#	if e['type']=='node':
-	#		coordlist(e['id'])[0]=e['lon']
-	#		coordlist(e['id'])[1]=e['lat']
-	#loop through elements and append to GeoJSON string
-	cnt = 0.
-	cnte = 0
-	print ""
-	print "Convert to GeoJSON file",fileName
-	writetag=[]
-	writecoord=[]
-	for e in d :
-		cnt+=1
-		print "\tGet elemenents:",int(cnt*100./lene),"% done.\r", 
-		if e['type']=='way':
-	#		if  e['area']=='yes':
-				writetag.append(e['tags'][query])
-				writecoord.append([])
-				for node in e['nodes']:
-					try:
-						lon=str(ids[node][0])
-						lat=str(ids[node][1])
-					except KeyError:
-						print ''
-						print '\tNode',node,'not found in library. Download informations from openstreetmap.org ...'
-						response=urllib2.urlopen('http://api.openstreetmap.org/api/0.6/node/'+str(node))
-						fullxml = str(response.read())
-						lon=find_between(fullxml,"lon=\"","\"",lastfirst=True)
-						lat=find_between(fullxml,"lat=\"","\"",lastfirst=True)
-					writecoord[cnte].append([lon,lat])
-				cnte+=1
-	cnte2=0
-	print ''
-	for tag in writetag:
-		print "\tCreate GeoJSON:",int(cnte2*100./cnte),"% done.\r", 
-		geojson.append('''
-		    {
-			"type": "Feature",'''+\
-				"\n\t\t\t\"properties\":{\"Descriptio\":\""+\
-				tag+"\"},")
-		geojson.append('''
-			"geometry" : {
-			    "type": "MultiPolygon",
-			    "coordinates":[[[''')
-		for coord in writecoord[cnte2]:
-			geojson.append("["+coord[0]+","+coord[1]+"],")
-		cnte2+=1
-		geojson[-1]=geojson[-1][0:-1]+"]]]}},"
-		#geojson=geojson[0:-1]+"]]]}},"
-	geojson=''.join(geojson)	
-	geojson=geojson[0:-1]+"\n]\n}"
-	print " "
-	with open(fileName, 'w+') as f:
-			json.dump(geojson,f) #save as geojson file
-	#replace escape characters
-	with open(fileName, 'r') as file :
-	  filedata = file.read()[1:-1]
-	# Replace the target string
-	filedata = filedata.replace('\\n', '')
-	filedata = filedata.replace('\\t', '')
-	filedata = filedata.replace('\\"', '"')
-	# Save the result
-	with open(fileName, 'w') as file:
-	  file.write(filedata)
-
-	print "Written to",fileName
+	geojson=toGeoJSON(d,query.split('=')[0])
+	print("Areas converted to GeoJSON:",len(geojson['features']))
+	os.makedirs(outputFolder,exist_ok=True)
+	fileName=os.path.join(outputFolder,outputFile+name.replace(" ","_").replace(",","")+".json")
+	with open(fileName,'w') as f:
+		json.dump(geojson,f)
+	print("Written to",fileName)
 	return [fileName,datatype]
