@@ -1,11 +1,11 @@
-#!usr/bin/env python 
+#!/usr/bin/env python3
 """
 Top Layer for the Computer Vision 4 Agriculture (cv4ag) framework
 Lukas Arnold
 WB-DIME
 Jan 30 2017
 
-The framework consists of four parts
+The framework consists of five parts
 
 1. Parsing input data (parse)
 2. Downloading satellite images (get_satellite)
@@ -16,9 +16,7 @@ The framework consists of four parts
 import argparse,sys,os
 #import subdirectories to python path
 sys.path.append('scripts')
-sys.path.append('modules')
-sys.path.append('lib')
-import parse,get_satellite,overlay,clean
+from modules import parse,get_satellite,overlay,clean
 
 #----------------------------------------------------------------------
 #Main
@@ -62,7 +60,7 @@ if __name__ == "__main__":
 		help='Number of satellite images to download.')
 	cmdParser.add_argument('-z',metavar='N',
 		type=int,default=17,
-		help='Zoom level. Min=15, Max=19. See libs/satellite_resolutions.csv for resolutions.')
+		help='Zoom level. Min=15, Max=19. See libs/zoomLevelResolution.csv for resolutions.')
 	cmdParser.add_argument('-x',metavar='N',
 		type=int,default=480,
 		help='Images have width N pixel.')
@@ -78,7 +76,7 @@ if __name__ == "__main__":
 			(or libs/*_formats.csv for FILETYPE_CODEs.')
 	cmdParser.add_argument('-n',metavar='N',
 		type=int,default=1,
-		help='Accuracy of neural net. 0: lowest. 3: highest.')
+		help='Size of neural net. 0: smallest (ResNet-18 encoder). 3: largest (ResNeXt-50 encoder).')
 	cmdParser.add_argument('--lonshift',metavar='N.N',
 		type=float,default=0,
 		help='Longitudanal shift of training data.')
@@ -88,7 +86,7 @@ if __name__ == "__main__":
 	cmdParser.add_argument('--shiftformat',metavar='N',
 		type=int,default=0,
 		help='Format of longitudinal/lateral shift.\
-		0: As fraction of image. 1: Georeferenced unites.')
+		0: As fraction of image. 1: Meters.')
 	cmdParser.add_argument('--top',metavar='N',
 		type=int,default=15,
 		help='Get N most frequent classes.')
@@ -109,16 +107,19 @@ if __name__ == "__main__":
 		help='Folder with training satellite images, if not in standard location.')
 	cmdParser.add_argument('--batchsize',metavar='N',
 		type=int,default=None,
-		help='Size of training batch (1-4)')
+		help='Size of training batch (default 8)')
 	cmdParser.add_argument('--stepsize',metavar='N.N',
 		type=float,default=None,
-		help='Size of training step')
+		help='Learning rate (default 5e-4)')
 	cmdParser.add_argument('--maxiter',metavar='N',
 		type=int,default=None,
 		help='Maximum iterations at training stage')
-	cmdParser.add_argument('--datatype',
-		type=str,default='PNG',
-		help='Datatype of training input date (PNG, LMDB, LMDB2 or HDF5)')
+	cmdParser.add_argument('--encoder',
+		type=str,default=None,
+		help='Encoder of the U-Net, overrides -n (any segmentation_models_pytorch encoder, e.g. resnet34)')
+	cmdParser.add_argument('--seed',metavar='N',
+		type=int,default=0,
+		help='Random seed for the train/test split and training')
 	cmdParser.add_argument('--arg1',
 		type=str,default=None,
 		help='Argument 1 for script.')
@@ -145,9 +146,13 @@ if __name__ == "__main__":
 	randomParser.add_argument('--no-random', dest='randomImages', action='store_false',help='Only use images with features (default).')
 	cmdParser.set_defaults(randomImages=False)
 	weightParser = cmdParser.add_mutually_exclusive_group(required=False)
-	weightParser.add_argument('--weights', dest='initweights', action='store_true',help='Initialize weights according to frequency statistics (default).')
-	weightParser.add_argument('--no-weights', dest='initweights', action='store_false',help='Do not initialize weights.')
+	weightParser.add_argument('--weights', dest='initweights', action='store_true',help='Weight classes inversely to their pixel frequency (default).')
+	weightParser.add_argument('--no-weights', dest='initweights', action='store_false',help='Weight all classes equally.')
 	cmdParser.set_defaults(initweights=True)
+	pretrainedParser = cmdParser.add_mutually_exclusive_group(required=False)
+	pretrainedParser.add_argument('--pretrained', dest='pretrained', action='store_true',help='Start from ImageNet weights (default).')
+	pretrainedParser.add_argument('--no-pretrained', dest='pretrained', action='store_false',help='Train from scratch.')
+	cmdParser.set_defaults(pretrained=True)
 	compareParser = cmdParser.add_mutually_exclusive_group(required=False)
 	compareParser.add_argument('--compares', dest='compare', action='store_true',help='Compare classified results with labels')
 	compareParser.add_argument('--no-compares', dest='compare', action='store_false',help='Do not compare classified results with labels')
@@ -159,7 +164,7 @@ if __name__ == "__main__":
 	inputFile = cmdArgs.get('i')
 	outputFolder = cmdArgs.get('o')
 	zoomLevel= cmdArgs.get('z')
-	datatype = cmdArgs.get('d')
+	filetype = cmdArgs.get('d')
 	satelliteCount = cmdArgs.get('c')
 	xpixel = cmdArgs.get('x')
 	ypixel = cmdArgs.get('y')
@@ -168,7 +173,6 @@ if __name__ == "__main__":
 	scriptArg1 = cmdArgs.get('arg1')
 	scriptArg2 = cmdArgs.get('arg2')
 	scriptArg3 = cmdArgs.get('arg3')
-	scriptArg4 = cmdArgs.get('arg4')
 	scriptArg4 = cmdArgs.get('arg4')
 	lonshift= cmdArgs.get('lonshift')
 	latshift= cmdArgs.get('latshift')
@@ -182,21 +186,23 @@ if __name__ == "__main__":
 	batchsize = cmdArgs.get('batchsize')
 	maxiter = cmdArgs.get('maxiter')
 	stepsize = cmdArgs.get('stepsize')
-	datatype = cmdArgs.get('datatype')
+	encoder = cmdArgs.get('encoder')
+	pretrained = cmdArgs.get('pretrained')
+	seed = cmdArgs.get('seed')
 	sat = cmdArgs.get('sat')
 	b = cmdArgs.get('b')
 	randomImages = cmdArgs.get('randomImages')
 	initweights = cmdArgs.get('initweights')
 	compare = cmdArgs.get('compare')
 	# Execute according to options
-	print "Option:",selectedModule
-	#only import caffe if needed
+	print("Option:",selectedModule)
+	#only import torch if needed
 	if selectedModule == 'all' or selectedModule=='train' or selectedModule=='ml':
-		import train,applyml
+		from modules import train,applyml
 	if selectedModule == 'all':
 		inputFile,stats,freq,elements=\
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber,
+			scriptFile=scriptFile,datatype=filetype,top=top,layernumber=layernumber,
 			key=key,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
@@ -241,21 +247,21 @@ if __name__ == "__main__":
 			batchsize=batchsize,
 			maxiter=maxiter,
 			stepsize=stepsize,
-			datatype=datatype,
+			encoder=encoder,
+			pretrained=pretrained,
+			seed=seed,
 			createTest=test\
 			)
 		applyml.apply(outputFolder,
 			inputFile,
 			mode=mode,
 			ignorebackground=b,
-			#stats=stats,
 			epsg=epsg,
 			top=top,
-			compare=compare,
-			key=key)
+			compare=compare)
 	elif selectedModule == 'parse':
 		parse.parse(inputFile=inputFile,outputFolder=outputFolder,
-			scriptFile=scriptFile,datatype=datatype,top=top,layernumber=layernumber, 
+			scriptFile=scriptFile,datatype=filetype,top=top,layernumber=layernumber, 
 			key=key,
 			scriptArg1=scriptArg1,scriptArg2=scriptArg2,
 			scriptArg3=scriptArg3,scriptArg4=scriptArg4)
@@ -296,9 +302,11 @@ if __name__ == "__main__":
 			ignorebackground=b,
 			batchsize=batchsize,
 			maxiter=maxiter,
-			datatype=datatype,
 			stepsize=stepsize,
 			initweights=initweights,
+			encoder=encoder,
+			pretrained=pretrained,
+			seed=seed,
 			createTest=test\
 			)
 	elif selectedModule == 'ml':
@@ -310,9 +318,8 @@ if __name__ == "__main__":
 			epsg=epsg,
 			compare=compare,
 			top=top)
-			#key=key)
 	elif selectedModule == 'clear':
-		clean.clear(inputFile)
+		clean.clear(inputFile,outputFolder)
 	else:
-		print "error - no valid option"
+		print("error - no valid option")
 		cmdParser.print_help()

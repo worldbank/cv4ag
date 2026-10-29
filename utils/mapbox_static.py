@@ -1,70 +1,76 @@
 '''
-See this for some meta info about the basemap:
-http://api.tiles.mapbox.com/v4/${MAPBOX_MAPID}.json?access_token=${MAPBOX_ACCESS_TOKEN}
+Download satellite images from the Mapbox Static Images API.
+https://docs.mapbox.com/api/maps/static-images/
 '''
 
 import os
-import urllib
+import requests
 
-# Base URL
+# Base URL. Logo and attribution are switched off as they would be burnt into
+# the training images.
 MAPBOX_ENDPOINT = (
-    'http://api.tiles.mapbox.com/v4/{mapid}/{lon},{lat},{zoom}'
-    '/{width}x{height}.{format}?access_token={access_token}')
+    'https://api.mapbox.com/styles/v1/{style}/static/{lon},{lat},{zoom}'
+    '/{width}x{height}?access_token={access_token}&attribution=false&logo=false'
+    '&format={format}')
 
 # Params
-MAPBOX_MAPID = 'zugaldia.mfecmd32'
-#MAPBOX_ACCESS_TOKEN = os.environ["mapbox_token"]
+MAPBOX_STYLE = 'mapbox/satellite-v9'
 MAPBOX_FORMAT = 'png'
+MAX_SIZE = 1280
 
 
 class MapboxStatic(object):
 
-    def __init__(self, namespace=None, root_folder=None):
+    def __init__(self, namespace=None, root_folder=None, style=MAPBOX_STYLE):
         self._namespace = namespace or 'mapbox'
         self._root_folder = root_folder or '/tmp'
+        self._style = style
         if not os.path.isdir(self._root_folder):
-            try:
-                os.mkdir(self._root_folder)
-                print '[mapbox static] Root folder created: %s' \
-                    % self._root_folder
-            except Exception as e:
-                print '[mapbox static] Failed to create the root folder \
-                    (%s): %s' % (self._root_folder, unicode(e))
+            os.makedirs(self._root_folder)
+            print('[mapbox static] Root folder created: %s' % self._root_folder)
 
-    def _get_filepath(self, element_id):
+    def get_filepath(self, element_id):
         filename = '%s_%s.%s' % (self._namespace, element_id, MAPBOX_FORMAT)
         return os.path.join(self._root_folder, filename)
 
-    def _get_filesize(self, filepath):
-        statinfo = os.stat(filepath)
-        return statinfo.st_size
-
-    def get_url(self, latitude, longitude,mapbox_zoom,access_token,width=1280,height=1280):
+    def get_url(self, latitude, longitude, mapbox_zoom, access_token,
+                width=1280, height=1280):
+        if width > MAX_SIZE or height > MAX_SIZE:
+            raise ValueError('Mapbox static images are at most %dx%d pixels'
+                             % (MAX_SIZE, MAX_SIZE))
+        # mapbox_zoom uses 256-pixel tiles like the rest of cv4ag. Style-based
+        # static images use 512-pixel tiles, i.e. the same scale is one zoom
+        # level lower.
         return MAPBOX_ENDPOINT.format(
-            mapid=MAPBOX_MAPID,
+            style=self._style,
             lon=longitude,
             lat=latitude,
-            zoom=mapbox_zoom, #19= Max zoom
+            zoom=mapbox_zoom - 1,
             width=width,
             height=height,
             format=MAPBOX_FORMAT,
             access_token=access_token)
 
-    def download_tile(self, element_id, url,verbose=True):
-        filepath = self._get_filepath(element_id=element_id)
+    def download_tile(self, element_id, url, verbose=True):
+        '''returns True if the tile is available (downloaded now or before)'''
+        filepath = self.get_filepath(element_id=element_id)
         if os.path.isfile(filepath):
-	    if verbose:
-		    print '[mapbox static] Tile already downloaded (%s).' % filepath
-            return
-	if verbose:
-		print '[mapbox static] Downloading tile (%s).' % filepath
-        urllib.urlretrieve(url=url, filename=filepath)
+            if verbose:
+                print('[mapbox static] Tile already downloaded (%s).' % filepath)
+            return True
+        if verbose:
+            print('[mapbox static] Downloading tile (%s).' % filepath)
+        response = requests.get(url, timeout=60)
+        if response.status_code != 200:
+            print('[mapbox static] Download failed (HTTP %d): %s'
+                  % (response.status_code, response.text[:200]))
+            return False
 
         # Detect if we have actual imagery here
-        filesize = self._get_filesize(filepath=filepath)
-        if filesize < 500:
-	    if verbose:
-		    print 'Deleting downloaded file, it looks like an empty image. Check zoom level'
-            os.remove(filepath)
+        if len(response.content) < 500:
+            if verbose:
+                print('Ignoring downloaded file, it looks like an empty image. Check zoom level')
             return False
+        with open(filepath, 'wb') as f:
+            f.write(response.content)
         return True

@@ -1,0 +1,27 @@
+[project]
+name = "cv4ag"
+version = "0.2.0"
+description = "Computer vision over satellite tiles for agricultural land detection"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pillow",
+    "pyproj>=3",
+    "shapely>=2",
+    "rasterio",
+    "geopandas",
+    "requests",
+    "torch>=2.2",
+    "segmentation-models-pytorch>=0.3",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

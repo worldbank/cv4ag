@@ -1,13 +1,12 @@
-#!usr/bin/python
 '''
 Get satellite data according to input file.
 '''
 from random import shuffle,random
-import os,json
+import os,csv,json,sys
 from utils.mapbox_static import MapboxStatic
 from utils.coordinate_converter import CoordConvert
 from modules.getFeatures import latLon,getBBox
-from libs.foldernames import satDataFolder,testDataFolder
+from libs.foldernames import satDataFolder,testDataFolder,tilesfile,dataName
 
 def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	outputFolder='data',xpixel=480,ypixel=360,epsg=None,elements=None,
@@ -23,24 +22,21 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	'outputFolder': Folder to store output data in
 	'xpixel': Number of pixels of satellite images (width)
 	'ypixel': Number of pixels of satellite images (height)
-	'epsg': EPSG code for coordinate system in GIS data (will try to find automatically 
+	'epsg': EPSG code for coordinate system in GIS data (will try to find automatically
 		if not provided)
 	'elements': GIS data can also be input directly
 	'randomImages': Get center of random polygons (False) or within Boundary Box of data (True)
 	'''
 	if (not inputFile) and (not elements):
-		print "Error: Provide input file."
-		exit()
+		print("Error: Provide input file.")
+		sys.exit(1)
 	if not mapboxtoken:
-		print "Error: Provide mapbox token (more informations on www.mapbox.com)."
-		exit()
-	#parser.add_argument('--sport',
-	 #   type=str, default='baseball',
-	  #  help='Sport tag, for example: baseball, tennis, or soccer.')
+		print("Error: Provide mapbox token (more informations on www.mapbox.com).")
+		sys.exit(1)
 
 	# We need the elements
 	if not elements:
-		print 'Loading %s...' % inputFile
+		print('Loading %s...' % inputFile)
 		with open(inputFile, 'r') as f:
 			elements = json.load(f)
 
@@ -48,20 +44,24 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements,epsg)
 	#create folders
-	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
-	if not os.path.isdir(subpath):
-		os.mkdir(subpath)
-		print 'Directory',subpath,'created'
-	if not os.path.isdir(subpath+satDataFolder):
-		os.mkdir(subpath+satDataFolder)
-		print 'Directory',subpath+satDataFolder,'created'
-	if not os.path.isdir(subpath+testDataFolder):
-		os.mkdir(subpath+testDataFolder)
-		print 'Directory',subpath+testDataFolder,'created'
-	
+	subpath=outputFolder+"/"+dataName(inputFile)
+	for folder in [subpath,subpath+satDataFolder,subpath+testDataFolder]:
+		if not os.path.isdir(folder):
+			os.makedirs(folder)
+			print('Directory',folder,'created')
+
 	#Write metadata
 	with open(subpath+satDataFolder+"meta.csv","a+") as f:
 		f.write("ZoomLevel,,"+str(zoomLevel)+"\n")
+	#Center of each tile, used by overlay to compute the exact image footprint
+	tilesPath=subpath+satDataFolder+tilesfile
+	knownTiles=set()
+	if os.path.isfile(tilesPath):
+		with open(tilesPath,newline='') as f:
+			knownTiles={row['name'] for row in csv.DictReader(f)}
+	else:
+		with open(tilesPath,"w") as f:
+			f.write("name,lon,lat,zoom,width,height\n")
 	#get bbox if set to random
 	if randomImages:
 		xlist=[]
@@ -77,48 +77,38 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 		miny=min(ylist)
 		maxy=max(ylist)
 
-	element_list = [] 
-	index_list = range(len(elements['features'])) #featue map
+	index_list = list(range(len(elements['features']))) #featue map
 	# Randomize elements list to make sure we don't download all pics from the
+	# same area
 	shuffle(index_list)
-	for i in index_list:
-		element_list.append(elements['features'][i]) #feature map
 
 	# Now we're gonna download the satellite images for these locations
-	namespace= os.path.split(inputFile)[-1][:-5] #get input file name as namespace
+	namespace= dataName(inputFile) #get input file name as namespace
 
 	mapbox_static = MapboxStatic(
 	    namespace=namespace,
 	    root_folder=subpath+satDataFolder[0:-1])
 
 	total_downloaded = 0
-	c = 0
-	print "------------------- Getting Satellite data -------------------"
-	for element in element_list:
+	print("------------------- Getting Satellite data -------------------")
+	for c,i in enumerate(index_list):
 		if randomImages:
-			randomValue=random()
-			av_lon=minx+((maxx-minx)*randomValue)
-			av_lat=miny+((maxy-miny)*randomValue)
+			av_lon=minx+((maxx-minx)*random())
+			av_lat=miny+((maxy-miny)*random())
 			element_id_str=1000000+c #1000000 indicates random value
 			with open(subpath+satDataFolder+"meta.csv","a+") as f:
 				f.write(str(element_id_str)+","+str(av_lon)+","+str(av_lat)+"\n")
 		else:
-			element_id_str = index_list[c]
+			element_id_str = i
 			#figure out center of polygon
-			av_lon,av_lat=latLon(element)
+			av_lon,av_lat=latLon(elements['features'][i])
 		#Convert to standard format
-		if code != 4319: # if not already in wgs84 standard format
-			lotlan= myCoordConvert.convert(av_lon,av_lat)
-			longitude=lotlan[0]
-			latitude=lotlan[1]
-		else: #if already in wgs84 format
-			latitude= av_lat
-			longitude= av_lon
-					
+		longitude,latitude= myCoordConvert.convert(av_lon,av_lat)
+
 		#get url
-		print "Coordinates WSG64: "+str(longitude)+','+str(latitude)
+		print("Coordinates WSG84: "+str(longitude)+','+str(latitude))
 		if (av_lon != longitude) and (av_lat != latitude):
-			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
+			print("Coordinates Native: "+str(av_lon)+','+str(av_lat))
 		url = mapbox_static.get_url(
 			latitude=latitude,
 			longitude=longitude,
@@ -131,8 +121,13 @@ def get_satellite(inputFile,mapboxtoken=None,count=1000,zoomLevel=17,
 		    element_id=element_id_str,
 		    url=url,verbose=True)
 		if success:
+			name=os.path.split(mapbox_static.get_filepath(element_id_str))[-1]
+			if name not in knownTiles:
+				with open(tilesPath,"a") as f:
+					f.write("%s,%.8f,%.8f,%d,%d,%d\n" %
+						(name,longitude,latitude,zoomLevel,xpixel,ypixel))
+				knownTiles.add(name)
 			total_downloaded += 1
-			print total_downloaded,'/',count
-		c += 1
+			print(total_downloaded,'/',count)
 		if total_downloaded >= count:
 			break

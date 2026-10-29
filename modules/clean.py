@@ -1,11 +1,9 @@
 import shutil
+from libs.foldernames import dataName,stripSatFolder
 
-def clear(inputFile):
-	if inputFile[-5:]==".json":
-		rmDir=inputFile[:-5]+"/"
-	else:
-		rmDir=inputFile+"/"
-	print 'Remove directory',inputFile
+def clear(inputFile,outputFolder="data"):
+	'''remove everything generated for inputFile in outputFolder'''
+	rmDir=stripSatFolder(outputFolder)+"/"+dataName(inputFile)+"/"
+	print('Remove directory',rmDir)
 	shutil.rmtree(rmDir)
-	print 'Done'
-
+	print('Done')

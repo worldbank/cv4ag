@@ -1,89 +1,140 @@
-#!usr/bin/python
 '''
 Overlay classes and satellite data
 '''
-import os,csv,json
-import utils.gdal_rasterize as gdal_rasterize
+import os,csv,json,math,sys
+import numpy as np
+import geopandas as gpd
 from PIL import Image
-from functools import partial
-from multiprocessing import Pool
+from rasterio.features import rasterize
+from rasterio.transform import from_bounds
+from shapely.geometry import box,shape
+from utils import tiles
 from utils.coordinate_converter import CoordConvert
-from utils.getImageCoordinates import imageCoordinates
-from utils.project import project,projectRev 
+from utils.project import projectRev
 from modules.getFeatures import latLon,find_between,find_before
 from modules.get_stats import get_stats
 from libs.colorlist import colorlist
 from libs.foldernames import *
 
-def rasterLayer(i,stats,subpath,size,te):
-	'''converts feature geojson to png image'''
-	feature=str(stats[i])
-	i+=1
-	print "Layer "+str(i)+"/"+str(len(stats))+'\t Processing feature: '+feature
-	outFile=subpath+"/f_"+str(i)+".png"
-	featureFile =subpath+"/"+featureDataFolder+"/f_"+str(i)+".json" 
-	try:
-		os.remove(outFile)
-	except OSError:
-		pass
-	gdal_rasterize.rasterize(	\
-		featureFile,
-		outFile,
-		ts=size,		# set resolution
-		out_format='PNG',
-		init=0,
-		te=te,
-		burn_values=[i])				# set image limits in te
+def loadFeatures(elements,stats,key,code):
+	'''
+	GeoDataFrame with the features of the classes in stats and their class id
+	(1 = most frequent class, 0 is background). Reprojected to Web Mercator,
+	the projection of the satellite images, unless code is 9999 (pixel coordinates).
+	'''
+	classes={name:i+1 for i,name in enumerate(stats)}
+	geometries=[]
+	classids=[]
+	for feature in elements['features']:
+		classid=classes.get(str(feature['properties'].get(key)))
+		if classid and feature.get('geometry'):
+			geometries.append(shape(feature['geometry']))
+			classids.append(classid)
+	features=gpd.GeoDataFrame({'classid':classids},geometry=geometries,
+		crs=None if code==9999 else 'EPSG:'+str(code))
+	if code!=9999:
+		features=features.to_crs(tiles.MERCATOR_CRS)
+	# less frequent classes are drawn on top of more frequent ones
+	return features.sort_values('classid',kind='stable').reset_index(drop=True)
 
-	#make 0s transparent to prepare for merge	
-	img = Image.open(outFile)
-	img = img.convert("RGBA")
-	datas = img.getdata()
-	newData = []
-	for item in datas:
-	    if item[0] == 0 and item[1] == 0 and item[2] == 0:
-		newData.append((0, 0, 0, 0))
-	    else:
-		newData.append(item)
-	img.putdata(newData)
-	img.save(outFile, "PNG")
+def readTileMeta(sat):
+	'''centers and zoom levels of downloaded tiles, written by get_satellite'''
+	tileMeta={}
+	if os.path.isfile(sat+tilesfile):
+		with open(sat+tilesfile,newline='') as f:
+			for row in csv.DictReader(f):
+				tileMeta[row['name']]=row
+	return tileMeta
 
-	#os.remove(featureFile)
+def tileCenter(image,sat,elements,myCoordConvert,randomImages):
+	'''
+	WGS84 center of a tile downloaded before tiles.csv was written: center of the
+	feature in the file name or, for random tiles, the coordinates in meta.csv
+	'''
+	index = int(find_between(image,"_",".png"))
+	av_lon=None
+	if randomImages:
+		with open(sat+"meta.csv",newline='') as csvfile:
+			for coord in csv.reader(csvfile,delimiter=",",quotechar='"'):
+				if coord[0]==str(index):
+					av_lon=float(coord[1])
+					av_lat=float(coord[2])
+					break
+	if av_lon is None:
+		av_lon,av_lat=latLon(elements['features'][index]) # get center points
+	return myCoordConvert.convert(av_lon,av_lat)
 
-def createLayer(i,stats,subpath,inputFile,key):
-	'''creates sub geojson files with only one feature property'''
-	feature=stats[i]
-	i+=1
-	print "Processing feature:",feature,i,"/",len(stats)
-	featureFile = subpath+"/"+featureDataFolder+"/f_"+str(i)+".json"
-	if not os.path.isfile(featureFile): 
-		print "\tOpening input file... ",
-		with open(inputFile,'r') as f:
-			elementsInstance=json.load(f)
-		print "Done."
-		#delete every item that is not feature
-		cntdel=0
-		print "\tExtracting layers... ",
-		for i in range(0,len(elementsInstance['features'])):
-			#print elementsInstance['features'][cntdel]['properties']
-			if str(elementsInstance['features'][cntdel]['properties'][key])!=feature:
-				#print "del", elementsInstance['features'][cnt_featureelement]
-				del elementsInstance['features'][cntdel]	
-			else:
-				cntdel+=1
-		#for i in range(0,len(elementsInstance['features'])):
-		#	print elementsInstance['features'][i]['properties']
-		print "Done."
-		print "\tStoring layer file... ",
+def pixelFootprint(image,xpixel,ypixel):
+	'''footprint of image tiles named ID___X_Y.png (EPSG code 9999)'''
+	image_index=find_before(image,'___')
+	av_lon=int(find_between(image,'___','_',True))
+	av_lat=int(find_between(image,'_','.png',False))
+	with open(imgsizefile,newline='') as csvfile:
+		for imgSize in csv.reader(csvfile,delimiter=",",quotechar='"'):
+			if imgSize[0]==image_index:
+				W=int(imgSize[1])
+				H=int(imgSize[2])
+				break
+	lon_a,lat_a= projectRev(av_lon,av_lat,image_index,'.',W,H)
+	lon_b,lat_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',W,H)
+	return (min(lon_a,lon_b),min(lat_a,lat_b),max(lon_a,lon_b),max(lat_a,lat_b))
+
+def shiftBounds(bounds,lonshift,latshift,shiftformat,lat=0):
+	'''
+	shift the label window. shiftformat 0: fraction of the image,
+	1: meters on the ground (map units for EPSG code 9999)
+	'''
+	west,south,east,north=bounds
+	if shiftformat == 0:
+		lonshift=lonshift*(east-west)
+		latshift=latshift*(north-south)
+	else: # Web Mercator units are stretched by 1/cos(latitude)
+		lonshift=lonshift/math.cos(math.radians(lat))
+		latshift=latshift/math.cos(math.radians(lat))
+	return (west-lonshift,south-latshift,east-lonshift,north-latshift)
+
+def rasterLabels(features,bounds,width,height):
+	'''label image with class ids of the features within bounds'''
+	idx=np.sort(features.sindex.query(box(*bounds),predicate='intersects'))
+	if len(idx)==0:
+		return np.zeros((height,width),dtype=np.uint8)
+	selected=features.iloc[idx]
+	return rasterize(zip(selected.geometry,selected.classid.astype(int)),
+		out_shape=(height,width),
+		transform=from_bounds(*bounds,width,height),
+		fill=0,dtype='uint8')
+
+def checkImage(satImage,label):
+	'''satellite image with class colors blended in, for visual checks'''
+	out=np.asarray(satImage.convert('RGB'),dtype=np.float32).copy()
+	for classid in np.unique(label):
+		if classid==0:
+			continue
 		try:
-			os.remove(featureFile)
-		except OSError:
-			pass
-		with open(featureFile,'w+') as f:
-			json.dump(elementsInstance,f)
-		print "Done."
-	else:
-		print "\tFile",featureFile,"already exists."
+			r,g,b,a=colorlist[classid-1]
+		except IndexError:
+			print("Warning: Color list for visual check file too short")
+			continue
+		mask=label==classid
+		alpha=a/255.
+		out[mask]=(1-alpha)*out[mask]+alpha*np.array([r,g,b],dtype=np.float32)
+	return Image.fromarray(out.astype(np.uint8))
+
+def writeFootprints(path,footprints):
+	with open(path,"w") as f:
+		f.write("name,crs,west,south,east,north\n")
+		for name in sorted(footprints):
+			crs,bounds=footprints[name]
+			f.write(name+","+crs+","+",".join("%.4f" % v for v in bounds)+"\n")
+
+def readFootprints(path):
+	footprints={}
+	if os.path.isfile(path):
+		with open(path,newline='') as f:
+			for row in csv.DictReader(f):
+				footprints[row['name']]=(row['crs'],tuple(float(row[k])\
+					for k in ['west','south','east','north']))
+	return footprints
 
 def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift=0,latshift=0,
 	shiftformat=1,top=10,stats=None,count=None,key='Descriptio',epsg=None,
@@ -92,25 +143,19 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 	Overlays images in satiImageFolder
 	with data in inputFile
 	'''
-	
+
 	if not zoomLevel:
-		print "Warning: Zoom level not set. Assuming zoom level 17."
+		print("Warning: Zoom level not set. Assuming zoom level 17.")
 		zoomLevel = 17
 
-	#Get list of images
-	samples_data = {}
-	#set outputFolder to directory above the /sat directory
-	if outputFolder[-1]=="/":
-		outputFolder=outputFolder[0:-1]
-	if outputFolder[-3:]==satDataFolder[1:-1]:
-		outputFolder=outputFolder[0:-4]
+	outputFolder=stripSatFolder(outputFolder)
 
 	#Make directory for subfiles
-	subpath=outputFolder+"/"+os.path.split(inputFile)[-1][:-5]
-	for subsubpath in ['',trainingDataFolder,checkDataFolder,testDataFolder,featureDataFolder]:
+	subpath=outputFolder+"/"+dataName(inputFile)
+	for subsubpath in ['',trainingDataFolder,checkDataFolder,testDataFolder]:
 		if not os.path.isdir(subpath+subsubpath):
-			os.mkdir(subpath+subsubpath)
-			print 'Directory',subpath+subsubpath,'created'
+			os.makedirs(subpath+subsubpath)
+			print('Directory',subpath+subsubpath,'created')
 
 	#load data and check if images in folder
 	#has to be png image and start with input filename
@@ -118,25 +163,23 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		sat = sat+'/'
 	else:
 		sat = subpath+satDataFolder
-	listImages=os.listdir(sat)
+	listImages=sorted(os.listdir(sat))
 	if epsg!=9999:
 		image_files = [f for f in listImages if f.endswith('.png') \
-			and f.startswith(os.path.split(inputFile)[-1][:-5])] 
+			and f.startswith(dataName(inputFile))]
 	else:
-		image_files = [f for f in listImages if f.endswith('.png')] 
+		image_files = [f for f in listImages if f.endswith('.png')]
 	if len(image_files)==0:
-		print "Error: No images found in",sat[0:-1]
-		exit()
-	else:
-		print "Number of images found:",len(image_files)
-		if count:
-			print "Create",count,"images"
-		else:
-			print "Create",len(image_files),"images"
+		print("Error: No images found in",sat[0:-1])
+		sys.exit(1)
+	print("Number of images found:",len(image_files))
+	if count:
+		image_files=image_files[:count]
+	print("Create",len(image_files),"images")
 
-	print 'Get GIS elements...'
+	print('Get GIS elements...')
 	if not elements:
-		print 'Opening %s...' % inputFile
+		print('Opening %s...' % inputFile)
 		with open(inputFile, 'r') as f:
 			elements = json.load(f)
 	#Get statistics if not in input
@@ -145,255 +188,56 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 			elements=elements)
 	else:
 		freq=None
-	#Create json-file for each layer
-	print "Create layer files..."
-	if len(stats)>0:
-		if os.path.getsize(inputFile)>220000000:
-			print "Very large input file of size ~",\
-				int(os.path.getsize(inputFile)/1000000),"MB"
-			print "Clearing memory...",
-			elements=True
-			for i in range(0,len(stats)):
-				createLayer(i,stats,subpath,inputFile,key)
-			print 'Reopening %s...' % inputFile
-			with open(inputFile, 'r') as f:
-				elements = json.load(f)
-		#initialize multi-core processing if file size not too large
-		else:
-			pool = Pool()
-			print 'Map to cores...'	
-			#create subfile for each feature	
-			#pool only takes 1-argument functions
-			partial_createLayer=partial\
-				(createLayer,stats=stats,subpath=subpath,inputFile=inputFile,key=key) 
-			pool.map(partial_createLayer, range(0,len(stats)))
-			pool.close()
-			pool.join()
-	else: #empty feature map
-		print "No features found. Exiting."
-		#exit()
-		stats = [0] #set feature length to 1
-		featureFile = subpath+"/"+featureDataFolder+"/f_1.json"
-		emptyjson=\
-		'''{
-		  "type": "FeatureCollection",
-		  "features": []
-		}'''
-		with  open(featureFile,"w+") as f:
-			f.write(emptyjson)
-
-	print "Layer files created..."
+	if len(stats)==0:
+		print("No features found.")
 
 	#Get coordinate system
 	myCoordConvert = CoordConvert()
 	code=myCoordConvert.getCoordSystem(elements,epsg)
-	#Get imageconverter
-	myImageCoord=imageCoordinates(xpixel,ypixel,'libs/zoomLevelResolution.csv',zoomLevel)
-	av_lats=[]
-	av_lons=[]
-	cnt = 1
+	print("Reproject features...")
+	features=loadFeatures(elements,stats,key,code)
+	print(len(features),"features of",len(stats),"classes")
+	tileMeta=readTileMeta(sat)
+	footprintPath=subpath+trainingDataFolder+footprintsfile
+	footprints=readFootprints(footprintPath)
 
-	for image in image_files:
-		#rasterize corresponding data
-		print ''
-		if count: 		#abort if maximum limit set and cnt above maximum limit
-			if cnt>count:
-				break
-		# The index is between the last underscore and the extension dot
-		print str(cnt)+'/'+str(len(image_files))
-		index = int(find_between(image,"_",".png"))
-		if randomImages: #get coordinates for random images
-			av_lon=None
-			with open(sat+"meta.csv","rb") as csvfile:
-				 coordFile = list(csv.reader(csvfile,delimiter=",",quotechar='"'))
-			for coord in coordFile:
-				if coord[0]==str(index):
-					av_lon=coord[1]
-					av_lat=coord[2]
-					break
-			if not av_lon:
-				av_lon,av_lat=latLon(elements['features'][index]) # get center points
+	for cnt,image in enumerate(image_files):
+		print('')
+		print(str(cnt+1)+'/'+str(len(image_files)))
+		satImage=Image.open(sat+image)
+		width,height=satImage.size
+		#Image footprint in the projection of the features
+		if code==9999:
+			bounds=pixelFootprint(image,xpixel,ypixel)
+			latitude=0
+			crs='native'
 		else:
-			if code != 9999:
-				av_lon,av_lat=latLon(elements['features'][index]) # get center points
-			else:
-				image_index=find_before(image,'___')
-				av_lon=int(find_between(image,'___','_',True))
-				av_lat=int(find_between(image,'_','.png',False))
-				
-		#Convert to standard format
-		print code
-		if code != 4319: # if not already in wgs84 standard format
-			if code != 9999:
-				lotlan= myCoordConvert.convert(av_lon,av_lat)
-				longitude=lotlan[0]
-				latitude=lotlan[1]
-			else:
-				with open(imgsizefile,"rb") as csvfile:
-					 imgSizes= list(csv.reader(csvfile,delimiter=",",quotechar='"'))
-				for imgSize in imgSizes:
-					if imgSize[0]==image_index:
-						W=int(imgSize[1])
-						H=int(imgSize[2])
-						break
-				lotlan_init= projectRev(av_lon,av_lat,image_index,'.',W,H)
-				longitude=lotlan_init[0]
-				latitude=lotlan_init[1]
-				lotlan_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',W,H)
-				longitude_b=lotlan_b[0]
-				latitude_b=lotlan_b[1]
-		else: #if already in wgs84 format
-			latitude= av_lat
-			longitude= av_lot
-		print "Coordinates WSG84: "+str(longitude)+','+str(latitude)
-		if (av_lon != longitude) and (av_lat != latitude):
-			print "Coordinates Native: "+str(av_lon)+','+str(av_lat)
-		#Calculate image coordinates in WSG 84
-		if code!=9999:
-			image_box_lat,image_box_lon= myImageCoord.getImageCoord(latitude,longitude)
-		else:
-			image_box_lat=[latitude,latitude,latitude_b,latitude_b]
-			image_box_lon=[longitude,longitude_b,longitude,longitude_b]
-		#print 'Coordinates:',latitude,longitude
-		#Convert back to original format
-		if code != 4319: # if not already in wgs84 standard format
-			if code != 9999:
-				image_box=\
-					myCoordConvert.convertBack(image_box_lon,image_box_lat)
-			else:
-				image_box=[image_box_lon,image_box_lat]
-		else:
-			image_box=[image_box_lon,image_box_lat]
-		image_lat = image_box[1]
-		image_lon = image_box[0]	
-		#print "Coordinates Native corner: "+str(image_lon[0])+','+str(image_lat[0])
-		#print "Coordinates WSG84 corner: "+str(image_box_lon[0])+','+str(image_box_lat[0])
+			if image in tileMeta:
+				meta=tileMeta[image]
+				longitude,latitude=float(meta['lon']),float(meta['lat'])
+				bounds=tiles.footprint(longitude,latitude,int(meta['zoom']),
+					int(meta['width']),int(meta['height']))
+			else: # downloaded before tiles.csv existed
+				longitude,latitude=tileCenter(image,sat,elements,myCoordConvert,randomImages)
+				bounds=tiles.footprint(longitude,latitude,zoomLevel,width,height)
+			print("Coordinates WSG84: "+str(longitude)+','+str(latitude))
+			crs=tiles.MERCATOR_CRS
+		if lonshift or latshift:
+			bounds=shiftBounds(bounds,lonshift,latshift,shiftformat,latitude)
+			print("Shift applied:",lonshift,latshift)
 
-		cnt+=1
-		tifile=subpath+trainingDataFolder+\
-			os.path.split(image)[-1][0:-4]+"train.png" #path for raster tif file
-		print 'Converting',image,'to',os.path.split(tifile)[-1]
-		#shift factor
-		west=(image_lon[0]+image_lon[2])/2
-		south=min(image_lat)
-		east=(image_lon[1]+image_lon[3])/2
-		north=max(image_lat)
-		if shiftformat == 0:					#if fraction as shift unit
-			lonshift_calc=lonshift*abs(east-west)
-			latshift_calc=latshift*abs(north-south)
-		else:
-			lonshift_calc=lonshift
-			latshift_calc=latshift
-		print "Shift applied:"
-		print "Longitudinal \t",lonshift_calc
-		print "Lateral \t",latshift_calc
-		#set rasterize settings
-		size=[xpixel,ypixel]
-		te=[west-lonshift_calc,south-latshift_calc,\
-			east-lonshift_calc,north-latshift_calc] #image bounderies 
-		print te
-		#print te
-		print "Image bounderies:"
-		print str(image_box_lon[0])[:-5],'\t',\
-			str(image_box_lat[0])[:-5],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lon[1])[:-5],'\t',str(image_box_lat[1])[:-5]
-		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
-		print '\t|\t\t\t\t\t\t\t\t\t\t|\t'
-		print str(image_box_lon[2])[:-5],'\t',\
-			str(image_box_lat[2])[:-5],'\t----\t----\t----\t----\t----\t----',\
-			str(image_box_lon[3])[:-5],'\t',str(image_box_lat[3])[:-5]
-		
-		#rasterize
-		#rasterLayer(0,stats,subpath,size,te)
-		if os.path.getsize(inputFile)>500000000:
-			print "Very large input file size ~",\
-				int(os.path.getsize(inputFile)/1000000),"MB"
-			for i in range(0,len(stats)):
-				rasterLayer(i,stats,subpath,size,te)
-		else:
-			pool = Pool()
-			print 'Map to cores...'	
-			#pool only takes 1-argument functions, so create partial function
-			partial_rasterLayer=\
-				partial(rasterLayer,stats=stats,subpath=subpath,size=size,te=te) 
-			pool.map(partial_rasterLayer, range(0,len(stats)))
-			pool.close()
-			pool.join()
-
-		#create output file
-		try: #remove output file, if it already exists
-			os.remove(tifile)
-		except OSError:
-			pass
-		#merge first two pictures
-		print "Merging images..."
-		imgFile=subpath+"/f_"+str(1)+".png"
-		background = Image.open(imgFile)
-		if len(stats)>1:
-			imgFile=subpath+"/f_"+str(2)+".png"
-			foreground = Image.open(imgFile)
-			background.paste(foreground, (0, 0), foreground)
-		background.save(tifile)
-		if len(stats)>2:
-			for i in range(3,len(stats)+1):
-				imgFile=subpath+"/f_"+str(i)+".png"
-				background = Image.open(tifile)
-				foreground = Image.open(imgFile)
-				background.paste(foreground, (0, 0), foreground)
-				background.save(tifile)
+		tifile=subpath+trainingDataFolder+image[0:-4]+"train.png" #path for label file
+		print('Converting',image,'to',os.path.split(tifile)[-1])
+		label=rasterLabels(features,bounds,width,height)
+		Image.fromarray(label,mode='L').save(tifile)
+		footprints[image]=(crs,bounds)
 
 		#Create test images for visual checks
-		checkfile=subpath+checkDataFolder+os.path.split(image)[-1][0:-4]+"check.png" #path for check files
-		try:
-			os.remove(checkfile)
-		except OSError:
-			pass
-		background = Image.open(sat+image)
-		brightened = Image.open(tifile)
-		#brighten up visual images for check file
-		#make 0s transparent to prepare for merge	
-		datas = brightened.getdata()
-		newData = []
-		print "Creating check image..."
-		try:
-			for item in datas:
-				for i in range(0,len(stats)):	
-					if item[0] == 0 and item[1] == 0 and item[2] == 0 and item[3]==0:
-						newData.append(item)
-						break
-					elif item[0] == i and item[1] == i and item[2] == i and item[3]==255:
-						newData.append(colorlist[i-1])
-						break
-			brightened.putdata(newData)
-		except IndexError:
-			print "Warning: Color list for visual check file too short"
+		checkfile=subpath+checkDataFolder+image[0:-4]+"check.png" #path for check files
+		checkImage(satImage,label).save(checkfile)
+		print("Class label image",tifile," and check image created.")
+		print("Labelled pixels:",'%.1f%%' % (100.*np.count_nonzero(label)/label.size))
 
-		background.paste(brightened, (0, 0), brightened)
-		background.save(checkfile)
-
-		#convert back to grayscale
-		img = Image.open(tifile)
-		img = img.convert("L")
-		img.save(tifile, "PNG")
-		print "Class label image",tifile," and check image created."
-	#Clean up side data
-	print "Cleanup..."
-	for i in range(1,len(stats)+1):
-#		try:
-#			os.remove(subpath+"/f_"+str(i)+".json")
-#		except OSError:
-#			pass
-		try:
-			os.remove(subpath+"/f_"+str(i)+".png")
-		except OSError:
-			pass
-		try:
-			os.remove(subpath+"/f_"+str(i)+".png.aux.xml")
-		except OSError:
-			pass
-	print "Overlaying done."
+	writeFootprints(footprintPath,footprints)
+	print("Overlaying done.")
 	return stats,freq
-#	try:
-#		os.rmdir(subpath)
-#	except OSError:
-#		pass
