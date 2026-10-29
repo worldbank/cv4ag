@@ -10,8 +10,7 @@ from rasterio.transform import from_bounds
 from shapely.geometry import box,shape
 from utils import tiles
 from utils.coordinate_converter import CoordConvert
-from utils.project import projectRev
-from modules.getFeatures import latLon,find_between,find_before
+from modules.getFeatures import latLon,find_between
 from modules.get_stats import get_stats
 from libs.colorlist import colorlist
 from libs.foldernames import *
@@ -20,7 +19,7 @@ def loadFeatures(elements,stats,key,code):
 	'''
 	GeoDataFrame with the features of the classes in stats and their class id
 	(1 = most frequent class, 0 is background). Reprojected to Web Mercator,
-	the projection of the satellite images, unless code is 9999 (pixel coordinates).
+	the projection of the satellite images.
 	'''
 	classes={name:i+1 for i,name in enumerate(stats)}
 	geometries=[]
@@ -31,9 +30,7 @@ def loadFeatures(elements,stats,key,code):
 			geometries.append(shape(feature['geometry']))
 			classids.append(classid)
 	features=gpd.GeoDataFrame({'classid':classids},geometry=geometries,
-		crs=None if code==9999 else 'EPSG:'+str(code))
-	if code!=9999:
-		features=features.to_crs(tiles.MERCATOR_CRS)
+		crs='EPSG:'+str(code)).to_crs(tiles.MERCATOR_CRS)
 	# less frequent classes are drawn on top of more frequent ones
 	return features.sort_values('classid',kind='stable').reset_index(drop=True)
 
@@ -64,25 +61,10 @@ def tileCenter(image,sat,elements,myCoordConvert,randomImages):
 		av_lon,av_lat=latLon(elements['features'][index]) # get center points
 	return myCoordConvert.convert(av_lon,av_lat)
 
-def pixelFootprint(image,xpixel,ypixel):
-	'''footprint of image tiles named ID___X_Y.png (EPSG code 9999)'''
-	image_index=find_before(image,'___')
-	av_lon=int(find_between(image,'___','_',True))
-	av_lat=int(find_between(image,'_','.png',False))
-	with open(imgsizefile,newline='') as csvfile:
-		for imgSize in csv.reader(csvfile,delimiter=",",quotechar='"'):
-			if imgSize[0]==image_index:
-				W=int(imgSize[1])
-				H=int(imgSize[2])
-				break
-	lon_a,lat_a= projectRev(av_lon,av_lat,image_index,'.',W,H)
-	lon_b,lat_b= projectRev(av_lon+xpixel,av_lat+ypixel,image_index,'.',W,H)
-	return (min(lon_a,lon_b),min(lat_a,lat_b),max(lon_a,lon_b),max(lat_a,lat_b))
-
 def shiftBounds(bounds,lonshift,latshift,shiftformat,lat=0):
 	'''
 	shift the label window. shiftformat 0: fraction of the image,
-	1: meters on the ground (map units for EPSG code 9999)
+	1: meters on the ground
 	'''
 	west,south,east,north=bounds
 	if shiftformat == 0:
@@ -164,11 +146,8 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 	else:
 		sat = subpath+satDataFolder
 	listImages=sorted(os.listdir(sat))
-	if epsg!=9999:
-		image_files = [f for f in listImages if f.endswith('.png') \
-			and f.startswith(dataName(inputFile))]
-	else:
-		image_files = [f for f in listImages if f.endswith('.png')]
+	image_files = [f for f in listImages if f.endswith('.png') \
+		and f.startswith(dataName(inputFile))]
 	if len(image_files)==0:
 		print("Error: No images found in",sat[0:-1])
 		sys.exit(1)
@@ -206,22 +185,16 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print(str(cnt+1)+'/'+str(len(image_files)))
 		satImage=Image.open(sat+image)
 		width,height=satImage.size
-		#Image footprint in the projection of the features
-		if code==9999:
-			bounds=pixelFootprint(image,xpixel,ypixel)
-			latitude=0
-			crs='native'
-		else:
-			if image in tileMeta:
-				meta=tileMeta[image]
-				longitude,latitude=float(meta['lon']),float(meta['lat'])
-				bounds=tiles.footprint(longitude,latitude,int(meta['zoom']),
-					int(meta['width']),int(meta['height']))
-			else: # downloaded before tiles.csv existed
-				longitude,latitude=tileCenter(image,sat,elements,myCoordConvert,randomImages)
-				bounds=tiles.footprint(longitude,latitude,zoomLevel,width,height)
-			print("Coordinates WSG84: "+str(longitude)+','+str(latitude))
-			crs=tiles.MERCATOR_CRS
+		#Image footprint in Web Mercator
+		if image in tileMeta:
+			meta=tileMeta[image]
+			longitude,latitude=float(meta['lon']),float(meta['lat'])
+			bounds=tiles.footprint(longitude,latitude,int(meta['zoom']),
+				int(meta['width']),int(meta['height']))
+		else: # downloaded before tiles.csv existed
+			longitude,latitude=tileCenter(image,sat,elements,myCoordConvert,randomImages)
+			bounds=tiles.footprint(longitude,latitude,zoomLevel,width,height)
+		print("Coordinates WSG84: "+str(longitude)+','+str(latitude))
 		if lonshift or latshift:
 			bounds=shiftBounds(bounds,lonshift,latshift,shiftformat,latitude)
 			print("Shift applied:",lonshift,latshift)
@@ -230,7 +203,7 @@ def overlay(outputFolder,inputFile,xpixel=480,ypixel=360,zoomLevel=None,lonshift
 		print('Converting',image,'to',os.path.split(tifile)[-1])
 		label=rasterLabels(features,bounds,width,height)
 		Image.fromarray(label,mode='L').save(tifile)
-		footprints[image]=(crs,bounds)
+		footprints[image]=(tiles.MERCATOR_CRS,bounds)
 
 		#Create test images for visual checks
 		checkfile=subpath+checkDataFolder+image[0:-4]+"check.png" #path for check files

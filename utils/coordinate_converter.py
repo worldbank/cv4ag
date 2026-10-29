@@ -21,9 +21,8 @@ class CoordConvert(object):
 			except KeyError:
 				code=4326  #GeoJSON without crs member is WGS84 (RFC 7946)
 				print("No coordinate system in GIS file. Assuming EPSG:4326 (use --epsg to override).")
-		if int(code)!=9999:
-			self.toWgs84=Transformer.from_crs(int(code),4326,always_xy=True)
-			self.fromWgs84=Transformer.from_crs(4326,int(code),always_xy=True)
+		self.toWgs84=Transformer.from_crs(int(code),4326,always_xy=True)
+		self.fromWgs84=Transformer.from_crs(4326,int(code),always_xy=True)
 		return int(code)
 
 	def convert(self,lon,lat):

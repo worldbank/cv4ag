@@ -12,7 +12,6 @@ indexDataFolder="/imgindex/"
 outDataFolder="/out/"
 weightsfile="model.pt"
 lastweightsfile="last.pt"
-imgsizefile="imgsizes.csv"
 tilesfile="tiles.csv"			# in sat/: center and zoom of downloaded tiles
 footprintsfile="footprints.csv"	# in train/: georeferenced bounds of each label image
 metricsfile="metrics.json"
