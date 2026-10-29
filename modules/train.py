@@ -1,277 +1,240 @@
-import os
-import caffe
-import utils.computeStatistics
-from libs.foldernames import *
-from libs.models import *
-from modules.getFeatures import find_before
-from modules.get_stats import get_stats
-from random import random
+'''
+Train a U-Net on the satellite images (sat/) and class label images (train/)
+'''
+import os,math,random,sys,time
+from collections import Counter
 from shutil import copyfile
+import numpy as np
+import torch
+import segmentation_models_pytorch as smp
+from PIL import Image
+from libs.foldernames import *
+from modules.get_stats import get_stats
+from modules.overlay import readFootprints
+from modules.segmentation import *
+
+#net=0..3: default number of iterations
+DEFAULT_MAXITER={0:2000,1:5000,2:10000,3:20000}
+
+def findPairs(imagepath,labelpath):
+	'''images <name>.png with a label image <name>train.png, by image name'''
+	if not os.path.isdir(imagepath) or not os.path.isdir(labelpath):
+		return {}
+	labels=set(os.listdir(labelpath))
+	return {f:(os.path.abspath(imagepath+f),os.path.abspath(labelpath+f[:-4]+"train.png"))\
+		for f in sorted(os.listdir(imagepath))\
+		if f.endswith('.png') and f[:-4]+"train.png" in labels}
+
+def spatialSplit(names,footprints,fraction=0.2,blocksize=5,seed=0):
+	'''
+	Split tiles into training and test tiles by spatial blocks of
+	blocksize x blocksize tiles, so that the test set is not made of
+	neighbours of training tiles. Training tiles that overlap a test tile are
+	dropped. Tiles without footprint are assigned randomly.
+
+	Returns training names, test names, dropped names
+	'''
+	rng=random.Random(seed)
+	located=[n for n in names if n in footprints]
+	test=set(n for n in names if n not in footprints and rng.random()<fraction)
+	dropped=set()
+	if located:
+		bounds=np.array([footprints[n][1] for n in located])
+		tilesize=np.median(np.maximum(bounds[:,2]-bounds[:,0],bounds[:,3]-bounds[:,1]))
+		centers=np.stack([(bounds[:,0]+bounds[:,2])/2,(bounds[:,1]+bounds[:,3])/2],1)
+		#use smaller blocks if the data cover only a few blocks
+		while True:
+			cells=[tuple(c) for c in np.floor(centers/(blocksize*tilesize)).astype(int)]
+			cellcount=Counter(cells)
+			if len(cellcount)>=10 or blocksize<=1:
+				break
+			blocksize/=2.
+		order=sorted(cellcount)
+		rng.shuffle(order)
+		chosen=set()
+		ntest=0
+		for cell in order:
+			if ntest>=fraction*len(located):
+				break
+			chosen.add(cell)
+			ntest+=cellcount[cell]
+		testmask=np.array([c in chosen for c in cells])
+		test.update(n for n,t in zip(located,testmask) if t)
+		testbounds=bounds[testmask]
+		for n,b,t in zip(located,bounds,testmask):
+			if not t and np.any((testbounds[:,0]<b[2])&(testbounds[:,2]>b[0])&\
+				(testbounds[:,1]<b[3])&(testbounds[:,3]>b[1])):
+				dropped.add(n)
+	train=[n for n in names if n not in test and n not in dropped]
+	return train,sorted(test),sorted(dropped)
+
+def classWeights(pairs,num_classes,ignorebackground=False,maxweight=10.):
+	'''
+	median frequency balancing on pixel counts: rare classes get weights > 1,
+	frequent classes < 1. Returns weights and pixel counts per class.
+	'''
+	counts=np.zeros(num_classes)
+	for _,label in pairs:
+		counts+=np.bincount(np.asarray(Image.open(label).convert('L')).ravel(),
+			minlength=256)[:num_classes]
+	if ignorebackground:
+		counts[0]=0
+	weights=np.ones(num_classes)
+	present=counts>0
+	freq=counts[present]/counts.sum()
+	weights[present]=np.clip(np.median(freq)/freq,1./maxweight,maxweight)
+	return weights,counts
+
+def seedWorker(worker_id):
+	np.random.seed(torch.initial_seed()%2**32)
 
 def train(outputFolder,inputFile,net=1,stats=None,key='Descriptio',\
-	elements=None,top=15,ignorebackground=1,freq=None,createTest=False,xpixel=480,ypixel=360,
-	mode="gpu",batchsize=None,maxiter=None,stepsize=None,datatype="PNG",initweights=True):
+	elements=None,top=15,ignorebackground=False,freq=None,createTest=False,xpixel=480,ypixel=360,
+	mode="gpu",batchsize=None,maxiter=None,stepsize=None,initweights=True,
+	encoder=None,pretrained=True,seed=0,testfraction=0.2):
 	#Get statistics if not in input
 	if not stats:
 		stats,freq,_=get_stats(inputFile,top,verbose=True,key=key,\
 			elements=elements)
 
-	#set outputFolder to directory above the /sat directory
-	if outputFolder[-1]=="/":
-		outputFolder=outputFolder[0:-1]
-	if outputFolder[-3:]==satDataFolder[1:-1]:
-		outputFolder=outputFolder[0:-4]
+	outputFolder=stripSatFolder(outputFolder)
 
 	##########################################
 	# Create Folders
 	subpath,satpath,trainpath,modelpath,weightpath,indexpath,testpath,verpath,_=\
-		getPaths(outputFolder,inputFile)	
-	# Get model files
-	
-	filewritten=False
-	filewrittenTest=False
+		getPaths(outputFolder,inputFile)
 
-	#Find matching indices and write to file
-	cnt=0
-	cnt_test=0
-	for f1 in os.listdir(satpath):
-		try:
-			id1= (find_before(f1,".png"))
-			for f2 in os.listdir(trainpath):
-				id2= (find_before(f2,"train.png"))
-				if id1==id2:
-				#Put ~20% of images into test folder if createTest set
-					randomValue=random()
-					if randomValue>=0.2 or not createTest:
-						cnt+=1
-						if filewritten==False: #create new file
-							with open(indexpath+"/train.txt",'w+') as f:
-								f.write(str(os.path.abspath(satpath+"/"+f1))+" "+\
-									str(os.path.abspath(trainpath+"/"+f2)))
-							filewritten=True
-						else: #append file
-							with open(indexpath+"/train.txt",'a+') as f:
-								f.write("\n"+str(os.path.abspath(satpath+"/"+f1))+" "+\
-									str(os.path.abspath(trainpath+"/"+f2)))
-					else:
-						print "Move",f1,"and",f2
-						#os.rename(satpath+f1,testpath+f1)
-						copyfile(satpath+f1,testpath+f1)
-						copyfile(trainpath+f2,verpath+f2)
-						#os.rename(trainpath+f2,verpath+f2)
-		except ValueError: #ignore metadata
-			pass
-	for f1 in os.listdir(testpath):
-		try:
-			id1= (find_before(f1,".png"))
-			for f2 in os.listdir(verpath):
-				id2= (find_before(f2,"train.png"))
-				if id1==id2:
-					cnt_test+=1
-					if filewrittenTest==False: #create new file
-						with open(indexpath+"/test.txt",'w+') as f:
-							f.write(str(os.path.abspath(testpath+"/"+f1))+" "+\
-								str(os.path.abspath(verpath+"/"+f2)))
-						filewrittenTest=True
-					else: #append file
-						with open(indexpath+"/test.txt",'a+') as f:
-							f.write("\n"+str(os.path.abspath(testpath+"/"+f1))+" "+\
-								str(os.path.abspath(verpath+"/"+f2)))
-		except ValueError: #ignore subfolder 
-			pass
+	##########################################
+	# Training and test set
+	pairs=findPairs(satpath,trainpath)
+	if createTest:
+		footprints=readFootprints(trainpath+footprintsfile)
+		trainnames,testnames,dropped=spatialSplit(sorted(pairs),footprints,
+			fraction=testfraction,seed=seed)
+		#replace test set of a previous run (copies of files in sat/ and train/)
+		for f in os.listdir(testpath):
+			if f in pairs:
+				os.remove(testpath+f)
+		for f in os.listdir(verpath):
+			if f.endswith("train.png") and f[:-9]+".png" in pairs:
+				os.remove(verpath+f)
+		for name in testnames:
+			copyfile(pairs[name][0],testpath+name)
+			copyfile(pairs[name][1],verpath+name[:-4]+"train.png")
+		print(len(testnames),"tiles copied to test set,",len(dropped),\
+			"tiles next to test tiles left out.")
+	else: #tiles in the test folder are never used for training
+		trainnames=[n for n in pairs if not os.path.isfile(testpath+n)]
+	trainpairs=[pairs[n] for n in trainnames]
+	testpairs=list(findPairs(testpath,verpath).values())
+	write_pairs(indexpath+"train.txt",trainpairs)
+	write_pairs(indexpath+"test.txt",testpairs)
+	print(len(trainpairs),"files found for training. ",len(testpairs),"files found for testing.")
+	if not trainpairs:
+		print("Error: No training images. Run overlay first.")
+		sys.exit(1)
 
-	print cnt,"files found for training. ",cnt_test,"files found for testing."
+	classes=['Background']+[str(s) for s in stats]
+	with open(subpath+"/meta_classlabels.txt",'w') as f:
+		f.write("\n".join(str(i)+"\t"+name for i,name in enumerate(classes))+"\n")
 
-	#write solver
-	print "Configure solver files and net..."
-	solver_configured=solver.replace('PATH_TO_OUTPUT',str(os.path.abspath(weightpath)+"/"))
-	solver_configured=solver_configured.replace\
-		('PATH_TO_TRAINPROTOTXT',str(os.path.abspath(modelpath+trainprototxt)))
-	if mode.lower()=='gpu':
-		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','GPU')
-	elif mode.lower() =='cpu':
-		solver_configured=solver_configured.replace('OPTION_GPU_OR_CPU','CPU')
-	#net=2,3 extended training net, net=1 basic training net, net=0 very basic net
-	if not stepsize:
-		if net==0:
-			stepsize=0.3
-		elif net==1:
-			stepsize=0.1
-		elif net==2:
-			stepsize=0.01
-		elif net==3:
-			stepsize=0.001
-	solver_configured=solver_configured.replace('INSERT_BASE_LR',str(stepsize))
-	if not maxiter:
-		if net==0:
-			maxiter=500
-		elif net==1:
-			maxiter=5000
-		elif net==2:
-			maxiter=20000
-		elif net==3:
-			maxiter=40000
-	solver_configured=solver_configured.replace('INSERT_MAX_ITER',str(maxiter))
+	##########################################
+	# Class weights
+	weights,counts=classWeights(trainpairs,len(classes),ignorebackground)
+	if not initweights:
+		weights=np.ones(len(classes))
+	print("%-40s %8s %8s" % ("class","pixels","weight"))
+	for name,count,weight in zip(classes,counts,weights):
+		if ignorebackground and name=='Background':
+			continue
+		print("%-40s %7.2f%% %8.3f" % (name[:40],100.*count/max(counts.sum(),1),weight))
+		if count==0:
+			print("\tWarning: no pixels of class",name,"in training images")
 
-	with open(modelpath+solverprototxt,"w+") as f:
-		f.write(solver_configured)
+	##########################################
+	# Model and training settings
+	encoder=encoder or ENCODERS[net]
+	maxiter=maxiter or DEFAULT_MAXITER[net]
+	batchsize=batchsize or 8
+	stepsize=stepsize or 5e-4
+	device=pick_device(mode)
+	random.seed(seed)
+	np.random.seed(seed)
+	torch.manual_seed(seed)
+	crop=crop_size(trainpairs)
+	print("Encoder:",encoder,"(ImageNet pretrained)" if pretrained else "")
+	print("Device:",device,"Batch size:",batchsize,"Crop:",crop,\
+		"Learning rate:",stepsize,"Iterations:",maxiter)
 
-	#write net
-	if net==0:
-		model=nets[0]
-		inference=inferences[0]
-	elif net==1:
-		model=nets[0]
-		inference=inferences[0]
-	elif net==2:
-		model=nets[1]
-		inference=inferences[1]
-	elif net==3:
-		model=nets[1]
-		inference=inferences[1]
-	net_configured=model
-	inference_configured=inference
+	workers=min(4,os.cpu_count() or 1)
+	loader=torch.utils.data.DataLoader(
+		TileDataset(trainpairs,crop=crop,augment=True,ignorebackground=ignorebackground),
+		batch_size=batchsize,shuffle=True,drop_last=len(trainpairs)>=batchsize,
+		num_workers=workers,persistent_workers=True,worker_init_fn=seedWorker,
+		pin_memory=device.type=='cuda')
+	model=build_model(encoder,len(classes),pretrained).to(device)
+	celoss=torch.nn.CrossEntropyLoss(
+		weight=torch.tensor(weights,dtype=torch.float32,device=device),
+		ignore_index=IGNORE_INDEX)
+	diceloss=smp.losses.DiceLoss('multiclass',ignore_index=IGNORE_INDEX)
+	optimizer=torch.optim.AdamW(model.parameters(),lr=stepsize,weight_decay=1e-4)
+	scheduler=torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=stepsize,
+		total_steps=maxiter,pct_start=0.05)
 
-	if datatype.lower()=="png":	
-		dtype='DenseImageData'
-		netshuffle='shuffle: true'
-		dataparam='dense_image_data_param'
-		net_configured=net_configured.replace('DATALAYER',datalayer)
-		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower()[0:2]=="hdf":
-		dtype='HDF5'
-		netshuffle='shuffle: true'
-		dataparam='hdf5_data_param'
-		net_configured=net_configured.replace('DATALAYER',datalayer)
-		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower()=="lmdb":
-		dtype='Data'
-		netshuffle='backend: LMDB'
-		dataparam='data_param'
-		net_configured=net_configured.replace('DATALAYER',datalayer)
-		inference_configured=inference_configured.replace('DATALAYER',datalayer)
-	elif datatype.lower()=="lmdb2": #not completed. need different types and sources
-		dtype='Data'
-		netshuffle='backend: LMDB'
-		dataparam='data_param'
-		net_configured=net_configured.replace('DATALAYER',datalayer+datalayer)
-		inference_configured=inference_configured.replace('DATALAYER',datalayer+datalayer)
-	else:
-		print "Error: Provide valid datatype (PNG, LMDB, LMDB2 or HDF5)."
-		exit()
-		
-	net_configured=net_configured.replace('DATATYPE',dtype)
-	inference_configured=inference_configured.replace('DATATYPE',dtype)
-	net_configured=net_configured.replace('SHUFFLE',netshuffle)
-	inference_configured=inference_configured.replace('SHUFFLE','')
-	net_configured=net_configured.replace('DATAPARAM',dataparam)
-	inference_configured=inference_configured.replace('DATAPARAM',dataparam)
+	def save(path,iteration,result=None):
+		torch.save({'state_dict':model.state_dict(),'encoder':encoder,'classes':classes,
+			'ignorebackground':ignorebackground,'iteration':iteration,'scores':result},path)
 
-	inference_configured=inference_configured.replace\
-		('PATH_TO_SOURCE',str(os.path.abspath(indexpath+"test.txt"))) # to change
-	net_configured=net_configured.replace('PATH_TO_SOURCE',str(os.path.abspath(indexpath+"train.txt")))
-	if not batchsize:
-		if net<3:
-			batchsize=2
-		else:
-			batchsize=1
-	net_configured=net_configured.replace('BATCHSIZE',str(batchsize))
-	inference_configured=inference_configured.replace('BATCHSIZE',str(1))
-	if ignorebackground:
-		ignorelabel='ignore_label: 0'
-		firstclass = 1
-		additionalclass = 0
-	else:
-		ignorelabel=''
-		firstclass = 0
-		additionalclass = 1
-	net_configured=net_configured.replace('INSERT_IGNORE_LABEL',ignorelabel)
-	if net>1 or (xpixel == 480 and ypixel == 360):
-		upsample_w_large= str(int(round(0.125*xpixel)))
-		upsample_h_large= str(int(round(0.125*ypixel)))
-		upsample_w_small=str(int(round(0.0625*xpixel)))
-		upsample_h_small=str(int(round(0.0625*ypixel)))
-	else:
-		print "Error: Net < 2 only available for 480x360 pixel images. Chose other net or other size"
-		exit()
-
-	net_configured=net_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
-	net_configured=net_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)
-	inference_configured=inference_configured.replace('UPSAMPLE_W_LARGE',upsample_w_large)
-	inference_configured=inference_configured.replace('UPSAMPLE_H_LARGE',upsample_h_large)
-	net_configured=net_configured.replace('UPSAMPLE_W_SMALL',upsample_w_small)
-	net_configured=net_configured.replace('UPSAMPLE_H_SMALL',upsample_h_small)
-	inference_configured=inference_configured.replace('UPSAMPLE_W_SMALL',upsample_w_small)
-	inference_configured=inference_configured.replace('UPSAMPLE_H_SMALL',upsample_h_small)
-
-	sumfreq=sum(freq)
-	initweight=1./len(stats)
-	classweights=''''''
-	with open(subpath+"/meta_classlabels.txt",'w+') as f:
-		f.write('')
-			
-	if not ignorebackground:
-		if initweights:
-			classweight=freq[0]*1./(8*sumfreq) #Background weight is set to same as first labelled class/8
-		else:
-			classweight=0.2
-		print 'Weight for background:\t\t\t\t\t\t\t',classweight
-		classweights+='class_weighting: '+str(classweight)+"\n"
-		with open(subpath+"/meta_classlabels.txt",'a+') as f:
-			f.write("0\tBackground")
-				
-	for i in range(0,len(stats)):
-		#Create file with metadata
-		if initweights:
-			classweight=freq[i]*1./sumfreq #does not have to equal 1
-		else:
-			classweight=0.8
-		classweights+='class_weighting: '+str(classweight)+"\n"
-		numberoftabs=len(stats[i])/8	
-		tabs="\t"*(6-numberoftabs)
-		print 'Weight for class '+stats[i]+":"+tabs+str(classweight)
-		with open(subpath+"/meta_classlabels.txt",'a+') as f:
-			f.write(str(1+additionalclass)+"\t"+str(stats[i]))
-
-	net_configured=net_configured.replace\
-		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
-	inference_configured=inference_configured.replace\
-		('INSERT_NUM_CLASSES',str(len(stats)+additionalclass)) #number of classes
-	net_configured=net_configured.replace('INSERT_CLASS_WEIGHTING',str(classweights))
-	with open(modelpath+trainprototxt,"w+") as f:
-		f.write(net_configured)
-	with open(modelpath+inferenceprototxt,"w+") as f:
-		f.write(inference_configured)
-	print "Model files written to",modelpath
 	##########################################
 	# Start training
-
-	if mode.lower()=='gpu':
-		print "GPU mode"
-		caffe.set_device(0)
-		caffe.set_mode_gpu()
-	elif mode.lower() =='cpu':
-		print "CPU mode"
-		caffe.set_mode_cpu()
+	evalinterval=max(maxiter//10,1)
+	best=-1.
+	iteration=0
+	losses=[]
+	start=time.time()
+	log=open(weightpath+"train_log.csv","w")
+	log.write("iteration,loss,learning_rate,test_miou\n")
+	while iteration<maxiter:
+		stepped=False
+		for x,y in loader:
+			if not (y!=IGNORE_INDEX).any(): #nothing to learn
+				continue
+			stepped=True
+			model.train()
+			x,y=x.to(device),y.to(device)
+			with torch.autocast(device.type,dtype=torch.bfloat16,enabled=device.type=='cuda'):
+				logits=model(x)
+			logits=logits.float()
+			loss=celoss(logits,y)+diceloss(logits,y)
+			optimizer.zero_grad(set_to_none=True)
+			loss.backward()
+			optimizer.step()
+			scheduler.step()
+			iteration+=1
+			losses.append(loss.item())
+			miou=''
+			if iteration%evalinterval==0 or iteration==maxiter:
+				if testpairs:
+					result=evaluate(model,testpairs,classes,device,ignorebackground)
+					miou='%.4f' % result['miou']
+					print("Iteration",iteration,"test mean IoU:",miou)
+					if result['miou']>best:
+						best=result['miou']
+						save(weightpath+weightsfile,iteration,result)
+				save(weightpath+lastweightsfile,iteration)
+			if iteration%20==0 or iteration==maxiter:
+				print("Iteration %d/%d loss %.4f lr %.2e (%.0fs)" % (iteration,maxiter,\
+					np.mean(losses[-20:]),scheduler.get_last_lr()[0],time.time()-start))
+			log.write("%d,%.5f,%.3e,%s\n" % (iteration,losses[-1],scheduler.get_last_lr()[0],miou))
+			if iteration>=maxiter:
+				break
+		if not stepped:
+			print("Error: Training images contain no labelled pixels.")
+			sys.exit(1)
+	log.close()
+	if not testpairs:
+		copyfile(weightpath+lastweightsfile,weightpath+weightsfile)
 	else:
-		print "Error: indicate mode (cpu or gpu)"
-		exit()
-	print weightpath+"_iter_"+str(maxiter)+".caffeemodel"
-	if os.path.isfile(weightpath+"_iter_"+str(maxiter)+".caffemodel"):
-		#overwrite=raw_input("_iter_"+str(maxiter)+".caffemodel exists. Overwrite? (y/n)")
-		#if overwrite=="n":
-		#else:
-		#	caffesolver = caffe.get_solver(modelpath+solverprototxt)
-		#	caffesolver.solve()
-		#	del caffesolver
-		if os.path.isfile(weightpath+weightsfile):
-			print weightsfile,"already exists."
-			pass
-		else:
-			utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
-	else:	
-		caffesolver = caffe.get_solver(modelpath+solverprototxt)
-		caffesolver.solve()
-		del caffesolver
-		utils.computeStatistics.compute(modelpath,trainprototxt,weightpath,weightsfile,xpixel,ypixel,maxiter)
-	print "Training completed."
+		print("Best test mean IoU: %.4f" % best)
+	print("Model written to",weightpath+weightsfile)
+	print("Training completed.")
