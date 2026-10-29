@@ -1,6 +1,8 @@
 # cv4ag
 Computer vision application over satellite RGB tiles for agricultural land detection
 
+> **Note:** This is a short 3-hour LLM pass with Claude on an old repo which brings it up to date.
+
 GIS polygons with land use classes (e.g. crop types) are rasterized onto Web
 Mercator satellite tiles, and a U-Net with an ImageNet pretrained encoder
 ([segmentation_models_pytorch](https://github.com/qubvel-org/segmentation_models.pytorch))
